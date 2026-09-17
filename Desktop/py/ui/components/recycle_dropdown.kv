@@ -1,0 +1,16 @@
+<RecycleDropdown>:  # ScrollLayout
+    size_hint: None, None
+
+    scrollview: scrollview
+    RecycleRestrictedScrollView:
+        id: scrollview
+        viewclass: root.viewclass
+        scroll_by_content: True
+        do_scroll_x: False
+        RecycleBoxLayout:
+            size_hint: (1, None)
+            orientation: "vertical"
+            default_size_hint: (1, None)
+            width: self.minimum_width
+            height: self.minimum_height
+            default_size: (None, root.cls_height)

@@ -1,0 +1,35 @@
+#:import LibraryContextTables ui.mdi.library.LibraryContextTables
+
+
+<SceneMenu>:  # MenuPanel
+    size_hint: (1, None)
+    height: "40dp"
+    padding: "2dp"
+
+    HoverButton:
+        size_hint: (None, None)
+        size: ("60dp", "40dp")
+        -background_normal: imgs_path.button_add_normal
+        -background_down: imgs_path.button_add_down
+        on_release: root.create_scene()
+    SubSectionPanel:
+        title_text: "фильтр по названию"
+        font_size: "11sp"
+        spacing: 0
+        halign: "center"
+        HoverInput:
+            size_hint: (None, 1)
+            width: "128dp"
+            font_size: "11sp"
+            multiline: False
+    Widget:
+    HoverButton:
+        size_hint: (None, None)
+        size: ("60dp", "40dp")
+        -background_normal: imgs_path.button_import_normal
+        -background_down: imgs_path.button_import_down
+    HoverButton:
+        size_hint: (None, None)
+        size: ("60dp", "40dp")
+        -background_normal: imgs_path.button_export_normal
+        -background_down: imgs_path.button_export_down

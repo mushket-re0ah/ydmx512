@@ -1,0 +1,96 @@
+<-PlaybackPlayButton>:  # ImageButton
+    background_normal: self._image
+    background_down: self._image
+    always_release: True
+    state_image: self.background_down if self.is_down else self.background_normal
+    canvas:
+        Color:
+            rgba: cs.PlaybackPlayButton.background_color
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: self.background_color
+        Rectangle:
+            size: [self.size[0] / 2, self.size[1]]
+            pos: [self.pos[0] + self.size[0] / 4, self.pos[1]]
+            source: self.state_image
+
+
+<BasePlaybackUi>:  # RelativeLayout
+    play_button: play_button
+
+    lbl_cur_beat: lbl_cur_beat.__self__
+    play_button: play_button.__self__
+    input_title: input_title.__self__
+    input_hotkey: input_hotkey.__self__
+    input_midi: input_midi.__self__
+    rotary_intensive: rotary_intensive.__self__
+
+    size_hint: (None, None)
+    grid_width: 6
+    grid_height: 6
+    canvas.before:
+        Color:
+            rgba: root.playback.color
+        RoundedRectangle:
+            source: imgs_path.button_thumb_normal
+            pos: (0, 0)
+            size: self.size
+            radius: [(dp(6), dp(6)), (dp(6), dp(6)), (dp(6), dp(6)), (dp(6), dp(6))]
+        Color:
+            rgba: root.bg
+        RoundedRectangle:
+            source: imgs_path.button_thumb_normal
+            pos: (dp(3), dp(6))
+            size: (dp(self.width - 6), dp(self.height - 12))
+            radius: [(dp(4), dp(4)), (dp(4), dp(4)), (dp(4), dp(4)), (dp(4), dp(4))]
+    RestrictedLabel:
+        id: lbl_cur_beat
+        size_hint: (None, None)
+        text: str(root.playback.player.beat_now) + "/" + str(root.playback.player.real_beats_count)
+        font_size: "11sp"
+        size: self.texture_size
+        text_size: (None, None)
+        pos: ("{}dp".format((root.width - self.size[0]) // 2), "{}dp".format(root.height - self.size[1] - 6))
+    PlaybackPlayButton:
+        id: play_button
+        size_hint: (None, None)
+        size: ("90dp", "30dp")
+        pos: ("3dp", "46dp")
+        playback: root.playback
+        player: root.playback.player
+        on_release: root.on_release_play_button()
+        on_press: root.on_press_play_button()
+    HoverInput:
+        id: input_title
+        size_hint: (None, None)
+        size: ("90dp", "18dp")
+        font_size: "11sp"
+        multiline: False
+        text: root.playback.title
+        on_text: root.playback.edit(title=self.text)
+        pos: ("3dp", "28dp")
+    HotkeyInput:
+        id: input_hotkey
+        size_hint: (None, None)
+        size: ("24dp", "19dp")
+        font_size: "12sp"
+        text: root.playback.player.hotkey
+        on_text: root.playback.player.edit(hotkey=self.text)
+        pos: ("3dp", "7dp")
+    MidiInput:
+        id: input_midi
+        size_hint: (None, None)
+        size: ("30dp", "19dp")
+        font_size: "12sp"
+        value: root.playback.player.midi_channel
+        on_value: root.playback.player.edit(midi_channel=self.value)
+        pos: ("29dp", "7dp")
+    RotaryButton:
+        id: rotary_intensive
+        size_hint: (None, None)
+        size: ("19dp", "19dp")
+        value: root.playback.renderer.intensive
+        on_value: root.playback.renderer.edit(intensive=self.value)
+        pos: ("72dp", "7dp")

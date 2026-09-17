@@ -1,0 +1,29 @@
+<MomentToggleButton>:  # ImageToggleButton
+    -background_normal: imgs_path.connect_state_normal
+    -background_down: imgs_path.connect_state_active
+    size_hint: (None, None)
+
+
+<DesktopUix>:  # RelativeLayout
+    size_hint: (None, None)
+    padding: ("4dp", "8dp")
+    canvas.before:
+        Color:
+            rgba: root.desktop_uix.color
+        RoundedRectangle:
+            source: root.bg_image
+            pos: (0, 0)
+            size: self.size
+            radius: [(dp(6), dp(6)), (dp(6), dp(6)), (dp(6), dp(6)), (dp(6), dp(6))]
+        Color:
+            rgba: root.bg
+        RoundedRectangle:
+            source: root.bg_image
+            pos: (dp(3), dp(6))
+            size: (dp(self.width - 6), dp(self.height - 12))
+            radius: [(dp(4), dp(4)), (dp(4), dp(4)), (dp(4), dp(4)), (dp(4), dp(4))]
+        Color:
+            rgba: cs.DesktopUix.tx_led_active if self.desktop_uix.link_active else cs.DesktopUix.tx_led_disabled
+        Ellipse:
+            pos: (dp(6), self.height - dp(6))
+            size: (dp(4), dp(4))

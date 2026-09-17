@@ -1,0 +1,53 @@
+#:import db database.db
+
+
+<BeatLabel>:  # Label
+    color: self._fg_color
+    font_name: "Calibri"
+    text: "{} ({})".format(db.scene.scene_now_temp, db.scene.scene_now_bc.beat_now + 1)
+    font_size: "24sp"
+    size_hint: (None, None)
+    height: "32dp"
+    size: ("120dp", "32dp")
+    text_size: self.size
+    halign: "center"
+    valign: "center"
+    canvas.before:
+        Color:
+            rgba: self._led_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: imgs_path.beat_label
+        Color:
+            rgba: cs.BeatLabel.progress_bg
+        Rectangle:
+            pos: self.pos
+            size: [self._progressbar_width, self.height]
+
+
+<ButtonTapSceneTemp>:  # ImageButton
+    size_hint: (None, None)
+    size: ("63dp", "79dp")
+    -background_normal: imgs_path.tap_temp_button_normal
+    -background_down: imgs_path.tap_temp_button_down
+
+
+<SceneTemp@SectionPanel>:
+    title_text: "настройки глобального темпа"
+    BoxLayout:
+        size_hint: (None, 1)
+        width: self.minimum_width
+        spacing: "2dp"
+        SubSectionPanel:
+            title_text: "Мастер темп[bpm]"
+            padding: 0
+            halign: "center"
+            NumericInput:
+                size_hint_x: 1
+                minimum: constants.TEMP_MINIMUM
+                maximum: constants.TEMP_MAXIMUM
+                value: db.scene.scene_now.temp
+                on_value: db.scene.scene_now_temp = self.value
+            BeatLabel:
+        ButtonTapSceneTemp:

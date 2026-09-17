@@ -1,0 +1,47 @@
+#:import PlayerStatus misc.player.status.PlayerStatus
+
+
+<DesktopRotaryUix>:  # DesktopUix
+    grid_width: 6
+    grid_height: 11
+
+    bg_image: imgs_path.button_thumb_normal
+    HoverInput:
+        id: title_input
+        size_hint: (None, None)
+        font_size: "11sp"
+        multiline: False
+        text: root.desktop_uix.title
+        on_text: root.desktop_uix.edit(title=self.text)
+        size: ("84dp", "22dp")
+        pos: ("6dp", "145dp")
+
+    NumericInput:
+        minimum: root.desktop_uix.value_1_minimum
+        maximum: root.desktop_uix.value_1_maximum
+        value: root.desktop_uix._value_1
+        on_value: root.desktop_uix.edit(value_1=self.value)
+        size: ("63dp", "22dp")
+        pos: ("16dp", "113dp")
+        disabled: root.desktop_uix.player.status is PlayerStatus.RELEASE or root.desktop_uix.player.status is PlayerStatus.ATTACK
+    RotaryButton:
+        minimum: root.desktop_uix.value_1_minimum
+        maximum: root.desktop_uix.value_1_maximum
+        value: root.desktop_uix._value_1
+        on_value: root.desktop_uix.edit(value_1=self.value)
+        size: ("63dp", "63dp")
+        pos: ("16dp", "48dp")
+        disabled: root.desktop_uix.player.status is PlayerStatus.RELEASE or root.desktop_uix.player.status is PlayerStatus.ATTACK
+    HotkeyInput:
+        font_size: "12sp"
+        text: root.desktop_uix.player.hotkey
+        on_text: root.desktop_uix.player.edit(hotkey=self.text)
+        size: ("25dp", "25dp")
+        pos: ("21dp", "15dp")
+    MomentToggleButton:
+        is_moment: root.desktop_uix.player.is_moment
+        is_down: root.desktop_uix.active
+        on_is_down: root.desktop_uix.edit(active=self.is_down)
+        disabled: not root.desktop_uix.link_active or (root.desktop_uix.player.status is PlayerStatus.RELEASE)
+        size: ("25dp", "25dp")
+        pos: ("51dp", "15dp")

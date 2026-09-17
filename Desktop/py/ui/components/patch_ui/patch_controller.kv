@@ -1,0 +1,48 @@
+<PatchControllerMenuChannel>:  # BoxLayout
+    RestrictedLabel:
+        text: str(root.index + 1)
+    RestrictedLabel:
+        text: root.fixture_param.title if root.fixture_param else ""
+    NumericInput:
+        minimum: 0
+        maximum: 255
+        value: root.value
+        on_value: root.value = self.value
+    HoverSlider:
+        orientation: "horizontal"
+        minimum: 0
+        maximum: 255
+        step_mouse_scroll: 5
+        value: root.value
+        on_value: root.value = self.value
+
+
+<PatchControllerMenu>: # ModalBoxLayout
+    size: ("400dp", "300dp")
+    scroll_layout: scroll_layout
+
+    RestrictedLabel:
+        text: "Каналы:"
+        size_hint: (1, None)
+        height: self.texture_size[1]
+        halign: 'left'
+        valign: 'center'
+        padding: ("6dp", 0)
+        font_size: "12sp"
+        text_size: self.size
+
+    ScrollLayout:
+        id: scroll_layout
+        scrollview: scrollview
+        RecycleRestrictedScrollView:
+            id: scrollview
+            viewclass: "PatchControllerMenuChannel"
+            scroll_by_content: True
+            do_scroll_x: False
+            do_scroll_by_element: True
+            RecycleBoxLayout:
+                size_hint: (1, None)
+                orientation: "vertical"
+                default_size_hint: (1, None)
+                height: self.minimum_height
+                default_size: (None, "30dp")

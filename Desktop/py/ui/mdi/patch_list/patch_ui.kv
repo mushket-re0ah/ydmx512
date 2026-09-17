@@ -1,0 +1,18 @@
+<PatchUi>:  # RelativeLayout
+    btn_remove: btn_remove.__self__
+    btn_add: btn_add.__self__
+
+    HoverButton:
+        id: btn_remove
+        size_hint: (None, None)
+        size: ("60dp", "14dp")
+        pos: (0, 0)
+        text: "удалить"
+        on_release: root.patch.remove()
+    HoverButton:
+        id: btn_add
+        size_hint: (None, None)
+        size: ("36dp", "14dp")
+        pos: ("60dp", 0)
+        text: "+"
+        on_release: root.patch.copy(grid_pos=[None, None])

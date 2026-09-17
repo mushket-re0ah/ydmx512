@@ -1,0 +1,140 @@
+#:import db database.db
+
+
+<PatchListMenu>:  # MenuPanel
+    input_count_create_patch: input_count_create_patch
+    input_address_create_patch: input_address_create_patch
+    input_universe_create_patch: input_universe_create_patch
+    input_fixture: input_fixture
+    input_add_address: input_add_address
+    input_set_universe: input_set_universe
+    input_set_workspace: input_set_workspace
+
+    SubSectionPanel:
+        title_text: "Добавить приборы"
+        size_hint: (None, 1)
+        width: self.minimum_width
+        halign: "center"
+        font_size: "11sp"
+        spacing: 0
+        BoxLayout:
+            size_hint: (None, 1)
+            width: self.minimum_width
+            HoverButton:
+                size_hint: (None, 1)
+                width: "64dp"
+                text: "Добавить"
+                font_size: "12sp"
+                on_release: root.create_patch()
+            SubSectionPanel:
+                title_text: "Кол-во"
+                size_hint: (None, 1)
+                width: "76dp"
+                font_size: "10sp"
+                halign: "center"
+                padding: 0
+                NumericInput:
+                    id: input_count_create_patch
+                    size_hint_y: 1
+                    width: "40dp"
+                    minimum: 1
+                    maximum: 128
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: (None, 1)
+                width: "128dp"
+                padding: "2dp"
+                SubSectionPanel:
+                    padding: 0
+                    title_text: "вселенная"
+                    orientation: "horizontal"
+                    -width: "110dp"
+                    font_size: "10sp"
+                    NumericInput:
+                        id: input_universe_create_patch
+                        size_hint_y: 1
+                        width: "40dp"
+                        minimum: 1
+                        maximum: constants.DMX_UNIVERSE_COUNT
+                SubSectionPanel:
+                    padding: 0
+                    title_text: "адрес"
+                    orientation: "horizontal"
+                    -width: "110dp"
+                    font_size: "10sp"
+                    NumericInput:
+                        id: input_address_create_patch
+                        size_hint_y: 1
+                        width: "40dp"
+                        minimum: 1
+                        maximum: 512
+                        allow_empty: True
+                        value: None
+            SubSectionPanel:
+                title_text: "Фикстура"
+                Snippet:
+                    id: input_fixture
+                    size_hint: (None, None)
+                    width: "120dp"
+                    values: db.fixture.rows
+                    values_getter: lambda self: list(self.values.values())
+                    filter_values_getter: lambda this: [v for v in this.values_getter(this) if this.text.lower() in this.value_to_host(v).lower()]
+                    value_to_host: lambda db_row: db_row.title
+                    auto_width: False
+                    auto_height: False
+                    dropdown_width: "200dp"
+                    dropdown_height: "350dp"
+    SubSectionPanel:
+        title_text: "Выбрано: {}".format(len(root.patch_map.selected))
+        BoxLayout:
+            size_hint: (None, 1)
+            width: "140dp"
+            HoverButton:
+                text: "Удалить"
+                on_release: root.patch_map.remove_selected()
+            HoverButton:
+                text: "Инв. Пан"
+                on_release: root.patch_map.invert_pan_selected()
+            HoverButton:
+                text: "Инв. Тилт"
+                on_release: root.patch_map.invert_tilt_selected()
+    BoxLayout:
+        size_hint: (None, 1)
+        width: "80dp"
+        orientation: "vertical"
+        NumericInput:
+            id: input_add_address
+            size_hint: (1, 1)
+            minimum: -512
+            maximum: 512
+            value: 0
+        HoverButton:
+            size_hint: (1, 1)
+            text: "+ адрес"
+            on_release: root.patch_map.add_address_to_selected(input_add_address.value)
+    BoxLayout:
+        size_hint: (None, 1)
+        width: "80dp"
+        orientation: "vertical"
+        NumericInput:
+            id: input_set_universe
+            size_hint: (1, 1)
+            minimum: 1
+            maximum: constants.DMX_UNIVERSE_COUNT
+        HoverButton:
+            size_hint: (1, 1)
+            text: "установить вселенную"
+            on_release: root.patch_map.set_universe_to_selected(input_set_universe.value)
+    BoxLayout:
+        size_hint: (None, 1)
+        width: "80dp"
+        orientation: "vertical"
+        NumericInput:
+            id: input_set_workspace
+            size_hint: (1, 1)
+            minimum: 1
+            maximum: 9
+        HoverButton:
+            size_hint: (1, 1)
+            text: "переместить"
+            on_release: root.patch_map.set_workspace_to_selected(input_set_workspace.value)

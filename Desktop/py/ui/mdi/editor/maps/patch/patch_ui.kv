@@ -1,0 +1,23 @@
+<LabelInterpatchIndex>:  # RestrictedLabel
+    size_hint: (None, None)
+    size: ("26dp", "13dp")
+    pos: ("0dp", "0dp")
+    font_size: "12sp"
+
+<ButtonInterpatchUngroup>:  # HoverButton
+    text: "U"
+    size_hint: (None, None)
+    size: ("26dp", "13dp")
+    pos: ("70dp", "0dp")
+    font_size: "12sp"
+    on_release: self.ungroup_interpatch()
+
+<EditorPatchUi>:  # RelativeLayout
+    playback: self.patch_map_editor.playback
+    blocked: self.playback is None
+    canvas.after:
+        Color:
+            rgba: self.border_color
+        Line:
+            width: dp(1.0)
+            rectangle: (self.x, self.y, self.width, self.height)

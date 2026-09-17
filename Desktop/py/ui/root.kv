@@ -1,0 +1,17 @@
+#:import cs misc.colorscheme
+#:import constants misc.constants
+#:import imgs_path misc.imgs_path
+#:include ui/main_ribbon/main_ribbon.kv
+#:include ui/mdi/mdi_container_manager.kv
+
+
+<Root>:  # BoxLayout
+    main_ribbon: main_ribbon
+    mdi_container_manager: mdi_container_manager
+
+    orientation: "vertical"
+
+    MainRibbon:
+        id: main_ribbon
+    MDIContainerManager:
+        id: mdi_container_manager

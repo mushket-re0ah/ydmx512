@@ -1,0 +1,13 @@
+<MidiUi>:  # BoxLayout
+    size_hint: (1, None)
+    height: "24dp"
+    ImageToggleButton:
+        size_hint: (None, 1)
+        width: "32dp"
+        on_is_down: root.on() if self.is_down else root.off()
+        -background_normal: imgs_path.connect_state_normal
+        -background_down: imgs_path.connect_state_active
+    RestrictedLabel:
+        text: root.device.name
+        color: cs.MidiDevices.fg
+        font_size: "10sp"

@@ -1,0 +1,81 @@
+<BasePatchUiPanButton>:  # HoverToggleButton
+    text: "П"
+    size_hint: (None, None)
+    size: ("24dp", "14dp")
+    pos: ("72dp", "82dp")
+    is_down: self.patch_ui.patch.invert_pan
+    on_is_down: self.patch_ui.patch.edit(invert_pan=self.is_down)
+
+
+<BasePatchUiTiltButton>:  # HoverToggleButton
+    text: "Т"
+    size_hint: (None, None)
+    size: ("24dp", "14dp")
+    pos: ("72dp", "68dp")
+    is_down: self.patch_ui.patch.invert_tilt
+    on_is_down: self.patch_ui.patch.edit(invert_tilt=self.is_down)
+
+
+<BasePatchUi>:  # RelativeLayout
+    input_start_address: input_start_address.__self__
+    input_universe: input_universe.__self__
+    lbl_addr_info: lbl_addr_info.__self__
+    image_fixture: image_fixture.__self__
+    toggle_controller: toggle_controller.__self__
+    input_title: input_title.__self__
+
+    size_hint: (None, None)
+    grid_width: 6
+    grid_height: 6
+    canvas.before:
+        Color:
+            rgba: self.bg
+        Rectangle:
+            pos: (0, 0)
+            size: self.size
+    NumericInput:
+        id: input_start_address
+        pos: (0, "72dp")
+        size: ("24dp", "24dp")
+        minimum: 1
+        maximum: constants.DMX_ADDRESS_COUNT
+        value: root.patch.start_address
+        on_value: root.patch.edit(start_address=self.value)
+    NumericInput:
+        id: input_universe
+        pos: (0, "48dp")
+        size: ("24dp", "24dp")
+        minimum: 1
+        maximum: constants.DMX_UNIVERSE_COUNT
+        value: root.patch.universe
+        on_value: root.patch.edit(universe=self.value)
+    RestrictedLabel:
+        id: lbl_addr_info
+        size_hint: (None, None)
+        text: "{}: {}-{}".format(root.patch.universe, root.patch.start_address, root.patch.end_address)
+        font_size: "9sp"
+        size: self.texture_size
+        text_size: (None, None)
+        pos: ("{}dp".format((root.width - self.size[0]) // 2), "{}dp".format(root.height - self.size[1]))
+        color: cs.PatchUi.addr_info_addr_conflict if root.patch.is_address_conflict else cs.PatchUi.addr_info_normal
+    Image:
+        id: image_fixture
+        size_hint: (None, None)
+        size: ("50dp", "50dp")
+        pos: ("{}dp".format((root.width - self.size[0]) // 2), "{}dp".format(root.height - self.size[1] - 10))
+        source: (constants.FIXTURE_IMGS_PATH / root.patch.fixture.icon).as_posix()
+    HoverToggleButton:
+        id: toggle_controller
+        size_hint: (None, None)
+        size: ("24dp", "18dp")
+        text: "c"
+        pos: ("{}dp".format(root.width - self.size[0]), "36dp")
+        on_is_down: root.open_controller_menu()
+    HoverInput:
+        id: input_title
+        size_hint: (1, None)
+        height: "24dp"
+        pos: (0, "14dp")
+        multiline: False
+        text: root.patch.title
+        on_text: root.patch.edit(title=self.text)

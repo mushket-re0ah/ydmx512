@@ -1,0 +1,287 @@
+<PlaybackContextMenu>:  # ModalBoxLayout
+    size_hint: (None, None)
+    size: ("490dp", "420dp")
+
+    orientation: "vertical"
+    GridLayout:
+        cols: 2
+        rows: 2
+        spacing: "5dp"
+        GridLayout:
+            cols: 2
+            rows: 7
+            spacing: "3dp"
+
+            MenuHoverInput:
+                multiline: False
+                text: root.first_playback.title
+                on_text: root.edit_playbacks_title(self.text)
+            MenuLabel:
+                text: "Название"
+
+            MenuToggleButton:
+                text: "T"
+                is_down: root.first_playback.player.is_link_global_temp
+                on_is_down: root.edit_playbacks_player(is_link_global_temp=self.is_down)
+                disabled: root.first_playback.player.play
+            MenuLabel:
+                text: "Линк к темпу сцены"
+
+            MenuNumericInput:
+                minimum: constants.BEATS_COUNT_MINIMIUM
+                maximum: constants.BEATS_COUNT_MAXIMUM
+                value: root.first_playback.player.beats_count
+                on_value: root.edit_playbacks_player(beats_count=self.value)
+                disabled: root.first_playback.player.is_link_global_temp or root.first_playback.player.play
+            MenuLabel:
+                text: "Доли"
+
+            MenuNumericInput:
+                minimum: constants.TEMP_MINIMUM
+                maximum: constants.TEMP_MAXIMUM
+                value: root.first_playback.player.temp
+                on_value: root.edit_playbacks_player(temp=self.value)
+                disabled: root.first_playback.player.is_link_global_temp or root.first_playback.player.play
+            MenuLabel:
+                text: "Темп"
+
+            MenuNumericInput:
+                minimum: 0
+                maximum: 100
+                value: root.first_playback.renderer.intensive
+                on_value: root.edit_playbacks_renderer(intensive=self.value)
+            MenuLabel:
+                text: "Диммер"
+
+            MenuMidiInput:
+                value: root.first_playback.player.midi_channel
+                on_value: root.edit_playbacks_player(midi_channel=self.value)
+            MenuLabel:
+                text: "Канал MIDI"
+
+        GridLayout:
+            cols: 2
+            rows: 8
+            spacing: "3dp"
+
+            MenuToggleButton:
+                text: "М"
+                is_down: root.first_playback.player.is_moment
+                on_is_down: root.edit_playbacks_player(is_moment=self.is_down)
+            MenuLabel:
+                text: "Момент"
+
+            MenuToggleButton:
+                text: "А"
+                is_down: root.first_playback.player.is_attack
+                on_is_down: root.edit_playbacks_player(is_attack=self.is_down)
+            MenuLabel:
+                text: "Атака"
+
+            MenuToggleButton:
+                text: "Р"
+                is_down: root.first_playback.player.is_release
+                on_is_down: root.edit_playbacks_player(is_release=self.is_down)
+            MenuLabel:
+                text: "Релиз"
+
+            MenuToggleButton:
+                text: "С"
+                is_down: root.first_playback.player.is_cycle
+                on_is_down: root.edit_playbacks_player(is_cycle=self.is_down)
+            MenuLabel:
+                text: "Цикл"
+
+            MenuToggleButton:
+                text: "С"
+                is_down: root.first_playback.player.is_cycle_last_frame
+                on_is_down: root.edit_playbacks_player(is_cycle_last_frame=self.is_down)
+            MenuLabel:
+                text: "Цикл на последний фрейм"
+
+            MenuToggleButton:
+                text: "S"
+                is_down: root.first_playback.player.soft_play
+                on_is_down: root.edit_playbacks_player(soft_play=self.is_down)
+            MenuLabel:
+                text: "Плавный старт"
+
+            MenuToggleButton:
+                text: "S"
+                is_down: root.first_playback.renderer.all_params_intensive
+                on_is_down: root.edit_playbacks_renderer(all_params_intensive=self.is_down)
+            MenuLabel:
+                text: "Интенсивность на все параметры"
+
+            MenuToggleButton:
+                text: "B"
+                is_down: root.first_playback.player.bounce
+                on_is_down: root.edit_playbacks_player(bounce=self.is_down)
+            MenuLabel:
+                text: "bounce"
+
+        GridLayout:
+            cols: 2
+            rows: 7
+            spacing: "3dp"
+
+            MenuToggleButton:
+                text: "Д"
+                is_down: root.first_playback.renderer.virtual_dimmer
+                on_is_down: root.edit_playbacks_renderer(virtual_dimmer=self.is_down)
+            MenuLabel:
+                text: "Виртуальный диммер"
+
+            MenuToggleButton:
+                text: "ОТ"
+                is_down: root.first_playback.renderer.correction_tilt
+                on_is_down: root.edit_playbacks_renderer(correction_tilt=self.is_down)
+            MenuLabel:
+                text: "Отсечка тилт"
+
+            MenuToggleButton:
+                text: "ОП"
+                is_down: root.first_playback.renderer.correction_pan
+                on_is_down: root.edit_playbacks_renderer(correction_pan=self.is_down)
+            MenuLabel:
+                text: "Отсечка пан"
+
+            MenuHotkeyInput:
+                text: root.first_playback.player.hotkey
+                on_text: root.edit_playbacks_player(hotkey=self.text)
+            MenuLabel:
+                text: "Хоткей"
+
+            MenuToggleButton:
+                text: "F"
+                is_down: root.first_playback.player.fade_to_black
+                on_is_down: root.edit_playbacks_player(fade_to_black=self.is_down)
+            MenuLabel:
+                text: "Фейд из тёмного"
+
+            MenuNumericInput:
+                minimum: constants.FADE_TO_BLACK_MS_MINIMUM
+                maximum: constants.FADE_TO_BLACK_MS_MAXIMUM
+                value: root.first_playback.player.fade_to_black_time
+                on_value: root.edit_playbacks_player(fade_to_black_time=self.value)
+                disabled: not root.first_playback.player.fade_to_black
+                step_mouse_scroll: 50
+
+            MenuLabel:
+                text: "Фейд к тёмному (время в мс)"
+
+            MenuToggleButton:
+                text: "F"
+                is_down: root.first_playback.player.blackout_activate
+                on_is_down: root.edit_playbacks_player(blackout_activate=self.is_down)
+            MenuLabel:
+                text: "Включение по blackout"
+
+        BoxLayout:
+            orientation: "vertical"
+            GridLayout:
+                cols: 5
+                spacing: "2dp"
+                MenuColorToggle:
+                    color: get_color_from_hex("#FFFFFFFF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#990000FF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#CC3300FF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FF6633FF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FF9900FF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FFCC33FF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FFFF00FF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#00FF00FF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#99FF99FF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#99FFFFFF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#0066FFFF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#6666FFFF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FF66FFFF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#9900CCFF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FF00FFFF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#1A1A1AFF")
+                    group: "playback_context_menu"
+                    is_down: root.first_playback.color == self.color
+                    on_is_down: root.edit_playbacks(color=self.color)
+            RestrictedLabel:
+                size_hint: (1, None)
+                height: "20dp"
+                font_size: "13sp"
+                text: "Цвет"
+                canvas.before:
+                    Color:
+                        rgb: cs.general.menu_bg
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+    BoxLayout:
+        size_hint: (1, None)
+        height: "42dp"
+        HoverButton:
+            text: "Редактировать"
+        HoverButton:
+            text: "Дублировать"
+            on_release: root.first_playback.copy(grid_pos=[None, None])
+        HoverButton:
+            text: "Удалить"
+            on_release: root.first_playback.remove()

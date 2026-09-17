@@ -1,0 +1,24 @@
+#:import db database.db
+
+
+<SceneDimmer@SubSectionPanel>:  # BoxLayout
+    title_text: "Диммер[%]"
+    padding: ["14dp", 0, "14dp", "2dp"]
+    NumericInput:
+        id: numeric
+        minimum: constants.DIMMER_MINIMUM
+        maximum: constants.DIMMER_MAXIMUM
+        value: db.scene.scene_now.dimmer
+        on_value: db.scene.scene_now_dimmer = self.value
+        on_hover: rotary.hover = self.hover
+        on_visible_focus: rotary.focus = self.visible_focus
+    RotaryButton:
+        id: rotary
+        size: ("40dp", "40dp")
+        pos_hint: {"center_x": 0.5}
+        minimum: constants.DIMMER_MINIMUM
+        maximum: constants.DIMMER_MAXIMUM
+        value: db.scene.scene_now_dimmer
+        on_value: db.scene.scene_now_dimmer = self.value
+        on_hover: numeric.hover = self.hover
+        on_focus: numeric.visible_focus = self.focus

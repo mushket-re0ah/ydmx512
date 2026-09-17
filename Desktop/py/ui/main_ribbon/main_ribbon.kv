@@ -1,0 +1,57 @@
+#:include ui/main_ribbon/scene_dimmer.kv
+#:include ui/main_ribbon/scene_temp/scene_temp.kv
+#:include ui/main_ribbon/serial_devices.kv
+#:include ui/main_ribbon/midi_devices.kv
+
+
+<MDIToggleButton>:  # HoverToggleButton:
+    size_hint: (None, None)
+    size: ("63dp", "79dp")
+
+
+<RibbonMDIOverflow>:  # RecycleSpinner
+    size_hint: (None, 1)
+    width: "30dp"
+
+
+<MDIMenuRibbonBox>:  # BoxLayout
+    size_hint: (1, 1)
+    spacing: "2dp"
+
+
+<MDIMenuRibbon@SectionPanel>:
+    box: box
+    title_text: "рабочий стол"
+    size_hint: (1, 1)
+    MDIMenuRibbonBox:
+        id: box
+
+
+<MainRibbon>:  # BoxLayout
+    mdi_menu: mdi_menu
+    scene_dimmer: scene_dimmer
+    serial_devices: serial_devices
+    midi_devices: midi_devices
+
+    orientation: "horizontal"
+    size_hint_y: None
+    height: "100dp"
+    spacing: "2dp"
+
+    canvas.before:
+        Color:
+            rgb: cs.general.menu_wrap_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    MDIMenuRibbon:
+        id: mdi_menu
+    SceneTemp:
+        id: scene_temp
+    SceneDimmer:
+        id: scene_dimmer
+    MidiDevices:
+        id: midi_devices
+    SerialDevices:
+        id: serial_devices

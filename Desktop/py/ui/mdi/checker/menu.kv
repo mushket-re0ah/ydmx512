@@ -1,0 +1,41 @@
+#:import dmx512 libs.dmx512.dmx512
+
+
+<CheckerMenu>:  # MenuPanel
+    size_hint: (1, None)
+    height: "50dp"
+    spacing: "2dp"
+
+    SubSectionPanel:
+        title_text: "Вселенная:"
+        size_hint: (None, 1)
+        width: "96dp"
+        spacing: 0
+        halign: "center"
+        NumericInput:
+            minimum: 1
+            maximum: constants.DMX_UNIVERSE_COUNT
+            value: root.checker.universe_now
+            on_value: root.checker.universe_now = self.value
+    SubSectionPanel:
+        title_text: "Каналы от:"
+        size_hint: (None, 1)
+        width: "96dp"
+        spacing: 0
+        halign: "center"
+        NumericInput:
+            minimum: 1
+            maximum: constants.DMX_ADDRESS_COUNT
+            value: root.checker.address_start
+            on_value: root.checker.address_start = self.value - 1
+    SubSectionPanel:
+        title_text: "512 каналов в 0"
+        size_hint: (None, 1)
+        width: "96dp"
+        spacing: 0
+        halign: "center"
+        HoverButton:
+            size_hint: (None, 1)
+            width: "96dp"
+            text: "Сброс"
+            on_release: dmx512.clear_matrix(root.checker.universe_now)

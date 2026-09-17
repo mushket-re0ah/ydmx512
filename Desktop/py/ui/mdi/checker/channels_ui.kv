@@ -1,0 +1,39 @@
+#:import uix_cs libs.uix.colorscheme
+
+<CheckerSlider>:  # TitleNumericHoverSlider
+    minimum: 0
+    maximum: 255
+
+
+<CheckerChannelsUiList>:  # ScrollLayout
+    size_hint: (1, 1)
+    scrollview: scrollview
+
+    RecycleRestrictedScrollView:
+        id: scrollview
+        viewclass: "CheckerSlider"
+        scroll_by_content: True
+        do_scroll_by_element: True
+        do_scroll_y: False
+        RecycleBoxLayout:
+            size_hint: (None, 1)
+            default_size_hint: (None, 1)
+            width: self.minimum_width
+            default_size: ("40dp", None)
+            spacing: "4dp"
+            canvas.before:
+                Color:
+                    rgba: uix_cs.HoverSlider.background_color_normal
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+
+<CheckerChannelsUi>:  # SectionPanel
+    box: box
+
+    size_hint: (1, 1)
+    title_text: "Каналы DMX512"
+    CheckerChannelsUiList:
+        id: box
+        checker: root.checker

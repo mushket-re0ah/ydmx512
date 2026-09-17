@@ -1,0 +1,186 @@
+<RowDotsSelector>:
+    size_hint: (None, None)
+    size: (0, 0)
+    canvas:
+        Color:
+            rgba: cs.RowDotsSelector.bg
+        Rectangle:
+            pos: self.rect_1_pos
+            size: self.rect_1_size
+        Rectangle:
+            pos: self.rect_2_pos
+            size: self.rect_2_size
+        Color:
+            rgba: cs.RowDotsSelector.border
+        Line:
+            width: dp(1)
+            rectangle: [*self.rect_1_pos, *self.rect_1_size]
+        Line:
+            width: dp(1)
+            rectangle: [*self.rect_2_pos, *self.rect_2_size]
+
+
+<RowParamTactBox>:
+    size_hint: (1, 1)
+    canvas.before:
+        Color:
+            rgba: cs.AutomationTactBox.padding_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: self.background_color
+        Rectangle:
+            pos: (self.x + self.padding_x, self.y + self.padding_y) if self.row_panel else (0, 0)
+            size: (self.width - self.padding_x * 2, self.height - self.padding_y * 2) if self.row_panel else (0, 0)
+        Color:
+            rgba: cs.AutomationTactBox.beat_delimiters
+        Line:
+            width: self.BEAT_LINE_WIDTH
+            points: self.beat_line_points
+        Color:
+            rgba: cs.AutomationTactBox.halfbeat_delimiters
+        Line:
+            width: self.BEAT_LINE_WIDTH
+            points: self.halfbeat_line_points
+
+
+<RowParamAddressToggle>:  # HoverToggleButton
+    text: "{}:{}".format(self.universe, self.address)
+    size_hint: (None, None)
+    size: ("40dp", "18dp")
+    font_size: "11sp"
+    is_down: True
+    padding: "4dp"
+
+
+<AddressListBox>:  # RecycleRestrictedScrollView
+    viewclass: "RowParamAddressToggle"
+    RecycleGridLayout:
+        cols: 2
+        padding: ("7dp", "6dp", "4dp", "10dp")
+        spacing: "4dp"
+        size_hint: (1, None)
+        height: self.minimum_height
+        default_size_hint: (None, None)
+        default_size: (None, None)
+
+
+<AddressListBoxContextMenu>:  # ModalBoxLayout
+    box: box
+
+    size_hint: (None, None)
+    size: ("200dp", "240dp")
+
+    orientation: "vertical"
+
+    RestrictedLabel:
+        size_hint: (1, None)
+        height: "23dp"
+        text: "список адресов"
+        font_size: "12sp"
+        text_size: self.size
+        valign: "center"
+        halign: "center"
+        canvas.before:
+            Color:
+                rgba: cs.ModalMenu.title_bg
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+    StackLayout:
+        id: box
+        spacing: "2dp"
+
+
+<FixtureParamToggle>:  # HoverToggleButton
+    size_hint: (None, 1)
+    width: "74dp"
+    font_size: "12sp"
+    text_size: self.size
+    valign: "top"
+    haling: "left"
+    padding: "3dp"
+    discard_state_release: False
+
+
+<RowParamActiveToggle>:  # HoverToggleButton
+    size_hint: (None, 1)
+    width: "32dp"
+    font_size: "9sp"
+
+
+<CheckboxPhaseInterpatchX>:  # HoverToggleButton
+    size_hint: (None, 1)
+    width: "20dp"
+    font_size: "12sp"
+    text: "φ"
+    disabled: not root.data_row.allow_interpatch_phase if root.data_row else True
+
+
+<RowParam>:  # BoxLayout
+    phase_interpatch_input_x: phase_interpatch_input_x
+    checkbox_phase: checkbox_phase
+    address_list_box: address_list_box
+    tact_box: tact_box
+
+    size_hint: (1, None)
+    BoxLayout:
+        size_hint: (None, 1)
+        width: root.automation.LEFT_SECTION_ROW_WIDTH if root.automation else 0
+        canvas:
+            Color:
+                rgba: (1, 1, 1, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: imgs_path.automationRowLeftTexture
+        FixtureParamToggle:
+            render_rows: root.data_row.render_rows if root.data_row else None
+            row_panel: root.row_panel
+            fixture_param: root.data_row.fixture_param if root.data_row else None
+            text: root.data_row.fixture_param.title if root.data_row else ""
+            color: cs.AutomationRowParam.fg_param_title_active if (root.data_row and root.data_row.active) else cs.AutomationRowParam.fg_param_title_not_active
+            is_down: root.data_row.selected if root.data_row else False
+            on_press: root.row_panel.start_row_selection(root.data_row)
+        BoxLayout:
+            padding: "2dp"
+            orientation: "vertical"
+            AddressListBox:
+                id: address_list_box
+                row_param: root
+                address_list: root.data_row.address_list if root.data_row else None
+                disabled: True
+            BoxLayout:
+                size_hint: (1, None)
+                height: "32dp"
+                spacing: "4dp"
+                CheckboxPhaseInterpatchX:
+                    id: checkbox_phase
+                    data_row: root.data_row
+                    on_is_down: root.on_press_btn_interpatch_phase() if self.pressed else None
+                    is_down: (root.data_row.interpatch_spec is not None) if root.data_row else False
+                PanRotaryButton:
+                    id: phase_interpatch_input_x
+                    minimum: -1.0
+                    maximum: 1.0
+                    size: ("26dp", "26dp")
+                    step_mouse_scroll: 0.05
+                    disabled: not root.data_row.allow_interpatch_phase if root.data_row else True
+                    on_value: root._input_set_interpatch_x() if self.focus and root.data_row.allow_interpatch_phase else None
+                    value: (root.data_row.phase_interpatch_x if root.data_row.phase_interpatch_x else 0) if root.data_row else 0
+
+                RowParamActiveToggle:
+                    row_param: root
+                    text: "ВКЛ" if self.is_down else "ОТКЛ"
+                    is_down: root.data_row.active if root.data_row else False
+                    on_press: self.set_row_active()
+    RowParamTactBox:
+        id: tact_box
+        automation: root.automation
+        row_panel: root.row_panel
+        row_param: root
+        playback: root.data_row.playback if root.data_row else None
+        active: root.data_row.active if root.data_row else False
+        row_phase_spec: root.data_row.row_phase_spec if root.data_row else None
