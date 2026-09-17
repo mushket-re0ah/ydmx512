@@ -1,0 +1,236 @@
+#:import db database.db
+
+
+<PhaseCurveTypeCreateMenuCanvas>:  # Widget
+    canvas:
+        Color:
+            rgba: (0.4, 0.4, 0.4, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+<PhaseCurveTypeCreateMenu>:  # WindowModalBoxLayout
+    size_hint: (0.6, 0.8)
+    padding: "12dp"
+    PhaseCurveTypeCreateMenuCanvas:
+        size_hint: (1, 1)
+
+
+<PhaseCurveTypeMenu>:  # OptionToggleButtonContextMenu
+    title: "Выберите фазу"
+    size: ("250dp", "400dp")
+    HoverButton:
+        size_hint: (1, None)
+        height: "26dp"
+        text: "Создать"
+        on_release: root.open_create_menu()
+
+
+<PhaseCurveTypeOptionButton>:  # OptionToggleButton
+
+
+<NumericInputDotX>:  # NumericInput
+
+
+<AutomationToolbar>:  # StencilBoxLayout
+    toggle_fixture_presets: toggle_fixture_presets
+    btn_phase: btn_phase
+    input_phase_amount: input_phase_amount
+    toggle_phase_curve: toggle_phase_curve
+    btn_phase_direction: btn_phase_direction
+    input_zoom_y: input_zoom_y
+    input_dot_x: input_dot_x
+    input_dot_y: input_dot_y
+
+    size_hint_y: None
+    height: "36dp"
+    padding: "4dp"
+    spacing: "4dp"
+    disabled: (root.playback is None) or root.fixture_selected_count == 0
+
+    canvas.before:
+        Color:
+            rgb: cs.AutomationToolbar.bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    HoverToggleButton:
+        id: toggle_fixture_presets
+        size_hint: [None, 1]
+        width: "160dp"
+        text: "пресеты фикстуры"
+        on_is_down: root.open_menu_preset_fixture() if self.is_down else root.close_menu_preset_fixture()
+        disabled: not(0 < root.fixture_selected_count <= 1)
+
+    SubSectionPanel:
+        -width: "94dp"
+        halign: "center"
+        valign: "center"
+        title_text: "кадр [X]"
+        orientation: "horizontal"
+        bg: cs.LabelRow.bg
+        fg: cs.LabelRow.fg
+        font_size: "11sp"
+        disabled: not root.automation.row_panel.dots_selected if root.automation else True
+        NumericInputDotX:
+            id: input_dot_x
+            minimum: 0
+            maximum: constants.FRAMES_MAXIMUM - 1 if root.playback is None else root.playback.player.frame_count - 1
+            width: "32dp"
+            allow_empty: True
+            value: None
+            on_value: root.set_dot_x_by_input() if not root.processing_sync_data else None
+            on_focus: None if self.focus else root.cancel_input_session()
+
+    SubSectionPanel:
+        -width: "114dp"
+        halign: "center"
+        valign: "center"
+        title_text: "значение [Y]"
+        orientation: "horizontal"
+        bg: cs.LabelRow.bg
+        fg: cs.LabelRow.fg
+        font_size: "11sp"
+        disabled: not root.automation.row_panel.dots_selected if root.automation else True
+        NumericInput:
+            id: input_dot_y
+            minimum: 0
+            maximum: 255
+            width: "32dp"
+            allow_empty: True
+            step_mouse_scroll: 20
+            value: None
+            on_value: root.set_dot_y_by_input() if not root.processing_sync_data else None
+            on_focus: None if self.focus else root.cancel_input_session()
+
+    SubSectionPanel:
+        -width: "68dp"
+        halign: "center"
+        valign: "center"
+        title_text: "сброс"
+        orientation: "horizontal"
+        bg: cs.LabelRow.bg
+        fg: cs.LabelRow.fg
+        font_size: "11sp"
+        ImageButton:
+            id: btn_discard
+            size_hint: (None, None)
+            size: ("25dp", "25dp")
+            background_normal: imgs_path.automationToolbar_discard_normal
+            background_down: imgs_path.automationToolbar_discard_down
+            on_release: root.discard_all()
+            disabled: not root.automation.row_panel.has_any_data if root.automation else True
+
+    SubSectionPanel:
+        -width: "134dp"
+        halign: "center"
+        valign: "center"
+        title_text: "плеер"
+        bg: cs.LabelRow.bg
+        fg: cs.LabelRow.fg
+        font_size: "11sp"
+        orientation: "horizontal"
+        ImageToggleButton:
+            id: checkbox_cycle
+            size_hint: (None, None)
+            size: ("43dp", "25dp")
+            tooltip_text: "Циклическое воспроизведение"
+            background_normal: imgs_path.automationToolbar_cycle_normal
+            background_down: imgs_path.automationToolbar_cycle_down
+            on_is_down: root.playback.player.edit(is_cycle=self.is_down)
+            is_down: root.playback.player.is_cycle if root.playback else False
+        ImageToggleButton:
+            id: btn_play
+            size_hint: (None, None)
+            size: ("43dp", "25dp")
+            background_normal: imgs_path.automationToolbar_play_normal
+            background_down: imgs_path.automationToolbar_play_down
+            on_is_down: root.playback.player.start() if self.is_down else root.playback.player.stop()
+            is_down: root.playback.player.play if root.playback else False
+
+    SubSectionPanel:
+        -width: "202dp"
+        halign: "center"
+        valign: "center"
+        title_text: "фаза"
+        bg: cs.LabelRow.bg
+        fg: cs.LabelRow.fg
+        font_size: "11sp"
+        orientation: "horizontal"
+        HoverToggleButton:
+            id: btn_phase_direction
+            size_hint: (None, None)
+            size: ("43dp", "25dp")
+            text: "Ø"
+            font_size: "11sp"
+            on_is_down: root.set_row_phase() if self.pressed else None
+            is_down: root.selected_master_row_phase_spec.inverted if root.selected_master_row_phase_spec else False
+            disabled: not root.automation.row_panel.allow_row_phase if root.automation else True
+
+        PhaseCurveTypeOptionButton:
+            id: toggle_phase_curve
+            size_hint: (None, None)
+            size: ("43dp", "25dp")
+            font_size: "11sp"
+            state: root.selected_master_row_phase_spec.curve if root.selected_master_row_phase_spec else db.phase_curve_type.get_default_row()
+            on_state: root.set_row_phase() if self.pressed else None
+            disabled: not root.automation.row_panel.allow_row_phase if root.automation else True
+
+        PanRotaryButton:
+            id: input_phase_amount
+            minimum: -1
+            maximum: 1
+            size: ("24dp", "24dp")
+            step_mouse_scroll: 0.05
+            value: root.selected_master_row_phase_spec.amount if root.selected_master_row_phase_spec else 0
+            on_value: root.set_row_phase() if self.focus else None
+            disabled: not root.automation.row_panel.allow_row_phase if root.automation else True
+
+        HoverToggleButton:
+            id: btn_phase
+            size_hint: (None, None)
+            size: ("43dp", "25dp")
+            text: "ВКЛ" if self.is_down else "ОТКЛ"
+            font_size: "11sp"
+            on_is_down: root.on_press_btn_row_phase() if self.pressed else None
+            is_down: root.selected_master_row_phase_spec is not None
+            disabled: not root.automation.row_panel.allow_row_phase if root.automation else True
+
+    SubSectionPanel:
+        -width: "106dp"
+        halign: "center"
+        valign: "center"
+        title_text: "честный рендер"
+        bg: cs.LabelRow.bg
+        fg: cs.LabelRow.fg
+        font_size: "11sp"
+        orientation: "horizontal"
+        ImageToggleButton:
+            id: checkbox_clear_render
+            size_hint: (None, None)
+            size: ("43dp", "25dp")
+            on_is_down: root.clear_render_mode = not root.clear_render_mode
+            is_down: root.clear_render_mode
+
+    Widget:
+        size_hint_x: 1
+
+    SubSectionPanel:
+        -width: "78dp"
+        halign: "center"
+        valign: "center"
+        title_text: "масштаб [Y]"
+        bg: cs.LabelRow.bg
+        fg: cs.LabelRow.fg
+        font_size: "11sp"
+        orientation: "horizontal"
+        RotaryButton:
+            id: input_zoom_y
+            step_mouse_scroll: 1
+            minimum: 1
+            maximum: 48
+            size: ("24dp", "24dp")
+            value: 8
+            on_value: root.automation.row_count_view = self.value

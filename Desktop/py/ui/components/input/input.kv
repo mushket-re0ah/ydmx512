@@ -1,0 +1,53 @@
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+
+
+<-CentralizedHotkeyTextInput>:  # TextInput
+
+
+<-HoverInput>:  # CentralizedHotkeyTextInput
+    size_hint: (None, None)
+    height: "24dp"
+    width: "64dp"
+    padding: ["4dp", "4dp"]
+    font_name: "Arial"
+    font_size: "13sp"
+    text_size: self.size
+    halign: "center"
+    valign: "center"
+    cursor_color: root.foreground_color
+
+
+<NumericInput>:  # HoverInput
+    input_filter: "int"
+    input_type: "number"
+    multiline: False
+
+
+<HEXAInput>:  # HoverInput
+    color_toggle: color_toggle
+
+    halign: "left"
+    -font_name: "Roboto Mono"
+    hover: color_toggle.hover
+    ColorToggleButton:
+        id: color_toggle
+        size_hint: (None, None)
+        size: (root.height - dp(2 * root.padding[1]), root.height - dp(2 * root.padding[1]))
+        pos: (root.right - (root.height - dp(2 * root.padding[1])) - dp(root.padding[0]), dp(root.y + root.padding[1]))
+        on_release: root.open_modal()
+        color: get_color_from_hex(root.text) or get_color_from_hex("#FFFFFF")
+
+
+<HotkeyInput>:  # HoverInput
+
+
+<MidiInput>:  # HoverInput
+    normal_background_color: cs.MidiInput.background_color_normal
+    normal_foreground_color: cs.MidiInput.foreground_color_normal
+    allow_empty: True
+
+
+<HEXAInputModal>:  # ModalBoxLayout
+    size_hint: (None, None)
+    size: (512, 512)
+    ColorSelector:

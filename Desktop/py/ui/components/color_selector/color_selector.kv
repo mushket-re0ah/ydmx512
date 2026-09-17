@@ -1,0 +1,86 @@
+<ColorSelectorSquare>:  # Widget
+    canvas:
+        Color:
+            rgba: (1, 1, 1, 1)
+        Rectangle:
+            texture: self.texture
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1, 1, 1, 1)
+        SmoothEllipse:
+            pos: self.marker_graphics_pos
+            size: (self.MARKER_SIZE, self.MARKER_SIZE)
+
+<ColorSelector>:  # BoxLayout
+    selector: selector
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "HSL: {}".format([int(selector.hue * 255), int(selector.saturate * 255), int(selector.lightness * 255)])
+            size_hint: (1, 0.2)
+        Label:
+            text: "RGB: {}".format([int(selector.red * 255), int(selector.green * 255), int(selector.blue * 255)])
+            size_hint: (1, 0.2)
+
+        BoxLayout:
+            Label:
+                text: "Hue"
+            Slider:
+                min: 0
+                max: 1
+                on_value: selector.hue = self.value
+                value: selector.hue
+        BoxLayout:
+            Label:
+                text: "Saturate"
+            Slider:
+                min: 0
+                max: 1
+                on_value: selector.saturate = self.value
+                value: selector.saturate
+        BoxLayout:
+            Label:
+                text: "Lightness"
+            Slider:
+                min: 0
+                max: 1
+                on_value: selector.lightness = self.value
+                value: selector.lightness
+
+        BoxLayout:
+            Label:
+                text: "Red"
+            Slider:
+                min: 0
+                max: 1
+                on_value: selector.red = self.value
+                value: selector.red
+        BoxLayout:
+            Label:
+                text: "Green"
+            Slider:
+                min: 0
+                max: 1
+                on_value: selector.green = self.value
+                value: selector.green
+        BoxLayout:
+            Label:
+                text: "Blue"
+            Slider:
+                min: 0
+                max: 1
+                on_value: selector.blue = self.value
+                value: selector.blue
+
+        Widget:
+            canvas:
+                Color:
+                    rgb: root.selector.rgb if root.selector else [1, 1, 1]
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+    ColorSelectorSquare:
+        id: selector
+        size_hint: (None, None)
+        size: (256, 256)

@@ -1,0 +1,336 @@
+#:import db database.db
+#:import PlayerStatus misc.player.status.PlayerStatus
+
+
+<DesktopUixContextMenu>:  # ModalBoxLayout
+    size_hint: (None, None)
+    size: ("490dp", "420dp")
+
+    orientation: "vertical"
+    GridLayout:
+        cols: 2
+        rows: 2
+        spacing: "5dp"
+        GridLayout:
+            cols: 2
+            rows: 10
+            size_hint_y: self.rows
+            spacing: "3dp"
+
+            MenuHoverInput:
+                multiline: False
+                text: root.desktop_uix.title
+                on_text: root.desktop_uix.edit(title=self.text)
+            MenuLabel:
+                text: "Название"
+
+            BoxLayout:
+                MenuSpinner:
+                    values: tuple(db.patch.rows.values())
+                    auto_select: False
+                    text: "Выбор прибора"
+                    value_to_host: lambda x: "Выбор прибора" if x is None else x.title
+                    selected: root.desktop_uix.patch
+                    on_select: root.desktop_uix.edit(patch=self.selected)
+                    auto_width: False
+                    dropdown_width: "250dp"
+                HoverButton:
+                    text: "L"
+                    size_hint_x: None
+                    width: "18dp"
+                    font_size: "11sp"
+                HoverButton:
+                    text: "x"
+                    size_hint_x: None
+                    width: "18dp"
+                    font_size: "11sp"
+                    on_release: root.desktop_uix.edit(patch=None)
+            MenuLabel:
+                text: "Линк к патчу"
+
+            MenuMidiInput:
+                value: root.desktop_uix.player.midi_channel
+                on_value: root.desktop_uix.player.edit(midi_channel=self.value)
+            MenuLabel:
+                text: "Канал MIDI"
+
+            MenuToggleButton:
+                text: "Вкл" if self.is_down else "Выкл"
+                is_down: root.desktop_uix.active
+                on_is_down: root.desktop_uix.edit(active=self.is_down)
+                disabled: not root.desktop_uix.link_active or (root.desktop_uix.player.status is PlayerStatus.RELEASE)
+            MenuLabel:
+                text: "Активность"
+                disabled: not root.desktop_uix.link_active or (root.desktop_uix.player.status is PlayerStatus.RELEASE)
+
+            MenuToggleButton:
+                text: "М"
+                is_down: root.desktop_uix.player.is_moment
+                on_is_down: root.desktop_uix.player.edit(is_moment=self.is_down)
+            MenuLabel:
+                text: "Момент"
+
+            MenuToggleButton:
+                text: "А"
+                is_down: root.desktop_uix.player.is_attack
+                on_is_down: root.desktop_uix.player.edit(is_attack=self.is_down)
+            MenuLabel:
+                text: "Атака"
+
+            MenuToggleButton:
+                text: "Р"
+                is_down: root.desktop_uix.player.is_release
+                on_is_down: root.desktop_uix.player.edit(is_release=self.is_down)
+            MenuLabel:
+                text: "Релиз"
+
+            MenuToggleButton:
+                text: "S"
+                is_down: root.desktop_uix.player.soft_play
+                on_is_down: root.desktop_uix.player.edit(soft_play=self.is_down)
+            MenuLabel:
+                text: "Плавный старт"
+
+            MenuNumericInput:
+                minimum: constants.TEMP_MINIMUM
+                maximum: constants.TEMP_MAXIMUM
+                value: root.desktop_uix.player.temp
+                on_value: root.desktop_uix.player.edit(temp=self.value)
+            MenuLabel:
+                text: "Темп плавности"
+
+            MenuHotkeyInput:
+                text: root.desktop_uix.player.hotkey
+                on_text: root.desktop_uix.player.edit(hotkey=self.text)
+            MenuLabel:
+                text: "Хоткей"
+
+        BoxLayout:
+            orientation: "vertical"
+            GridLayout:
+                cols: 5
+                spacing: "2dp"
+                MenuColorToggle:
+                    color: get_color_from_hex("#FFFFFFFF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#990000FF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#CC3300FF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FF6633FF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FF9900FF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FFCC33FF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FFFF00FF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#00FF00FF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#99FF99FF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#99FFFFFF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#0066FFFF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#6666FFFF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FF66FFFF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#9900CCFF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#FF00FFFF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+                MenuColorToggle:
+                    color: get_color_from_hex("#1A1A1AFF")
+                    group: "desktop_uix_context_menu"
+                    is_down: root.desktop_uix.color == self.color
+                    on_is_down: root.desktop_uix.edit(color=self.color)
+            RestrictedLabel:
+                size_hint: (1, None)
+                height: "20dp"
+                font_size: "13sp"
+                text: "Цвет"
+                canvas.before:
+                    Color:
+                        rgb: cs.general.menu_bg
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+        GridLayout:
+            cols: 2
+            rows: 5
+            size_hint_y: self.rows
+            spacing: "3dp"
+
+            BoxLayout:
+                MenuSpinner:
+                    values: tuple(i for i in range(len(root.desktop_uix.patch.param_list_unpacked))) if root.desktop_uix.patch else None
+                    auto_select: False
+                    text: "Выбор параметра"
+                    value_to_host: lambda x: "Выбор параметра" if (x is None or root.desktop_uix.patch is None) else f"({x + 1}) {root.desktop_uix.patch.param_list_unpacked[x].title}"
+                    selected: root.desktop_uix.fixture_param_1_index
+                    on_select: root.desktop_uix.edit(fixture_param_1_index=self.selected)
+                    auto_width: False
+                    dropdown_width: "200dp"
+                    disabled: root.desktop_uix.patch is None
+                HoverButton:
+                    text: "x"
+                    size_hint_x: None
+                    width: "18dp"
+                    font_size: "11sp"
+                    on_release: root.desktop_uix.edit(fixture_param_1_index=None)
+                    disabled: root.desktop_uix.patch is None
+            MenuLabel:
+                text: "Параметр #1"
+                disabled: root.desktop_uix.patch is None
+
+            MenuNumericInput:
+                minimum: root.desktop_uix.value_1_minimum
+                maximum: root.desktop_uix.value_1_maximum
+                value: root.desktop_uix._value_1
+                on_value: root.desktop_uix.edit(value_1=self.value)
+                disabled: root.desktop_uix.player.status is PlayerStatus.RELEASE or root.desktop_uix.player.status is PlayerStatus.ATTACK
+            MenuLabel:
+                text: "Значение #1"
+                disabled: root.desktop_uix.player.status is PlayerStatus.RELEASE or root.desktop_uix.player.status is PlayerStatus.ATTACK
+
+            MenuNumericInput:
+                minimum: 0
+                maximum: 255
+                value: root.desktop_uix.value_1_minimum
+                on_value: root.desktop_uix.edit(value_1_minimum=self.value)
+            MenuLabel:
+                text: "Мин. значение #1"
+
+            MenuNumericInput:
+                minimum: 0
+                maximum: 255
+                value: root.desktop_uix.value_1_maximum
+                on_value: root.desktop_uix.edit(value_1_maximum=self.value)
+            MenuLabel:
+                text: "Макс. значение #1"
+
+            MenuToggleButton:
+                text: "Вкл" if self.is_down else "Выкл"
+                is_down: root.desktop_uix.value_1_inversion
+                on_is_down: root.desktop_uix.edit(value_1_inversion=self.is_down)
+            MenuLabel:
+                text: "Инверсия значения #1"
+
+        GridLayout:
+            cols: 2
+            rows: 5
+            size_hint_y: self.rows
+            spacing: "3dp"
+
+            BoxLayout:
+                MenuSpinner:
+                    values: tuple(i for i in range(len(root.desktop_uix.patch.param_list_unpacked))) if root.desktop_uix.patch else None
+                    auto_select: False
+                    text: "Выбор параметра"
+                    value_to_host: lambda x: "Выбор параметра" if (x is None or root.desktop_uix.patch is None) else f"({x + 1}) {root.desktop_uix.patch.param_list_unpacked[x].title}"
+                    selected: root.desktop_uix.fixture_param_2_index
+                    on_select: root.desktop_uix.edit(fixture_param_2_index=self.selected)
+                    auto_width: False
+                    dropdown_width: "200dp"
+                    disabled: root.desktop_uix.patch is None
+                HoverButton:
+                    text: "x"
+                    size_hint_x: None
+                    width: "18dp"
+                    font_size: "11sp"
+                    on_release: root.desktop_uix.edit(fixture_param_2_index=None)
+                    disabled: root.desktop_uix.patch is None
+            MenuLabel:
+                text: "Параметр #2"
+                disabled: root.desktop_uix.patch is None
+
+            MenuNumericInput:
+                minimum: root.desktop_uix.value_2_minimum
+                maximum: root.desktop_uix.value_2_maximum
+                value: root.desktop_uix._value_2
+                on_value: root.desktop_uix.edit(value_2=self.value)
+                disabled: root.desktop_uix.player.status is PlayerStatus.RELEASE or root.desktop_uix.player.status is PlayerStatus.ATTACK
+            MenuLabel:
+                text: "Значение #2"
+                disabled: root.desktop_uix.player.status is PlayerStatus.RELEASE or root.desktop_uix.player.status is PlayerStatus.ATTACK
+
+            MenuNumericInput:
+                minimum: 0
+                maximum: 255
+                value: root.desktop_uix.value_2_minimum
+                on_value: root.desktop_uix.edit(value_2_minimum=self.value)
+            MenuLabel:
+                text: "Мин. значение #2"
+
+            MenuNumericInput:
+                minimum: 0
+                maximum: 255
+                value: root.desktop_uix.value_2_maximum
+                on_value: root.desktop_uix.edit(value_2_maximum=self.value)
+            MenuLabel:
+                text: "Макс. значение #2"
+
+            MenuToggleButton:
+                text: "Вкл" if self.is_down else "Выкл"
+                is_down: root.desktop_uix.value_2_inversion
+                on_is_down: root.desktop_uix.edit(value_2_inversion=self.is_down)
+            MenuLabel:
+                text: "Инверсия значения #2"
+
+
+    BoxLayout:
+        size_hint: (1, None)
+        height: "26dp"
+        HoverButton:
+            text: "Дублировать"
+            on_release: root.desktop_uix.copy(grid_pos=[None, None])
+        HoverButton:
+            text: "Удалить"
+            on_release: root.desktop_uix.remove()

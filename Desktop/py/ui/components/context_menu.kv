@@ -1,0 +1,53 @@
+<ContextMenuSeparator>:  # Widget
+    size_hint: (1, None)
+    height: "8dp"
+    canvas:
+        Color:
+            rgba: (0.6, 0.6, 0.6, 1)
+        Line:
+            points: [self.x, self.center_y, self.right, self.center_y]
+
+
+<ContextMenuButton>:  # Button
+    size_hint: (1, None)
+    height: "17dp"
+    padding: ["17dp", 0]
+    font_size: "14sp"
+    valign: "center"
+    halign: "left"
+    focus: self.hover
+
+
+<ContextMenuSpinner>:  # RecycleSpinner
+    size_hint: (1, None)
+    height: "17dp"
+    padding: ["17dp", 0]
+    font_size: "14sp"
+    valign: "center"
+    halign: "left"
+    focus: self.hover
+
+
+<SubMenu>:  # Label
+    size_hint: (1, None)
+    height: "17dp"
+    padding: ["17dp", 0]
+    font_size: "14sp"
+    valign: "center"
+    halign: "left"
+    text_size: self.size
+    focus: self.hover
+    canvas:
+        Color:
+            rgba: (0.6, 0.6, 0.6, 1)
+        SmoothTriangle:
+            points: [self.right - dp(13), self.center_y + dp(3), self.right - dp(13), self.center_y - dp(3), self.right - dp(6), self.center_y]
+
+
+
+<ContextMenu>:  # ModalBoxLayout
+    size_hint: (None, None)
+    orientation: "vertical"
+    height: self.minimum_height
+    width: "150dp"
+    padding: "2dp"

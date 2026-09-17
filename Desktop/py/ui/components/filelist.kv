@@ -1,0 +1,25 @@
+<FileListButton>:  # HoverButton
+    halign: "left"
+    valign: "center"
+    text_size: self.size
+    padding: ["8dp", 0, 0, 0]
+    normal_background_color: cs.FileListButton.dir_bg if self.is_dir_button else cs.FileListButton.file_bg
+
+
+<Filelist>:  # ScrollLayout
+    size_hint: None, None
+
+    scrollview: scrollview
+    RecycleRestrictedScrollView:
+        id: scrollview
+        viewclass: "FileListButton"
+        scroll_by_content: True
+        do_scroll_x: False
+        do_scroll_by_element: True
+        RecycleBoxLayout:
+            size_hint: (1, None)
+            orientation: "vertical"
+            default_size_hint: (1, None)
+            width: self.minimum_width
+            height: self.minimum_height
+            default_size: (None, root.cls_height)

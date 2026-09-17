@@ -1,0 +1,40 @@
+<ModalSaveParamFixturePreset>: # FilePresetModal
+    size: ("400dp", "200dp")
+
+
+<MenuPresetParamFixture>:  # MenuPresetManager
+    size: ("300dp", "540dp")
+    title: "пресеты параметра [{}]".format(self.category_key.title)
+
+    RestrictedLabel:
+        size_hint: (1, None)
+        height: "23dp"
+        text: "правка"
+        font_size: "12sp"
+        text_size: self.size
+        valign: "center"
+        halign: "center"
+        canvas.before:
+            Color:
+                rgba: cs.ModalMenu.title_bg
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+    HoverButton:
+        size_hint: (1, None)
+        height: "26dp"
+        text: "Копировать"
+        on_release: root.copy()
+        disabled: not any(row.has_data for row in root.render_rows)
+    HoverButton:
+        size_hint: (1, None)
+        height: "26dp"
+        text: "Вставить"
+        on_release: root.paste()
+    HoverButton:
+        size_hint: (1, None)
+        height: "26dp"
+        text: "Сброс"
+        on_release: root.discard_row()
+        disabled: not any(row.has_data for row in root.render_rows)

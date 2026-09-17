@@ -1,0 +1,28 @@
+#:import dmx512 libs.dmx512.dmx512
+
+
+<ProcessingMenu>:  # MenuPanel
+    height: "40dp"
+    StencilBoxLayout:
+        spacing: "2dp"
+        HoverButton:
+            text: "Добавить"
+            size_hint: (None, 1)
+            width: "110dp"
+            on_release: root.processing.create_playback()
+        HoverButton:
+            text: "Все стоп"
+            size_hint: (None, 1)
+            width: "110dp"
+            on_release: root.processing_map.stop_all()
+        HoverButton:
+            text: "Все старт"
+            size_hint: (None, 1)
+            width: "110dp"
+            on_release: root.processing_map.start_all()
+        Widget:
+        HoverButton:
+            text: "Blackout"
+            size_hint: (None, 1)
+            width: "110dp"
+            on_release: dmx512.blackout_all()

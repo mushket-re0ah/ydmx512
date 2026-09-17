@@ -1,0 +1,11 @@
+#:import WorkspaceMapScrollLayout ui.components.scroll_layout_map.WorkspaceMapScrollLayout
+
+
+<PatchMap>:  # SectionPanel
+    workspace_manager: workspace_manager
+
+    size_hint: (1, 1)
+    title_text: "Карта подключения"
+    WorkspaceManager:
+        id: workspace_manager
+        workspace_cls: WorkspaceMapScrollLayout

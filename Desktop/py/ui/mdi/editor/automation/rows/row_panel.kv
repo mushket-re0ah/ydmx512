@@ -1,0 +1,26 @@
+<RowPanel>:  # ScrollLayout
+    box: box
+
+    size_hint: (1, 1)
+    scrollview: scrollview
+    canvas.before:
+        Color:
+            rgba: cs.RowPanel.bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    RecycleRestrictedScrollView:
+        id: scrollview
+        viewclass: "RowParam"
+        scroll_by_content: True
+        do_scroll_x: False
+        do_scroll_by_element: True
+        RecycleBoxLayout:
+            id: box
+            size_hint: (1, None)
+            spacing: "2dp"
+            orientation: "vertical"
+            default_size_hint: (1, None)
+            default_size: (None, ((scrollview.height - (self.spacing * root.automation.row_count_view)) / root.automation.row_count_view) if root.automation else 0)
+            width: self.minimum_width
+            height: self.minimum_height

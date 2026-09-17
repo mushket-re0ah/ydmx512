@@ -1,0 +1,38 @@
+<PatchMapContextMenuButton>:  # HoverButton
+    text: self.fixture.title if self.fixture else ""
+
+
+<PatchMapContextMenu>:  # ModalBoxLayout
+    scroll_layout: scroll_layout
+
+    size_hint: (None, None)
+    size: ("250dp", "350dp")
+
+    RestrictedLabel:
+        size_hint: (1, None)
+        height: "23dp"
+        text: "Выберите фикстуру"
+        font_size: "13sp"
+        text_size: self.size
+        valign: "center"
+        halign: "center"
+        canvas.before:
+            Color:
+                rgba: cs.ModalMenu.title_bg
+            Rectangle:
+                size: self.size
+                pos: self.pos
+    ScrollLayout:
+        id: scroll_layout
+        scrollview: scrollview
+        RecycleRestrictedScrollView:
+            id: scrollview
+            viewclass: "PatchMapContextMenuButton"
+            scroll_by_content: True
+            RecycleBoxLayout:
+                size_hint: (1, None)
+                spacing: "2dp"
+                orientation: "vertical"
+                default_size_hint: (1, None)
+                default_size: (None, "30dp")
+                height: self.minimum_height

@@ -1,0 +1,21 @@
+<SettingsSectionToggle>:  # HoverToggleButton
+    group: "settings_section_toggle"
+    text: self.title
+
+
+<SettingsSections>:  # ScrollLayout
+    size_hint: (None, 1)
+    width: "256dp"
+    scrollview: scrollview
+    RecycleRestrictedScrollView:
+        id: scrollview
+        viewclass: "SettingsSectionToggle"
+        scroll_by_content: True
+        do_scroll_x: False
+        do_scroll_by_element: True
+        RecycleBoxLayout:
+            orientation: "vertical"
+            size_hint: (1, None)
+            height: self.minimum_height
+            default_size_hint: (1, None)
+            default_size: (None, "26dp")

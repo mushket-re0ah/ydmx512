@@ -1,0 +1,78 @@
+<FilePresetModal>: # WindowModalBoxLayout
+    size: ("400dp", "200dp")
+
+    BoxLayout:
+        orientation: "vertical"
+        RestrictedLabel:
+            text: "Введите имя пресета"
+            font_size: "18sp"
+        RestrictedLabel:
+            text: ("Пресет с таким именем уже существует" if root.title_collision else "") if not root._save_error else "Сохранение не удалось"
+            font_size: "14sp"
+            color: (0.8, 0, 0, 1)
+            size_hint: (0.8, None)
+            height: "50dp"
+            text_size: self.size
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            valign: "center"
+            halign: "center"
+        HoverInput:
+            text: ""
+            size_hint: (0.8, None)
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            multiline: False
+            focus: True
+            on_text_validate: root.on_ok()
+            on_text: root.title = self.text
+
+    BoxLayout:
+        HoverButton:
+            text: "Создать"
+            size_hint: (None, None)
+            size: ("100dp", "24dp")
+            on_release: root.on_ok()
+            disabled: not root.title
+        Widget:
+            size_hint: (1, 1)
+        HoverButton:
+            text: "Отмена"
+            size_hint: (None, None)
+            size: ("100dp", "24dp")
+            on_release: root.dismiss()
+
+
+<MenuPresetManager>:  # ModalBoxLayout
+    filelist: filelist
+
+    size_hint: (None, None)
+    size: ("400dp", "440dp")
+    padding: "4dp"
+    spacing: "4dp"
+    orientation: "vertical"
+
+    RestrictedLabel:
+        size_hint: (1, None)
+        height: "23dp"
+        text: root.title
+        font_size: "12sp"
+        text_size: self.size
+        valign: "center"
+        halign: "center"
+        canvas.before:
+            Color:
+                rgba: cs.ModalMenu.title_bg
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+    Filelist:
+        id: filelist
+        size_hint: (1, 1)
+        filters: ["json"]
+
+    HoverButton:
+        size_hint: (1, None)
+        height: "26dp"
+        text: "Сохранить пресет"
+        on_release: root.save_preset()
+        disabled: not root.allow_create_preset

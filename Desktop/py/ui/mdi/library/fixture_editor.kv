@@ -1,0 +1,139 @@
+#:import db database.db
+
+
+<LibraryFixtureParam>:  # BoxLayout
+    size_hint: (1, None)
+    height: "30dp"
+    RecycleSpinner:
+        values: db.fixture_param.rows
+        values_getter: lambda this: list(this.values.values())
+        value_to_host: lambda db_row: db_row.title
+        selected: root.fixture_param
+        on_selected: root.set_fixture_param(self.selected)
+    HoverButton:
+        text: "copy"
+    HoverButton:
+        text: "remove"
+        disabled: root.edit_exist
+
+
+<LibraryFixtureParamGroup>:  # BoxLayout
+    scrollview: scrollview
+    box: box
+
+    size_hint: (1, None)
+    orientation: "vertical"
+    BoxLayout:
+        size_hint: (1, None)
+        height: "30dp"
+        HoverInput:
+            multiline: False
+            on_text: root.set_title(self.text)
+            text: root.group.title
+        NumericInput:
+            minimum: constants.FIXTURE_GROUP_REPEAT_COUNT_MIN
+            maximum: constants.FIXTURE_GROUP_REPEAT_COUNT_MAX
+            on_value: root.set_repeat_count(self.value)
+            value: root.group.repeat_count
+            disabled: root.edit_exist
+        HoverToggleButton:
+            text: "linear"
+            on_is_down: root.set_linear(self.is_down)
+            is_down: root.group.linear
+        HoverButton:
+            text: "+"
+            on_release: root.add_param()
+            disabled: root.edit_exist
+        HoverButton:
+            text: "-"
+            on_release: root.master_widget.remove_group(root)
+            disabled: root.edit_exist
+    ScrollLayout:
+        scrollview: scrollview
+        size_hint: (1, 1)
+        RestrictedScrollView:
+            id: scrollview
+            scroll_by_content: True
+            BoxLayout:
+                id: box
+                orientation: "vertical"
+                size_hint: (1, None)
+                height: self.minimum_height
+
+
+<LibraryFixtureParams>:  # ScrollLayout
+    scrollview: scrollview
+    box: box
+
+    size_hint: (1, 1)
+    scroll_by_content: True
+    RestrictedScrollView:
+        id: scrollview
+        BoxLayout:
+            id: box
+            orientation: "vertical"
+            size_hint: (1, None)
+            height: self.minimum_height
+
+
+<LibraryFixtureEditor>:  # StencilBoxLayout
+    input_title: input_title
+    input_note: input_note
+    dropdown_brand: dropdown_brand
+    btn_icon_now: btn_icon_now
+    fixture_params: fixture_params
+
+    HoverButton:
+        text: "back"
+        on_release: root.close()
+        size_hint: (None, None)
+        size: (80, 40)
+    BoxLayout:
+        orientation: "vertical"
+        HoverInput:
+            id: input_title
+            multiline: False
+            on_text: root.set_title(self.text)
+            text: root.title
+        HoverInput:
+            id: input_note
+            on_text: root.set_note(self.text)
+            text: root.note
+        RecycleSpinner:
+            id: dropdown_brand
+            size_hint: (1, None)
+            height: "30dp"
+            values: db.brand.rows
+            values_getter: lambda this: list(this.values.values())
+            value_to_host: lambda db_row: db_row.title
+            selected: root.brand
+            on_selected: root.set_brand(self.selected)
+        HoverButton:
+            id: btn_icon_now
+            background_normal: root.icon
+            background_down: root.icon
+            on_release: root._select_fixture_icon()
+        NumericInput:
+            minimum: constants.FIXTURE_TEMP_DEPENDENCE_MIN
+            maximum: constants.FIXTURE_TEMP_DEPENDENCE_MAX
+            value: root.temp_dependence
+            on_value: root.set_temp_dependence(self.value)
+        HoverButton:
+            size_hint: (1, None)
+            height: "30dp"
+            text: "Сохранить"
+            on_release: root.save()
+    BoxLayout:
+        orientation: "vertical"
+        LibraryFixtureParams:
+            id: fixture_params
+            orientation: "vertical"
+            library: root.library
+            fixture: root.fixture
+            context: root.context
+        HoverButton:
+            size_hint: (1, None)
+            height: "30dp"
+            text: "Добавить группу"
+            on_release: fixture_params.add_group()
+            disabled: root.edit_exist

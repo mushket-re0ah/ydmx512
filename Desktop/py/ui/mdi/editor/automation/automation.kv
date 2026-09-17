@@ -1,0 +1,56 @@
+<HeaderCursorFrameWidget>:  # ModalBoxLayout
+    size: ("50dp", "25dp")
+    RestrictedLabel:
+        text: str(root.frame + 1)
+        font_size: "14sp"
+        pos: self.pos
+
+
+<Automation>:  # MenuPanel
+    row_panel: row_panel
+    toolbar: toolbar
+
+    canvas.after:
+        Color:
+            rgba: cs.AutomationHeader.bg
+        Rectangle:
+            pos: (root.xwidth.x, (self.toolbar.y if self.toolbar else 0) - self.HEADER_HEIGHT)
+            size: ((max(root.xwidth.width, 0), self.HEADER_HEIGHT))
+        Color:
+            rgba: cs.AutomationHeader.beat_delimiters
+        Line:
+            width: root.HEADER_LINE_WIDTH
+            points: root.header_beat_line_points
+        Color:
+            rgba: cs.AutomationHeader.halfbeat_delimiters
+        Line:
+            width: root.HEADER_LINE_WIDTH
+            points: root.header_halfbeat_line_points
+        Color:
+            rgba: cs.Automation.cursor_line
+        Line:
+            width: dp(1)
+            points: [self.cursor_line_x, self.top - (self.toolbar.height if self.toolbar else 0), self.cursor_line_x, self.y]
+        Color:
+            rgba: cs.Automation.play_line if (self.playback.player.play if self.playback else False) else (0, 0, 0, 0)
+        Line:
+            width: dp(1)
+            points: [self.player_line_x, self.top - (self.toolbar.height if self.toolbar else 0), self.player_line_x, self.y]
+
+    size_hint: (1, 1)
+    spacing: self.HEADER_HEIGHT
+    padding: 0
+    -width: 0
+    disabled: root.playback is None
+    orientation: "vertical"
+
+    AutomationToolbar:
+        id: toolbar
+        playback: root.playback
+        automation: root
+        active_patch: root.active_patch
+    RowPanel:
+        id: row_panel
+        automation: root
+        playback: root.playback
+        active_patch: root.active_patch

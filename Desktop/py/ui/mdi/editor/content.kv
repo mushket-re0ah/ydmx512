@@ -1,0 +1,41 @@
+<EditorContent>:  # BoxLayout
+    playback_map: playback_map
+    patch_map: patch_map
+    automation: automation
+
+    splitter_x: splitter_x
+    splitter_y: splitter_y
+
+    playback: playback_map.playback
+    on_playback: self.editor.playback = self.playback
+
+    BoxLayout:
+        orientation: "vertical"
+        PlaybackEditorMap:
+            id: playback_map
+            editor: root.editor
+        HoverSplitter:
+            id: splitter_y
+            size_hint: (1, None)
+            sizable_from: "top"
+            horizontal: False
+            strip_size: "10dp"
+            min_size: "104dp"
+            max_size: root.height - self.min_size
+            PatchEditorMap:
+                id: patch_map
+                editor: root.editor
+                playback: playback_map.playback
+                editor_content: root
+    HoverSplitter:
+        id: splitter_x
+        size_hint: (None, 1)
+        sizable_from: "left"
+        strip_size: "10dp"
+        min_size: "150dp"
+        max_size: root.width - self.min_size
+        Automation:
+            id: automation
+            playback: playback_map.playback
+            active_patch: patch_map.active_patch
+            editor_content: root

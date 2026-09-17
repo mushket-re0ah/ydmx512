@@ -1,0 +1,62 @@
+#:import LibraryContextTables ui.mdi.library.LibraryContextTables
+
+
+<LibraryMenu>:  # MenuPanel
+    toggle_fixture: toggle_fixture
+    toggle_params: toggle_params
+    toggle_brands: toggle_brands
+
+    size_hint: (1, None)
+    height: "40dp"
+    padding: "2dp"
+    spacing: "2dp"
+    HoverButton:
+        size_hint: (None, None)
+        size: ("60dp", "40dp")
+        -background_normal: imgs_path.button_add_normal
+        -background_down: imgs_path.button_add_down
+        on_release: root.on_create_release()
+    SubSectionPanel:
+        title_text: "фильтр по названию"
+        font_size: "11sp"
+        spacing: 0
+        halign: "center"
+        HoverInput:
+            size_hint: (None, 1)
+            font_size: "11sp"
+            width: "128dp"
+            multiline: False
+            on_text: root.library.table_now.filter_value = self.text
+    HoverToggleButton:
+        id: toggle_fixture
+        size_hint: (None, 1)
+        text: "Фикстуры"
+        group: "mdi_lib_table_now"
+        allow_no_selection: False
+        on_is_down: root.change_table(LibraryContextTables.FIXTURE) if self.is_down else 0
+        is_down: True
+    HoverToggleButton:
+        id: toggle_params
+        size_hint: (None, 1)
+        text: "Параметры"
+        group: "mdi_lib_table_now"
+        allow_no_selection: False
+        on_is_down: root.change_table(LibraryContextTables.FIXTURE_PARAMS) if self.is_down else 0
+    HoverToggleButton:
+        id: toggle_brands
+        size_hint: (None, 1)
+        text: "Бренды"
+        group: "mdi_lib_table_now"
+        allow_no_selection: False
+        on_is_down: root.change_table(LibraryContextTables.BRAND) if self.is_down else 0
+    Widget:
+    HoverButton:
+        size_hint: (None, None)
+        size: ("60dp", "40dp")
+        -background_normal: imgs_path.button_import_normal
+        -background_down: imgs_path.button_import_down
+    HoverButton:
+        size_hint: (None, None)
+        size: ("60dp", "40dp")
+        -background_normal: imgs_path.button_export_normal
+        -background_down: imgs_path.button_export_down

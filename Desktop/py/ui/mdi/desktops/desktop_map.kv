@@ -1,0 +1,17 @@
+#:import WorkspaceMapScrollLayout ui.components.scroll_layout_map.WorkspaceMapScrollLayout
+
+
+<MapFreezeToggleDesktop>:  # HoverToggleButton
+    text: "Заморожено" if self.is_down else "Заморозить"
+    size_hint: (None, 1)
+    width: "128dp"
+
+
+<DesktopMap>:  # SectionPanel
+    workspace_manager: workspace_manager
+
+    size_hint: (1, 1)
+    title_text: "Рабочий стол #{}".format(workspace_manager.workspace_now_index + 1 if workspace_manager.workspace_now_index else 1)
+    WorkspaceManager:
+        id: workspace_manager
+        workspace_cls: WorkspaceMapScrollLayout

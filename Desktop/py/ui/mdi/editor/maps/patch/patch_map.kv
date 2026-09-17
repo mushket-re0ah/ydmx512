@@ -1,0 +1,12 @@
+#:import WorkspaceMapScrollLayout ui.components.scroll_layout_map.WorkspaceMapScrollLayout
+
+
+<PatchEditorMap>:  # MenuPanel
+    workspace_manager: workspace_manager
+
+    size_hint: (1, 1)
+    -width: 0
+
+    WorkspaceManager:
+        id: workspace_manager
+        workspace_cls: WorkspaceMapScrollLayout

@@ -1,0 +1,99 @@
+<PatchContextMenu>:  # ModalBoxLayout
+    grid_box: grid_box
+    toggle_invert_pan: toggle_invert_pan
+    label_invert_pan: label_invert_pan
+    toggle_invert_tilt: toggle_invert_tilt
+    label_invert_tilt: label_invert_tilt
+    input_correction_pan: input_correction_pan
+    label_correction_pan: label_correction_pan
+    input_correction_tilt: input_correction_tilt
+    label_correction_tilt: label_correction_tilt
+
+    size_hint: (None, None)
+    size: ("250dp", "250dp")
+
+    orientation: "vertical"
+    GridLayout:
+        id: grid_box
+        cols: 2
+        spacing: "3dp"
+        MenuHoverInput:
+            multiline: False
+            text: root.patch.title
+            on_text: root.patch.edit(title=self.text)
+        MenuLabel:
+            text: "Название"
+
+        MenuNumericInput:
+            minimum: 1
+            maximum: constants.DMX_ADDRESS_COUNT
+            value: root.patch.start_address
+            on_value: root.patch.edit(start_address=self.value)
+        MenuLabel:
+            text: "Адрес"
+
+        MenuNumericInput:
+            minimum: 1
+            maximum: constants.DMX_UNIVERSE_COUNT
+            value: root.patch.universe
+            on_value: root.patch.edit(universe=self.value)
+        MenuLabel:
+            text: "Вселенная"
+
+        MenuToggleButton:
+            id: toggle_invert_pan
+            text: "П"
+            is_down: root.patch.invert_pan
+            on_is_down: root.patch.edit(invert_pan=self.is_down)
+            disabled: not root.patch.fixture.is_dynamic
+        MenuLabel:
+            id: label_invert_pan
+            text: "Инверсия пан"
+
+        MenuToggleButton:
+            id: toggle_invert_tilt
+            text: "Т"
+            is_down: root.patch.invert_tilt
+            on_is_down: root.patch.edit(invert_tilt=self.is_down)
+            disabled: not root.patch.fixture.is_dynamic
+        MenuLabel:
+            id: label_invert_tilt
+            text: "Инверсия тилт"
+
+        MenuNumericInput:
+            minimum: constants.DIMMER_MINIMUM
+            maximum: constants.DIMMER_MAXIMUM
+            value: root.patch.virtual_dimmer
+            on_value: root.patch.edit(virtual_dimmer=self.value)
+        MenuLabel:
+            text: "Виртуальный диммер"
+
+        MenuNumericInput:
+            id: input_correction_pan
+            minimum: -255
+            maximum: 255
+            value: root.patch.correction_pan
+            on_value: root.patch.edit(correction_pan=self.value)
+        MenuLabel:
+            id: label_correction_pan
+            text: "Отсечка пан"
+
+        MenuNumericInput:
+            id: input_correction_tilt
+            minimum: -255
+            maximum: 255
+            value: root.patch.correction_tilt
+            on_value: root.patch.edit(correction_tilt=self.value)
+        MenuLabel:
+            id: label_correction_tilt
+            text: "Отсечка тилт"
+
+    BoxLayout:
+        size_hint: (1, None)
+        height: "26dp"
+        HoverButton:
+            text: "Дублировать"
+            on_release: root.copy()
+        HoverButton:
+            text: "Удалить"
+            on_release: root.remove()

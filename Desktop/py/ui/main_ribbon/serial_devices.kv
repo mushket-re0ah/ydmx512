@@ -1,0 +1,37 @@
+#:import SerialState libs.dmx512.serial.device.SerialState
+#:import db database.db
+
+
+<SerialUi>:  # BoxLayout
+    size_hint: (1, None)
+    height: "24dp"
+    ImageToggleButton:
+        size_hint: (None, 1)
+        width: "32dp"
+        on_is_down: root.on() if self.is_down else root.off()
+        -background_normal: imgs_path.connect_state_normal
+        -background_down: imgs_path.connect_state_active if root.device.state is SerialState.CONNECTED else imgs_path.connect_state_wait
+    NumericInput:
+        id: input_universe
+        size_hint: (None, 1)
+        width: "40dp"
+        allow_empty: True
+        min: 1
+        max: constants.DMX_UNIVERSE_COUNT
+        value: root.device.universe
+        on_value: self.device.universe = self.value
+    RestrictedLabel:
+        text: root.device.product_name if root.device.product_name else "Name error"
+        color: cs.SerialDevices.fg
+        font_size: "10sp"
+
+
+<TitleFilterSerialDeviceBox>:  # BoxLayout
+    size_hint: (1, None)
+    height: self.minimum_height
+
+<SerialDevicesNameFilterToggle>:  # HoverToggleButton
+    text: "фильтр"
+    font_size: "11sp"
+    is_down: db.misc.do_filter_serial_names
+    on_is_down: db.misc.edit(do_filter_serial_names=self.is_down)
