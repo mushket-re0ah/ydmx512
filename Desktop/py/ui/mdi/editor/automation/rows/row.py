@@ -115,9 +115,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
     padding_y = AliasProperty(lambda self: self.automation.TACT_BOX_PADDING_Y)
 
     LINE_DETECTION_PRECISION = 10
-    last_touch_quant_pos = None
     line_under_cursor = False
-    selection_start_quant = None
 
     def on_kv_post(self, _):
         draw_ev = Clock.create_trigger(self.draw, -1)
@@ -139,23 +137,41 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             quant_width=self.draw_ev
         )
 
-    def to_pixel_coords(self, quant_x, quant_y):
-        """Конвертирует квантованные координаты (кадр, значение 0-255) в пиксели внутри такт-бокса."""
-        x_pixel = self.x + self.padding_x + quant_x * self.automation.quant_width
-        y_pixel = self.y + self.padding_y + (quant_y / 255) * (self.height - 2 * self.padding_y)
+    def to_pixel_coords(self, frame_x: int, frame_y: int) -> Tuple[float, float]:
+        """Конвертирует фреймы (кадр, значение 0-255) в пиксели внутри такт-бокса."""
+        x_pixel = self.x + self.padding_x + frame_x * self.automation.quant_width
+        y_pixel = self.y + self.padding_y + (frame_y / self.row_panel.xy_grid.size_y_getter()) * (self.height - 2 * self.padding_y)
         return (x_pixel, y_pixel)
 
-    def to_quant_coords(self, x_pixel, y_pixel, ignore_dot_radius=False):
+    def to_frame_coords(
+            self,
+            x_pixel,
+            y_pixel,
+            ignore_dot_radius=False,
+            do_clamp=True) -> Tuple[int, int]:
         """Обратное преобразование из пикселей в квантованные координаты."""
+        xy_grid = self.row_panel.xy_grid
         dot_radius = 0 if ignore_dot_radius else self.dot_radius
-        quant_x = int((x_pixel - self.x - self.padding_x + dot_radius) / self.automation.quant_width)
-        quant_y = int((y_pixel - self.y - self.padding_y + dot_radius) * 255 / (self.height - 2 * self.padding_y))
-        return (quant_x, quant_y)
 
-    def to_pixel_size(self, quant_size):
-        quant_w, quant_h = quant_size
-        qw, qh = self.quant_size
-        return (quant_w * qw, quant_h * qh)
+        frame_x = int(
+            (x_pixel - self.x - self.padding_x + dot_radius)
+            / self.automation.quant_width
+        )
+        frame_y = int(
+            (y_pixel - self.y - self.padding_y + dot_radius)
+            * xy_grid.size_y_getter()
+            / (self.height - 2 * self.padding_y)
+        )
+
+        if do_clamp:
+            frame_x = max(0, min(xy_grid.last_x_frame, frame_x))
+            frame_y = max(0, min(xy_grid.size_y_getter(), frame_y))
+        return (frame_x, frame_y)
+
+    def to_pixel_size(self, frame_size: Tuple[int, int]) -> Tuple[float, float]:
+        frame_x, frame_y = frame_size
+        quant_width, quant_height = self.quant_size
+        return (frame_x * quant_width, frame_y * quant_height)
 
     def draw(self, _):
         if not self.parent:
@@ -289,7 +305,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
 
     def get_quant_size(self) -> Tuple[float, float]:
         quant_width = self.automation.quant_width
-        quant_height = (self.height - self.padding_y * 2) / 255
+        quant_height = (self.height - self.padding_y * 2) / self.row_panel.xy_grid.size_y_getter()
         return (quant_width, quant_height)
     quant_size = AliasProperty(
         get_quant_size, None, bind=["size"]
@@ -309,15 +325,15 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
         get_dot_radius, None, bind=["quant_size"]
     )
 
-    def start_selector(self, quant_pos):
-        px_pos = self.to_pixel_coords(*quant_pos)
+    def start_selector(self, frame_pos: Tuple[int, int]):
+        px_pos = self.to_pixel_coords(*frame_pos)
         self.selector = RowDotsSelector()
         self.add_widget(self.selector)
         self.selector.set_pixel_rect(px_pos, (0, 0))
 
-    def set_selector_size(self, quant_size):
+    def set_selector_size(self, frame_size: Tuple[int, int]):
         if self.selector:
-            px_size = self.to_pixel_size(quant_size)
+            px_size = self.to_pixel_size(frame_size)
             self.selector.set_pixel_rect(self.selector.pos, px_size)
 
     def stop_selector(self):
@@ -326,15 +342,13 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             self.selector = None
 
     def on_touch_down(self, touch):
-        quant_x, quant_y = self.to_quant_coords(*touch.pos, ignore_dot_radius=False)
-        self.last_quant_pos = self.to_quant_coords(*touch.pos, ignore_dot_radius=False)
         if self.collide_point(*touch.pos):
             self.focus = True
             self.row_panel.select_one_row(self.row_param.data_row)
             if touch.button == "left":
                 dots = self.row_param.master_render_row.dots
                 if self.dots_under_cursor:
-                    x, y = self.to_quant_coords(*touch.pos)
+                    x, y = self.to_frame_coords(*touch.pos)
                     self.row_panel.select_dots_by_x(x, self.data_row)
                     if not keyboard_manager.check_ctrl():
                         if touch.is_double_tap:
@@ -365,7 +379,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
 
     def on_mouse_move(self, mouse_pos: Tuple[float, float]):
         if self.collide_point(*mouse_pos):
-            x, y = self.to_quant_coords(*mouse_pos)
+            x, y = self.to_frame_coords(*mouse_pos)
             self.row_panel.set_dots_under_cursor(self.data_row, x)
             self.line_under_cursor = self.check_if_line_under_cursor(x, y)
             if self.dots_under_cursor:
@@ -373,15 +387,15 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             elif self.line_under_cursor:
                 cursor_manager.set_cursor("hand")
 
-    def check_if_line_under_cursor(self, quant_x: int, quant_y: int) -> bool:
+    def check_if_line_under_cursor(self, frame_x: int, frame_y: int) -> bool:
         master_patch = self.data_row.master_patch
         index = self.data_row.fixture_index[master_patch][0]
-        render_y = self._get_patch_render(master_patch, index, quant_x)
+        render_y = self._get_patch_render(master_patch, index, frame_x)
         if not render_y:
             return False
         bottom_y = render_y - self.LINE_DETECTION_PRECISION
         top_y = render_y + self.LINE_DETECTION_PRECISION
-        return bottom_y <= quant_y <= top_y
+        return bottom_y <= frame_y <= top_y
 
 
 class FixtureParamToggle(HoverToggleButton):
