@@ -271,37 +271,42 @@ class RowPanel(ScrollLayout):
             return
         self.automation.set_tool(PasteTool, render_rows)
 
-    def start_area_selection(self, quant_pos, data_row: RowParamData):
+    def start_area_selection(self, frame_pos: Tuple[int, int], data_row: RowParamData):
         master_shift = self.get_frame_row_shift(data_row)
 
-        quant_x, quant_y = quant_pos
         selected_data_rows = self.rows_data_manager.get_selected_data_rows()
         for row_param in self.box.children:
             if row_param.data_row in selected_data_rows:
                 shift = self.get_frame_row_shift(row_param.data_row)
-                frame_x = (quant_x - master_shift + shift) % self.xy_grid.size_x_getter()
-                row_param.tact_box.start_selector((frame_x, quant_y))
+                frame_x = (frame_pos[0] - master_shift + shift) % self.xy_grid.size_x_getter()
+                row_param.tact_box.start_selector((frame_x, frame_pos[1]))
 
-    def update_area_selection(self, quant_pos, quant_size, data_row: RowParamData):
+    def update_area_selection(
+            self,
+            frame_pos: Tuple[int, int],
+            frame_size: Tuple[int, int],
+            data_row: RowParamData):
         for row_param in self.box.children:
             if row_param.tact_box.selector:
-                row_param.tact_box.set_selector_size(quant_size)
-        quant_x, quant_y = quant_pos
+                row_param.tact_box.set_selector_size(frame_size)
         shift = self.get_frame_row_shift(data_row)
-        frame_x = (quant_x - shift) % self.xy_grid.size_x_getter()
-        self.select_dots_by_selector((frame_x, quant_y), quant_size)
+        frame_x = (frame_pos[0] - shift) % self.xy_grid.size_x_getter()
+        self.select_dots_by_selector((frame_x, frame_pos[1]), frame_size)
 
     def stop_area_selection(self):
         for row_param in self.box.children:
             if row_param.tact_box.selector:
                 row_param.tact_box.stop_selector()
 
-    def select_dots_by_selector(self, quant_pos, quant_size):
+    def select_dots_by_selector(
+            self,
+            frame_pos: Tuple[int, int],
+            frame_size: Tuple[int, int]):
         render_rows = self.selected_render_rows
-        norm_start_x = self.xy_grid.to_normalized_x(min(quant_pos[0], quant_pos[0] + quant_size[0]))
-        norm_width = self.xy_grid.to_normalized_x(abs(quant_size[0]))
-        norm_start_y = self.xy_grid.to_normalized_y(min(quant_pos[1], quant_pos[1] + quant_size[1]))
-        norm_height = self.xy_grid.to_normalized_y(abs(quant_size[1]))
+        norm_start_x = self.xy_grid.to_normalized_x(min(frame_pos[0], frame_pos[0] + frame_size[0]))
+        norm_width = self.xy_grid.to_normalized_x(abs(frame_size[0]))
+        norm_start_y = self.xy_grid.to_normalized_y(min(frame_pos[1], frame_pos[1] + frame_size[1]))
+        norm_height = self.xy_grid.to_normalized_y(abs(frame_size[1]))
         self.dots_selected = render_utils.get_dots_by_area(
             render_rows,
             norm_start_x, norm_start_y, norm_width, norm_height

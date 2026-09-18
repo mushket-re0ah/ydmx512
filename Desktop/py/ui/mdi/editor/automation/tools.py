@@ -32,8 +32,8 @@ class EditorTool:
 
 class AddDotTool(EditorTool):
     def on_touch_down(self, touch, source_widget):
-        frame_x, value_y = source_widget.to_quant_coords(*touch.pos, ignore_dot_radius=False)
-        self._start_quant = (frame_x, value_y)
+        frame_x, value_y = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=False, do_clamp=False)
+        self._start_frame = (frame_x, value_y)
 
         dot_type = InterpolationType.SPLINE if keyboard_manager.check_shift() else InterpolationType.LINEAR
 
@@ -50,7 +50,7 @@ class AddDotTool(EditorTool):
             self.row_panel.dots_selected = created_dots
 
     def on_touch_move(self, touch, source_widget):
-        self.automation.set_tool(MoveDotsTool, self._start_quant)
+        self.automation.set_tool(MoveDotsTool, self._start_frame)
 
     def on_touch_up(self, touch, source_widget):
         self.finish()
@@ -81,7 +81,7 @@ class SetDotTypeTool(EditorTool):
 
 class RemoveDotTool(EditorTool):
     def on_touch_down(self, touch, source_widget):
-        frame_x, _ = source_widget.to_quant_coords(*touch.pos, ignore_dot_radius=False)
+        frame_x, _ = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=False)
 
         selected_rows = self.row_panel.selected_render_rows
         if not selected_rows:
@@ -94,23 +94,23 @@ class RemoveDotTool(EditorTool):
 
 
 class MoveDotsTool(EditorTool):
-    start_quant = None
+    start_frame = None
     start_positions = None
-    def __init__(self, automation, start_quant=None):
+    def __init__(self, automation, start_frame=None):
         super().__init__(automation)
-        self.start_quant = start_quant
+        self.start_frame = start_frame
         self.start_positions = {
             dot: (dot.x, dot.y)
             for dot in self.row_panel.dots_selected
         }
 
     def on_touch_down(self, touch, source_widget):
-        self.start_quant = source_widget.to_quant_coords(*touch.pos, ignore_dot_radius=False)
+        self.start_frame = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=False, do_clamp=False)
 
     def on_touch_move(self, touch, source_widget):
-        current_quant = source_widget.to_quant_coords(*touch.pos, ignore_dot_radius=True)
-        diff_x = current_quant[0] - self.start_quant[0]
-        diff_y = current_quant[1] - self.start_quant[1]
+        current_frame = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=True, do_clamp=False)
+        diff_x = current_frame[0] - self.start_frame[0]
+        diff_y = current_frame[1] - self.start_frame[1]
 
         if diff_x == 0 and diff_y == 0:
             return
@@ -167,22 +167,20 @@ class SelectAreaTool(EditorTool):
     requires_session = False
 
     def on_touch_down(self, touch, source_widget):
-        self.start_quant = source_widget.to_quant_coords(*touch.pos)
-        self.last_quant = self.start_quant
+        self.start_frame = source_widget.to_frame_coords(*touch.pos)
         self.row_panel.unselect_all()
-        self.row_panel.start_area_selection(self.start_quant, source_widget.data_row)
+        self.row_panel.start_area_selection(self.start_frame, source_widget.data_row)
 
     def on_touch_move(self, touch, source_widget):
-        current = source_widget.to_quant_coords(*touch.pos, ignore_dot_radius=True)
-        area_width = boundary(current[0] - self.start_quant[0],
-                              -self.start_quant[0],
-                              self.xy_grid.last_x_frame - self.start_quant[0])
+        current = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=True)
+        area_width = boundary(current[0] - self.start_frame[0],
+                              -self.start_frame[0],
+                              self.xy_grid.last_x_frame - self.start_frame[0])
 
-        area_height = boundary(current[1] - self.start_quant[1],
-                               -self.start_quant[1],
-                               255 - self.start_quant[1])
-        self.row_panel.update_area_selection(self.start_quant, (area_width, area_height), source_widget.data_row)
-        self.last_quant = current
+        area_height = boundary(current[1] - self.start_frame[1],
+                               -self.start_frame[1],
+                               255 - self.start_frame[1])
+        self.row_panel.update_area_selection(self.start_frame, (area_width, area_height), source_widget.data_row)
 
     def on_touch_up(self, touch, source_widget):
         self.row_panel.stop_area_selection()
