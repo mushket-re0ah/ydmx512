@@ -11,7 +11,7 @@ from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.serial.observer import observer as serial_observer
 from libs.dmx512.serial.device import DMXSerialDevice
-from kivy_patches import builder_sync, on_touch_double_tap, recycle
+from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
 from database import db
 import presets
 from misc import event_thread

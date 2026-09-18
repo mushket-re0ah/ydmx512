@@ -12,7 +12,7 @@ from misc import logger
 from misc import constants
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
-from kivy_patches import builder_sync, on_touch_double_tap, recycle
+from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
 import ui.components.filelist
 import libs.uix.recycle_restricted_scrollview
 import sys
