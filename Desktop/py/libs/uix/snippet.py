@@ -7,14 +7,19 @@ from ui.components.recycle_spinner import SpinnerHoverButton
 from ui.components.recycle_dropdown import RecycleDropdown
 from kivy.uix.widget import Widget
 from libs.uix.behaviors.modal import ModalBehavior
+from kivy.uix.behaviors import FocusBehavior
 from kivy.clock import Clock
-from misc import logger
 
 
 class SnippetDropdown(RecycleDropdown):
     is_blocked_keyboard = False
     allow_hover_outside = True
     dismiss_on_attach_click = False
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            FocusBehavior.ignored_touch.append(touch)
+        return super().on_touch_down(touch)
 
 
 class Snippet(RecycleDropdownBehavior, HoverInput):
