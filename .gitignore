@@ -1,0 +1,8 @@
+# Python cache
+__pycache__/
+
+# Runtime data
+/Desktop/py/database_data/
+/Desktop/py/presets_data/
+/Desktop/py/database_backup/
+/Desktop/py/logs/
