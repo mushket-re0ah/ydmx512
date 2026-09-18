@@ -23,23 +23,6 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
         )
         self.refresh_from_data()
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
-        self.initialize_scroll_element()
-
-    def initialize_scroll_element(self, *args):
-        if not self.do_scroll_by_element:
-            return
-
-        if not self.layout_manager:
-            return
-
-        if self.do_scroll_x:
-            self.set_scroll_element_by_scroll_x(self.scroll_x)
-        elif self.do_scroll_y:
-            self.set_scroll_element_by_scroll_y(self.scroll_y)
-        self.unbind(layout_manager=self.initialize_scroll_element)
-
     def refresh_views(self, *largs):
         lm = self.layout_manager
         flags = self._refresh_flags
