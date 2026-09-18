@@ -28,7 +28,7 @@ class RestrictedScrollView(StencilView):
     do_scroll_y = BooleanProperty(True)
     scroll_by_content = BooleanProperty(False)
     do_scroll_by_element = BooleanProperty(False)
-    _scroll_element = NumericProperty(None)
+    _scroll_element = NumericProperty(0)
 
     def set_scroll_element(self, scroll_element: int) -> bool:
         scroll_element = self.scroll_element_limiter(scroll_element)
@@ -259,37 +259,37 @@ class RestrictedScrollView(StencilView):
                 return parent
         return None
 
-    def scroll_y_up(self):
+    def scroll_y_up(self, diff=1):
         if self.do_scroll_y:
-            if self.do_scroll_by_element and self.scroll_element:
-                self.scroll_element -= 1
+            if self.do_scroll_by_element:
+                self.scroll_element -= int(diff)
             else:
                 dy = self.convert_distance_to_scroll_y(self.scroll_wheel_distance)
-                self.scroll_y -= dy
+                self.scroll_y -= dy * diff
 
-    def scroll_y_down(self):
+    def scroll_y_down(self, diff=1):
         if self.do_scroll_y:
-            if self.do_scroll_by_element and self.scroll_element:
-                self.scroll_element += 1
+            if self.do_scroll_by_element:
+                self.scroll_element += int(diff)
             else:
                 dy = self.convert_distance_to_scroll_y(self.scroll_wheel_distance)
-                self.scroll_y += dy
+                self.scroll_y += dy * diff
 
-    def scroll_x_left(self):
+    def scroll_x_left(self, diff=1):
         if self.do_scroll_x:
-            if self.do_scroll_by_element and self.scroll_element:
-                self.scroll_element -= 1
+            if self.do_scroll_by_element:
+                self.scroll_element -= int(diff)
             else:
                 dx = self.convert_distance_to_scroll_x(self.scroll_wheel_distance)
-                self.scroll_x -= dx
+                self.scroll_x -= dx * diff
 
-    def scroll_x_right(self):
+    def scroll_x_right(self, diff=1):
         if self.do_scroll_x:
-            if self.do_scroll_by_element and self.scroll_element:
-                self.scroll_element += 1
+            if self.do_scroll_by_element:
+                self.scroll_element += int(diff)
             else:
                 dx = self.convert_distance_to_scroll_x(self.scroll_wheel_distance)
-                self.scroll_x += dx
+                self.scroll_x += dx * diff
 
     def on_touch_move(self, touch):
         if self._start_scroll:

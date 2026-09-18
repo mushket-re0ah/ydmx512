@@ -23,6 +23,22 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
         )
         self.refresh_from_data()
 
+    def on_kv_post(self, _):
+        super().on_kv_post(_)
+        self.initialize_scroll_element()
+
+    def initialize_scroll_element(self, *args):
+        if not self.do_scroll_by_element:
+            return
+
+        if not self.layout_manager:
+            return
+
+        if self.do_scroll_x:
+            self.set_scroll_element_by_scroll_x(self.scroll_x)
+        elif self.do_scroll_y:
+            self.set_scroll_element_by_scroll_y(self.scroll_y)
+        self.unbind(layout_manager=self.initialize_scroll_element)
 
     def refresh_views(self, *largs):
         lm = self.layout_manager
@@ -126,45 +142,73 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
             self.layout_manager = None
 
     def set_scroll_element_by_scroll_x(self, scroll_x: float) -> bool:
-        scroll_x *= 1 - self.hbar.size_hint
-        x = self.viewport_size[0] * scroll_x
         if not self.layout_manager:
             return False
-        if not self.layout_manager._rv_positions:
+
+        rv_positions = self.layout_manager._rv_positions
+        if not rv_positions:
             return False
 
-        for i, rv_x in enumerate(self.layout_manager._rv_positions):
+        scroll_x *= 1 - self.hbar.size_hint
+        x = self.viewport_size[0] * scroll_x
+        scroll_element = None
+        for i, rv_x in enumerate(rv_positions):
+            rv_x = max(rv_x, 0)
             if rv_x >= x:
-                self.scroll_element = i
+                scroll_element = i
                 break
-        else:
+
+        if scroll_element is None:
             return False
+
+        self.scroll_element = scroll_element
         return True
 
     def set_scroll_element_by_scroll_y(self, scroll_y: float) -> bool:
-        scroll_y *= 1 - self.vbar.size_hint
-        y = self.viewport_size[1] * scroll_y
         if not self.layout_manager:
             return False
-        if not self.layout_manager._rv_positions:
+
+        rv_positions = self.layout_manager._rv_positions
+        if not rv_positions:
             return False
 
-        for i, rv_y in enumerate(self.layout_manager._rv_positions):
+        scroll_y *= 1 - self.vbar.size_hint
+        y = self.viewport_size[1] * scroll_y
+        scroll_element = None
+        for i, rv_y in enumerate(rv_positions):
+            rv_y = max(rv_y, 0)
             if rv_y >= y:
-                self.scroll_element = i
+                scroll_element = i
                 break
-        else:
+
+        if scroll_element is None:
             return False
+
+        self.scroll_element = scroll_element
         return True
 
     def scroll_element_limiter(self, scroll_element: int) -> int:
         lm = self.layout_manager
-        if not lm:
+        if not lm or not lm._rv_positions:
             return scroll_element
-        if not lm._rv_positions:
+
+        if self.do_scroll_x:
+            available = lm.width - self.width
+        elif self.do_scroll_y:
+            available = lm.height - self.height
+        else:
             return scroll_element
-        cl = len(self.layout_manager.children)
-        return boundary(scroll_element, 0, len(self.layout_manager._rv_positions) - cl + 1)
+
+        if available <= 0:
+            return 0
+
+        max_scroll_element = len(lm._rv_positions) - 1
+        for index, pos in enumerate(lm._rv_positions):
+            if pos >= available:
+                max_scroll_element = index
+                break
+
+        return boundary(scroll_element, 0, max_scroll_element)
 
     def scroll_to(self, index: int):
         lm = self.layout_manager
