@@ -1,5 +1,7 @@
 from kivy.clock import Clock
-from kivy.properties import ObjectProperty, NumericProperty, AliasProperty
+from kivy.properties import (
+    ObjectProperty, NumericProperty, AliasProperty, BooleanProperty
+)
 from kivy.uix.boxlayout import BoxLayout
 from typing import Tuple
 from kivy.lang import Builder
@@ -15,6 +17,8 @@ class ScrollBar(BoxLayout):
     scrollview = ObjectProperty()
 
     btn_scroll = NumericProperty("100dp")
+    scroll_at_start = BooleanProperty(False)
+    scroll_at_end = BooleanProperty(False)
 
     _clock_btn_press = None
     _start_pos = None
@@ -32,7 +36,7 @@ class ScrollBar(BoxLayout):
     _processing_scrolldown = None
 
     _btn_scroll_start = 0
-    _btn_scroll_sum = 0
+    _btn_scroll_diff = 0
 
     _DEFAULT_WIDTH_NUMERIC = 20
     _DEFAULT_HEIGHT_NUMERIC = 20
@@ -58,27 +62,54 @@ class ScrollBar(BoxLayout):
 
         sv.bind(**{self._scrollview_bar_attr: self.on_scrollview_bar})
         self.layout_cursor.bind(size=self.on_scrollview_bar)
+        self.scroll_at_start = self.get_scroll_at_start()
+        self.scroll_at_end = self.get_scroll_at_end()
 
     def on_scrollview_bar(self, *args):
         pos, size_hint = self.__get_bar()
         pos *= getattr(self.layout_cursor, self._size_attr)
         self.__set_cursor(size_hint, pos)
+        self.scroll_at_start = self.get_scroll_at_start()
+        self.scroll_at_end = self.get_scroll_at_end()
 
     def on_press_btn_scroll(self, dimension: int):
         self._btn_scroll_start = self.__get_scroll()
-        self._btn_scroll_sum = self._convert_distance_to_scroll(
-            self._btn_scroll_dimension_orientation * dimension * self.btn_scroll)
-        self.__inc_scroll(self._btn_scroll_sum)
+
+        if self.scrollview.do_scroll_by_element:
+            self._btn_scroll_diff = dimension
+            self._scroll_by_diff(dimension)
+        else:
+            self._btn_scroll_diff = self._convert_distance_to_scroll(
+                self._btn_scroll_dimension_orientation * dimension * self.btn_scroll
+            )
+            self.__inc_scroll(self._btn_scroll_diff)
+
         self._clock_btn_press = Clock.schedule_once(
-            self._create_clock_btn_scroll, 0.3)
+            self._create_clock_btn_scroll, 0.3
+        )
 
     def _create_clock_btn_scroll(self, _):
         self._clock_btn_press = Clock.schedule_interval(
             self._btn_scroll, 1 / 30)
 
     def _btn_scroll(self, _):
-        self._btn_scroll_sum *= 1.065
-        self.__inc_scroll(self._btn_scroll_sum / 10)
+        self._btn_scroll_diff *= 1.065
+        if self.scrollview.do_scroll_by_element:
+            self._scroll_by_diff(self._btn_scroll_diff)
+        else:
+            self.__inc_scroll(self._btn_scroll_diff / 10)
+
+    def _scroll_by_diff(self, diff):
+        if self.orientation == "vertical":
+            if diff > 0:
+                self.scrollview.scroll_y_up(abs(diff))
+            else:
+                self.scrollview.scroll_y_down(abs(diff))
+        else:
+            if diff > 0:
+                self.scrollview.scroll_x_left(abs(diff))
+            else:
+                self.scrollview.scroll_x_right(abs(diff))
 
     def on_touch_down(self, touch):
         if self._do_mouse_scroll(touch):
@@ -175,9 +206,43 @@ class ScrollBar(BoxLayout):
 
     def __inc_scroll(self, value: float):
         if self.orientation == "vertical":
-            self.__set_scroll(self._btn_scroll_start - self._btn_scroll_sum)
+            self.__set_scroll(self._btn_scroll_start - self._btn_scroll_diff)
         else:
-            self.__set_scroll(self._btn_scroll_start + self._btn_scroll_sum)
+            self.__set_scroll(self._btn_scroll_start + self._btn_scroll_diff)
+
+    def get_scroll_at_start(self):
+        sv = self.scrollview
+        if not sv:
+            return True
+
+        if sv.do_scroll_by_element:
+            return sv.scroll_element is not None and sv.scroll_element == 0
+
+        if self.orientation == "vertical":
+            return sv._scroll_y <= 0.0
+        return sv._scroll_x <= 0.0
+
+    def get_scroll_at_end(self):
+        sv = self.scrollview
+        if not sv:
+            return True
+
+        if sv.do_scroll_by_element:
+            if sv.scroll_element is None:
+                return False
+
+            lm = sv.layout_manager
+            if not lm or not lm._rv_positions:
+                return True
+
+            max_element = sv.scroll_element_limiter(
+                len(lm._rv_positions) - 1
+            )
+            return sv.scroll_element >= max_element
+
+        if self.orientation == "vertical":
+            return sv._scroll_y >= 1.0
+        return sv._scroll_x >= 1.0
 
 
 class ScrollLayout(BoxLayout):

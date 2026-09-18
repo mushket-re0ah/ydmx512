@@ -20,7 +20,7 @@
         height: root.width
         width: root.height
         on_press: root.on_press_btn_scroll(1)
-        disabled: (root.scrollview._scroll_y <= 0.0) if root.orientation == "vertical" else (root.scrollview._scroll_x <= 0.0)
+        disabled: root.scroll_at_start
 
     RelativeLayout:
         id: layout_cursor
@@ -35,7 +35,7 @@
         height: root.width
         width: root.height
         on_press: root.on_press_btn_scroll(-1)
-        disabled: (root.scrollview._scroll_y >= 1.0) if root.orientation == "vertical" else (root.scrollview._scroll_x >= 1.0)
+        disabled: root.scroll_at_end
 
 
 <ScrollLayout>:  # BoxLayout
