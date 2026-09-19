@@ -3,7 +3,7 @@ from typing import Optional, Callable, Dict
 from libs.kivy_json_orm.table_implementation import DatabaseRow
 from ui.components.recycle_spinner import RecycleSpinner
 from ui.components.input import HoverInput, HEXAInput, NumericInput
-from ui.components.button import HoverButton, HoverToggleButton
+from libs.uix.button import HoverButton, HoverToggleButton
 from dataclasses import dataclass, field
 from operator import attrgetter
 from libs.utils import merge_kwargs

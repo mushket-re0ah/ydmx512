@@ -4,11 +4,11 @@ from kivy.clock import Clock
 from database.patch import RowPatch
 from libs.mouse_manager.hover import HoverBehavior
 from libs.animation import AnimationBehavior
-from ui.components.button import ExpansiveToggleButtonBehavior
+from libs.uix.button import ExpansiveToggleButtonBehavior
 from libs.kivy_utils import AutoUnbindBehavior
 from ui.mdi.patch_list.patch_ui import BasePatchUi
 from libs.uix.label import RestrictedLabel
-from ui.components.button import HoverButton
+from libs.uix.button import HoverButton
 from misc import colorscheme as cs
 from libs.animation import StatefulColorProperty
 from misc import logger

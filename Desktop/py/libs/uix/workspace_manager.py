@@ -3,7 +3,7 @@ from kivy.properties import (
     ObjectProperty, BooleanProperty, NumericProperty, AliasProperty
 )
 from kivy.clock import Clock
-from ui.components.button import HoverToggleButton
+from libs.uix.button import HoverToggleButton
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from libs.properties import ContextualNumericProperty
 from libs.animation import StatefulColorProperty

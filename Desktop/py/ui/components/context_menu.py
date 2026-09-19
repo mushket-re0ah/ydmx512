@@ -5,7 +5,7 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics import Rectangle
 from kivy.core.text import Label as CoreLabel
-from ui.components.button import HoverButton
+from libs.uix.button import HoverButton
 from ui.components.recycle_spinner import RecycleSpinner
 from libs.uix.label import RestrictedLabel
 from kivy.uix.widget import Widget

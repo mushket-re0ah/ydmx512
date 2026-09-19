@@ -3,7 +3,7 @@ from kivy.properties import (
 )
 from kivy.clock import Clock
 from ui.components.scroll_layout import ScrollLayout
-from ui.components.button import HoverButton
+from libs.uix.button import HoverButton
 from kivy.lang import Builder
 from pathlib import Path
 

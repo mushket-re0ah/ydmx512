@@ -2,7 +2,7 @@ from kivy.properties import NumericProperty, ObjectProperty
 from kivy.uix.widget import Widget
 from libs.uix.workspace_manager import WorkspaceManager, WorkspaceBehavior
 from ui.components.mdi_window import MDIWindow
-from ui.components.button import HoverToggleButton
+from libs.uix.button import HoverToggleButton
 from ui.mdi.window_manager import (
     TilingWindowManager, FloatingWindowManager
 )

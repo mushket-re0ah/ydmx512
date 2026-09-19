@@ -1,6 +1,6 @@
 from kivy.properties import ObjectProperty, StringProperty
 from libs.uix.layouts import ModalBoxLayout
-from ui.components.button import HoverButton
+from libs.uix.button import HoverButton
 from ui.components.rotary_button import RotaryButton
 from ui.mdi.desktops.desktop_rotary import DesktopRotaryUix
 from ui.mdi.desktops.desktop_slider_2d import DesktopSlider2D

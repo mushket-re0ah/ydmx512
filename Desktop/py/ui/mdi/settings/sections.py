@@ -1,6 +1,6 @@
 from kivy.properties import ObjectProperty, StringProperty
 from ui.components.scroll_layout import ScrollLayout
-from ui.components.button import HoverToggleButton
+from libs.uix.button import HoverToggleButton
 from kivy.lang import Builder
 
 

@@ -10,7 +10,7 @@ from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
 from libs.mouse_manager import cursor_manager
 from kivy.lang import Builder
 from ui.components.database_table.column_config import ColumnConfig
-from ui.components.button import ArrowToggleButton, HoverToggleButton
+from libs.uix.button import ArrowToggleButton, HoverToggleButton
 from functools import partial
 from kivy.clock import Clock
 
