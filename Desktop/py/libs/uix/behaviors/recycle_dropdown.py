@@ -3,7 +3,7 @@ from kivy.properties import (
 )
 from kivy.clock import Clock
 from libs.kivy_utils import AutoUnbindBehavior
-from ui.components.recycle_dropdown import RecycleDropdown
+from libs.uix.recycle_dropdown import RecycleDropdown
 from libs.uix.button import HoverButton
 
 
