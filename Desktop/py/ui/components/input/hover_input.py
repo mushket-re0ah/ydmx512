@@ -1,7 +1,7 @@
 from kivy.properties import BooleanProperty, ColorProperty
 from kivy.clock import Clock
 from ui.components.input.textinput import CentralizedHotkeyTextInput
-from ui.components.context_menu import (
+from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
 from misc import colorscheme as cs
