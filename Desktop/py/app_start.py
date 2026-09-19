@@ -1,5 +1,5 @@
 from misc import logger
-from misc import exit_code
+from libs.sub_proc import exit_code
 from typing import Optional
 import sys
 
@@ -59,7 +59,7 @@ def create_app() -> Optional["DesktopApp"]:
 
 
 def kivy_execute() -> int:
-    from misc import exit_code
+    from libs.sub_proc import exit_code
     logger.info("==== Запуск kivy приложения... ====")
 
     if constants.PROFILING_CPU:
@@ -126,7 +126,7 @@ def kivy_execute() -> int:
 
 
 def backup_menu_execute():
-    from misc import exit_code
+    from libs.sub_proc import exit_code
     from misc import logger
     import sys
     exit_status = exit_code.EXIT_SUCCESS
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     )
 
     from misc import logger
-    from misc import exit_code
+    from libs.sub_proc import exit_code
     logger.init()
     import os
     from misc import constants

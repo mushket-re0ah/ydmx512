@@ -5,7 +5,8 @@ from libs.uix.layouts import StencilBoxLayout
 from libs.uix.scroll_layout import ScrollLayout
 from database.fixture_param import RowFixtureParam
 from database.fixture import RowFixture, FixtureChannelsGroup
-from misc import sub_proc, constants
+from misc import constants
+from libs import sub_proc
 from pathlib import Path
 import shutil
 from database.brand import RowBrand

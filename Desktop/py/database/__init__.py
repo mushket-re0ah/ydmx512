@@ -1,10 +1,10 @@
 from libs.kivy_json_orm.database import Database
 from misc import constants
-from misc import sub_proc
+from misc import backup
 
 
 def create_database():
-    db = Database(constants.DATABASE_PATH, None, None, lambda: sub_proc.do_backup(None))
+    db = Database(constants.DATABASE_PATH, None, None, lambda: backup.do_backup(None))
     globals()["db"] = db
     from database.misc import TableMisc
     db.register("misc", TableMisc())

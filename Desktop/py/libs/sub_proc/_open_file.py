@@ -1,4 +1,4 @@
-from misc import exit_code
+from libs.sub_proc import exit_code
 import sys
 from typing import List
 
@@ -11,7 +11,7 @@ def start(queue: "multiprocessing.Queue",
           title: str=None,
           icon: str=None,
           show_hidden: bool=False):
-    def __on_selection(paths: List[str]):
+    def _on_selection(paths: List[str]):
         queue.put(paths if multiple else (paths[0] if paths else None))
 
     try:
@@ -24,7 +24,7 @@ def start(queue: "multiprocessing.Queue",
                     title=title,
                     icon=icon,
                     show_hidden=show_hidden,
-                    on_selection=__on_selection)
+                    on_selection=_on_selection)
         sys.exit(exit_code.EXIT_SUCCESS)
     except Exception as e:
         import traceback

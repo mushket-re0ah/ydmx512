@@ -5,7 +5,20 @@ from kivy.lang import Builder
 from kivy.utils import platform
 
 
-Builder.load_file("misc/sub_proc/_modal_block.kv")
+Builder.load_string("""
+<SubProcModalBlock>:  # BoxLayout
+    size_hint: (1, 1)
+    pos_hint: {"x": 0, "y": 0}
+    canvas.before:
+        Color:
+            rgba: (0, 0, 0, 0.7)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    RestrictedLabel:
+        text: "modal block"
+"""
+)
 
 
 class SubProcModalBlock(BoxLayout):
@@ -57,7 +70,7 @@ if platform == "win":
     user32.GetClassNameW.argtypes = (wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
     user32.GetWindowThreadProcessId.argtypes = (wintypes.HWND, ctypes.POINTER(wintypes.DWORD))
 
-    def __get_main_hwnd(pid):
+    def _get_main_hwnd(pid):
         main_hwnd = None
         
         @EnumWindowsProc
@@ -94,7 +107,7 @@ if platform == "win":
 
 
     def _set_focus_on_process_window(process):
-        hwnd = __get_main_hwnd(process.pid)
+        hwnd = _get_main_hwnd(process.pid)
         if hwnd:
             win32gui.SetForegroundWindow(hwnd)
             win32gui.SetActiveWindow(hwnd)
