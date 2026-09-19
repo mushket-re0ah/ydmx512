@@ -669,6 +669,7 @@
         [+] scroll_layout
         [+] recycle_dropdown
         [+] filelist
+        [+] color_selector
         [-] imgs_path используется от основного app везде
 [+-] Установка значений патча напрямую через патч а не прозвон
     [+] Механизм сделан, но он кривоват и графически и функционально
@@ -681,7 +682,6 @@
         2026-09-19 11:45:05,375 : [INFO] : thread='MainThread', ident=140712384285632, native_id=364488, daemon=False, alive=True
         2026-09-19 11:45:05,375 : [INFO] :   File "/home/mushket/Ydmx REBORN 17.09.2026/Desktop/py/app_start.py", line 200, in <module>
             "".join(traceback.format_stack(frame))
-
         2026-09-19 11:45:05,375 : [INFO] : thread='Thread-1 (loop)', ident=140711974401728, native_id=364494, daemon=True, alive=True
         2026-09-19 11:45:05,375 : [INFO] :   File "/usr/lib/python3.14/threading.py", line 1044, in _bootstrap
             self._bootstrap_inner()
@@ -693,11 +693,29 @@
             _loop()
           File "/home/mushket/Ydmx REBORN 17.09.2026/Desktop/py/misc/event_thread.py", line 69, in _loop
             time.sleep(sleep_time)
-
         2026-09-19 11:45:05,416 : [INFO] : Процесс kivy завершен с кодом 0
         2026-09-19 11:45:05,416 : [INFO] : Процесс kivy успешно завершен
     [?] Завершение с зависанием
-
+        2026-09-19 18:04:17,107 : [INFO] : ==== Завершение kivy приложения... ====
+        2026-09-19 18:04:17,107 : [INFO] : === THREADS BEFORE EXIT ===
+        2026-09-19 18:04:17,107 : [INFO] : thread='MainThread', ident=139782656674752, native_id=465133, daemon=False, alive=True
+        2026-09-19 18:04:17,108 : [INFO] :   File "/home/mushket/Ydmx REBORN 17.09.2026/Desktop/py/app_start.py", line 200, in <module>
+            "".join(traceback.format_stack(frame))
+        2026-09-19 18:04:17,108 : [INFO] : thread='Thread-1 (loop)', ident=139782248199872, native_id=465149, daemon=True, alive=True
+        2026-09-19 18:04:17,108 : [INFO] :   File "/usr/lib/python3.14/threading.py", line 1044, in _bootstrap
+            self._bootstrap_inner()
+          File "/usr/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+            self._context.run(self.run)
+          File "/usr/lib/python3.14/threading.py", line 1024, in run
+            self._target(*self._args, **self._kwargs)
+          File "/home/mushket/Ydmx REBORN 17.09.2026/Desktop/py/misc/event_thread.py", line 25, in loop
+            _loop()
+          File "/home/mushket/Ydmx REBORN 17.09.2026/Desktop/py/misc/event_thread.py", line 69, in _loop
+            time.sleep(sleep_time)
+        2026-09-19 18:06:18,669 : [INFO] : Процесс kivy завершен с кодом 0
+        2026-09-19 18:06:18,669 : [INFO] : Процесс kivy успешно завершен
+    [?] Лог особо ничего не дал. Однако можно исключить event_thread. Запуска multiprocessing не было в завершении с зависанием.
+    [?] Проверим signal во время зависания
 
 [-] Поля ввода
     [-] Прыгает текст
