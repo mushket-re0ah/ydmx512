@@ -6,7 +6,7 @@ def clean_build():
         shutil.rmtree("build")
     for c_file in glob.glob("libs/dmx512_render/*.c"):
         os.remove(c_file)
-    for c_file in glob.glob("misc/*.c"):
+    for c_file in glob.glob("libs/uix/color_selector/*.c"):
         os.remove(c_file)
 
 def do_cythonize():
@@ -23,7 +23,7 @@ def do_cythonize():
 
     modules = (
         ("libs.dmx512_render.render_interpolation", "libs/dmx512_render/render_interpolation"),
-        ("misc.colorpicker_utils", "misc/colorpicker_utils"),
+        ("libs.uix.color_selector.colorpicker_utils", "libs/uix/color_selector/colorpicker_utils"),
     )
 
     extensions = [

@@ -7,7 +7,7 @@ import sys
 def import_cython_files() -> int:
     try:
         import libs.dmx512_render.render_interpolation
-        import misc.colorpicker_utils
+        import libs.uix.color_selector.colorpicker_utils
     except ModuleNotFoundError:
         try:
             logger.info("cythonized files don't exist: try to create them")
@@ -19,7 +19,7 @@ def import_cython_files() -> int:
                 return exit_code.EXIT_FAILURE
             logger.info("cythonized successful")
             import libs.dmx512_render.render_interpolation
-            import misc.colorpicker_utils
+            import libs.uix.color_selector.colorpicker_utils
         except Exception as e:
             logger.error(exc_info=True)
             return exit_code.EXIT_FAILURE
@@ -152,6 +152,15 @@ def backup_menu_execute():
 
 
 if __name__ == '__main__':
+    import faulthandler
+    import signal
+
+    faulthandler.register(
+        signal.SIGUSR1,
+        all_threads=True,
+        chain=False,
+    )
+
     from misc import logger
     from misc import exit_code
     logger.init()
