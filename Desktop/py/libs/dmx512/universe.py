@@ -7,10 +7,8 @@ from .lan.device import LanDevice
 from . import message
 from typing import List, Optional, Tuple
 import time
-import logging
 from libs.utils import ThrottledCall
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 class DMX512Universe(EventDispatcher):

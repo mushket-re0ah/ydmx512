@@ -6,9 +6,7 @@ import serial
 import time
 from enum import IntEnum
 from typing import Optional
-import logging
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 class DMXResultCode(IntEnum):

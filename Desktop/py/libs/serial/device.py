@@ -5,10 +5,9 @@ from serial.tools.list_ports_common import ListPortInfo
 from enum import Enum, auto
 from typing import Optional
 import time
-import logging
 import queue
 from libs.properties import EnumProperty
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 class SerialState(Enum):

@@ -9,7 +9,7 @@ from database import db
 from database.patch import RowPatch
 from typing import List, Optional
 from libs.kivy_utils import AutoUnbindBehavior
-from misc import logger
+from libs import logger
 
 
 Builder.load_file("ui/mdi/patch_list/patch_map.kv")

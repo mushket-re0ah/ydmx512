@@ -23,7 +23,7 @@ from database.playback.renderer.command import (
     CommandCreateInterpatchSpec, CommandUpdateInterpatchSpec, CommandRemoveInterpatchSpec,
 )
 from misc import constants
-from misc import logger
+from libs import logger
 
 
 class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):

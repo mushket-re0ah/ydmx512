@@ -5,7 +5,7 @@ import sys
 import os
 from libs.sub_proc import exit_code
 from misc import constants
-from misc import logger
+from libs import logger
 from pathlib import Path
 
 # Определяем директорию, где находится скрипт или исполняемый файл
@@ -52,7 +52,8 @@ def run_kivy_app(exec_backup_menu: bool):
 
 
 if __name__ == "__main__":
-    logger.init()
+    from misc import constants
+    logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES, constants.SESSION_LOG_ENV_KEY)
     logger.info("Лаунчер запущен")
     exec_backup_menu = False
     while True:

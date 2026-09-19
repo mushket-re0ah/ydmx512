@@ -34,7 +34,7 @@ from ui.mdi.editor.automation.tools import (
     AddDotTool, SetDotTypeTool, RemoveDotTool, MoveDotsTool, SelectAreaTool,
     InterpatchPhaseTool, SetRowActiveTool
 )
-from misc import logger
+from libs import logger
 Builder.load_file("ui/mdi/editor/automation/rows/row_param.kv")
 
 

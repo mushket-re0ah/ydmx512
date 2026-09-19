@@ -2,7 +2,7 @@ from libs.command import Command
 from typing import List, Dict
 from database.playback.renderer.render_data import RowPhaseSpec, InterpatchSpec
 from collections import defaultdict
-from misc import logger
+from libs import logger
 
 
 class PlaybackCommand(Command):

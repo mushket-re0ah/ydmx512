@@ -3,9 +3,7 @@ from kivy.properties import ListProperty
 from .device import MidiDevice
 from typing import List
 import rtmidi
-import logging
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 class MidiObserver(EventDispatcher):

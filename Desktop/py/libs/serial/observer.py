@@ -4,9 +4,7 @@ from kivy.properties import ListProperty, BooleanProperty, ObjectProperty
 from .get_name_serial_usb import get_product_name_by_port
 from .device import SerialState, SerialDevice
 from typing import List
-import logging
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 class SerialObserver(EventDispatcher):

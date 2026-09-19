@@ -2,9 +2,7 @@ import json
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 import os
-import logging
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 def json_save(

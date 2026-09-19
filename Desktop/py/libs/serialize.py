@@ -4,9 +4,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 from kivy.properties import Property, AliasProperty
 from kivy.event import EventDispatcher
 from libs.kivy_utils import atomic_setattrs
-import logging
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 T = TypeVar("T")

@@ -5,7 +5,7 @@ from kivy.core.window import Window
 from kivy.core.text import Label as CoreLabel
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty, ListProperty, StringProperty
-from misc import logger
+from libs import logger
 from misc import constants
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior

@@ -23,7 +23,7 @@ class RowScene(DatabaseRow):
 
     def on_temp(self, _, temp: int):
         if self._table.scene_now is self:
-            from misc import logger
+            from libs import logger
             logger.debug(temp)
             self._table.scene_now_temp = temp
 

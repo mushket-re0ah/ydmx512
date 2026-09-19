@@ -8,7 +8,7 @@ from libs.kivy_json_orm.fields import *
 from libs.asset_manager import FileAssetManager
 from pathlib import Path
 from typing import Any, Optional
-from misc import logger
+from libs import logger
 
 
 class FixturePresetRowData(SerializableMixin):

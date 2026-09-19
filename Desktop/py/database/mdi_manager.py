@@ -82,7 +82,7 @@ class MdiData(SerializableMixin):
         mdi_id = mdi._db_title_id
         if mdi_id in self.data:
             state = self.data[mdi_id].state
-            from misc import logger
+            from libs import logger
             mdi.size_hint = state.size_hint
             mdi.size = state.size
             mdi.pos = state.pos

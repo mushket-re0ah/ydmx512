@@ -2,9 +2,7 @@ from pathlib import Path
 from typing import List, Any
 from libs.serialize import SerializableMixin
 from libs.file_utils import atomic_json_save, json_load
-import logging
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 class FileAssetManager:

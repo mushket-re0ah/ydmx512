@@ -11,7 +11,7 @@ from libs.uix.label import RestrictedLabel
 from libs.uix.button import HoverButton
 from misc import colorscheme as cs
 from libs.animation import StatefulColorProperty
-from misc import logger
+from libs import logger
 from ui.mdi.editor.automation.tools import InterpatchPhaseTool
 from database.playback.renderer.render_data import InterpatchSpec
 from database.playback import RowPlayback
