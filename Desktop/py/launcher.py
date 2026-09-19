@@ -55,7 +55,6 @@ if __name__ == "__main__":
     logger.init()
     logger.info("Лаунчер запущен")
     exec_backup_menu = False
-    logger.init()
     while True:
         try:
             logger.info("Запуск kivy...")

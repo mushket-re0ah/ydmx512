@@ -69,9 +69,9 @@ def kivy_execute() -> int:
         # from scalene import scalene_profiler
         # scalene_profiler.start()
 
-    if import_cython_files() == exit_code.EXIT_FAILURE:
-        return exit_code.EXIT_FAILURE
     if init_config_kivy() == exit_code.EXIT_FAILURE:
+        return exit_code.EXIT_FAILURE
+    if import_cython_files() == exit_code.EXIT_FAILURE:
         return exit_code.EXIT_FAILURE
 
     from libs import sdl2_keyboard
