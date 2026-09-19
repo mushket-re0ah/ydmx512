@@ -1,5 +1,5 @@
-from ui.components.database_table import DatabaseTableUi
-from ui.components.database_table import ColumnConfigTemplates
+from libs.uix.database_table import DatabaseTableUi
+from libs.uix.database_table import ColumnConfigTemplates
 from misc import constants
 from database import db
 from functools import partial

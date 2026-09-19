@@ -122,3 +122,7 @@ MidiInput = _cs(
     background_color_normal=_h("#005500FF"),
     foreground_color_normal=_h("#99FFFFFF"),
 )
+
+DatabaseTable = _cs(
+    bg=_h("#1C2225FF"),
+)

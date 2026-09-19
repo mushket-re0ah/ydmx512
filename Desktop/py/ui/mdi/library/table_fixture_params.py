@@ -1,5 +1,5 @@
 from libs.uix.input import HEXAInput
-from ui.components.database_table import ColumnConfigTemplates
+from libs.uix.database_table import ColumnConfigTemplates
 from ui.mdi.library.table import LibraryTable
 from kivy.utils import get_hex_from_color
 from database import db

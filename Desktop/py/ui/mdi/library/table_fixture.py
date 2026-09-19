@@ -1,4 +1,4 @@
-from ui.components.database_table import ColumnConfigTemplates
+from libs.uix.database_table import ColumnConfigTemplates
 from ui.mdi.library.table import LibraryTable
 from database import db
 from database.fixture import RowFixture
