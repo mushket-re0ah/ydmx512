@@ -4,7 +4,33 @@ from kivy.uix.boxlayout import BoxLayout
 from libs.uix.layouts import SectionPanel
 from kivy.lang import Builder
 
-Builder.load_file("ui/components/device_list_panel.kv")
+Builder.load_string(
+"""
+<DeviceListPanel>:  # SectionPanel
+    box: box
+    scrollview: scrollview
+    title_text: root.title
+    size_hint: (None, 1)
+    ScrollLayout:
+        size_hint: (None, 1)
+        width: "175dp"
+        scrollview: scrollview
+        RestrictedScrollView:
+            id: scrollview
+            scroll_by_content: True
+            canvas.before:
+                Color:
+                    rgba: root.bg_scrollview
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            BoxLayout:
+                id: box
+                orientation: "vertical"
+                size_hint: (1, None)
+                height: self.minimum_height
+"""
+)
 
 
 class DeviceUi(BoxLayout):

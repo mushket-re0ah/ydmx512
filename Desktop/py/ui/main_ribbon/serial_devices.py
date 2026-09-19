@@ -1,5 +1,5 @@
 from kivy.properties import ObjectProperty, StringProperty, ColorProperty
-from ui.components.device_list_panel import DeviceUi, DeviceListPanel
+from libs.uix.device_list_panel import DeviceUi, DeviceListPanel
 from libs.uix.button import HoverToggleButton
 from kivy.uix.boxlayout import BoxLayout
 from libs.serial.observer import observer as serial_observer
