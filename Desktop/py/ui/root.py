@@ -21,7 +21,7 @@ import ui.components.scroll_layout_map
 import libs.uix.workspace_manager
 import libs.uix.context_menu
 import libs.uix.snippet
-import ui.components.database_table
+import libs.uix.database_table
 import ui.components.mdi_window
 import libs.uix.filelist
 

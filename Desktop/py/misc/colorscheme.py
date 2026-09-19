@@ -62,10 +62,6 @@ BeatLabel = _cs(
     progress_bg=_h("#0000FF33"),
 )
 
-DatabaseTable = _cs(
-    bg=_h("#1C2225FF"),
-)
-
 SerialDevices = _cs(
     bg=_h("#243137FF"),
     fg=_h("#99FFFFFF"),
