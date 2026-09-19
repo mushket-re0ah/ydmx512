@@ -9,7 +9,7 @@ from kivy.clock import Clock
 from libs.uix.layouts import StencilBoxLayout
 from libs.uix.rotary_button import PanRotaryButton
 from libs.uix.button import OptionToggleButton, OptionToggleButtonContextMenu
-from ui.components.input.numeric_input import NumericInput
+from libs.uix.input.numeric_input import NumericInput
 from libs.uix.layouts import WindowModalBoxLayout
 from database.playback import RowPlayback
 from database.playback.renderer import render_utils

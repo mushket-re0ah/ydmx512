@@ -10,7 +10,7 @@ import libs.uix.layouts
 import libs.uix.label
 import libs.uix.button
 import libs.uix.splitter
-import ui.components.input
+import libs.uix.input
 import libs.uix.rotary_button
 import libs.uix.restricted_scrollview
 import libs.uix.recycle_restricted_scrollview

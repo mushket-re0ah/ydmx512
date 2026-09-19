@@ -6,8 +6,16 @@ from libs.uix.context_menu import (
 )
 from typing import Union, Optional
 from kivy.utils import boundary
-from ui.components.input import HoverInput
+from libs.uix.input import HoverInput
 from libs.uix.restricted_scrollview import RestrictedScrollView
+from kivy.lang import Builder
+Builder.load_string("""
+<NumericInput>:  # HoverInput
+    input_filter: "int"
+    input_type: "number"
+    multiline: False
+"""
+)
 
 
 class NumericInput(HoverInput):

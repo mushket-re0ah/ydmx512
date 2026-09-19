@@ -38,6 +38,11 @@ from libs.sdl2_keyboard import KeyboardBehavior, KeyboardInputContext
 from libs.sdl2_keyboard.scancodes import *
 from typing import Optional, List, Tuple
 from libs.mouse_manager import cursor_manager
+from kivy.lang import Builder
+Builder.load_string("""
+<-CentralizedHotkeyTextInput>:  # TextInput
+"""
+)
 
 
 __all__ = ('TextInput', )

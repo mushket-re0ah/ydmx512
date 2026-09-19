@@ -1,10 +1,20 @@
 from kivy.properties import NumericProperty
 from libs.midi.notes import MIDI_NOTES
-from ui.components.input import NumericInput
+from libs.uix.input.numeric_input import NumericInput
 from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
 from database import db
+from kivy.lang import Builder
+Builder.load_string("""
+#:import uix_cs libs.uix.colorscheme
+
+<MidiInput>:  # NumericInput
+    normal_background_color: uix_cs.MidiInput.background_color_normal
+    normal_foreground_color: uix_cs.MidiInput.foreground_color_normal
+    allow_empty: True
+"""
+)
 
 
 class MidiInput(NumericInput):
