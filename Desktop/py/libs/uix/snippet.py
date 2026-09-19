@@ -1,4 +1,4 @@
-from ui.components.input import HoverInput
+from libs.uix.input import HoverInput
 from libs.uix.behaviors.recycle_dropdown import RecycleDropdownBehavior
 from kivy.properties import (
     ObjectProperty, StringProperty, BooleanProperty, NumericProperty

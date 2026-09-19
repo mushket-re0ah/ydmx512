@@ -181,28 +181,6 @@ CheckboxPhaseInterpatchX = _cs(
     fg_disabled=_h("#CFDFCFDD"),
 )
 
-HoverInput = _cs(
-    background_color_normal=_h("#2C3235FF"),
-    background_color_hover=_h("#2C3227FF"),
-    background_color_disabled=_h("#1C2225FF"),
-    background_color_focused=_h("#1C2225FF"),
-    
-    border_color_normal=_h("#00000000"),
-    border_color_hover=_h("#BCC1C4FF"),
-    border_color_disabled=_h("#000000FF"),
-    border_color_focused=_h("#BCC1C4FF"),
-    
-    foreground_color_normal=_h("#99FFFFFF"),
-    foreground_color_hover=_h("#99FFFFFF"),
-    foreground_color_disabled=_h("#99FFFFFF"),
-    foreground_color_focused=_h("#99FFFFFF"),
-)
-
-MidiInput = _cs(
-    background_color_normal=_h("#005500FF"),
-    foreground_color_normal=_h("#99FFFFFF"),
-)
-
 CheckerSlider = _cs(
     border_color_normal=_h("#6C7275FF"),
 )

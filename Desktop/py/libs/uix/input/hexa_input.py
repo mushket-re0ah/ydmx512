@@ -1,8 +1,33 @@
 from kivy.properties import AliasProperty, ObjectProperty
 from kivy.utils import boundary
-from ui.components.input import HoverInput
+from libs.uix.input.hover_input import HoverInput
 from libs.uix.layouts import ModalBoxLayout
 from libs.sdl2_keyboard.scancodes import *
+import libs.uix.color_selector
+from kivy.lang import Builder
+Builder.load_string("""
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+
+<HEXAInput>:  # HoverInput
+    color_toggle: color_toggle
+
+    halign: "left"
+    -font_name: "Roboto Mono"
+    hover: color_toggle.hover
+    ColorToggleButton:
+        id: color_toggle
+        size_hint: (None, None)
+        size: (root.height - dp(2 * root.padding[1]), root.height - dp(2 * root.padding[1]))
+        pos: (root.right - (root.height - dp(2 * root.padding[1])) - dp(root.padding[0]), dp(root.y + root.padding[1]))
+        on_release: root.open_modal()
+        color: get_color_from_hex(root.text) or get_color_from_hex("#FFFFFF")
+
+<HEXAInputModal>:  # ModalBoxLayout
+    size_hint: (None, None)
+    size: (512, 512)
+    ColorSelector:
+"""
+)
 
 
 class HEXAInputModal(ModalBoxLayout):

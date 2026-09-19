@@ -1,12 +1,27 @@
 from kivy.properties import BooleanProperty, ColorProperty
 from kivy.clock import Clock
-from ui.components.input.textinput import CentralizedHotkeyTextInput
+from libs.uix.input.textinput import CentralizedHotkeyTextInput
 from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
-from misc import colorscheme as cs
+from libs.uix import colorscheme as cs
 from libs.animation import StatefulColorProperty
 from libs.uix.behaviors.mouse import TouchMouseBehavior
+from kivy.lang import Builder
+Builder.load_string("""
+<-HoverInput>:  # CentralizedHotkeyTextInput
+    size_hint: (None, None)
+    height: "24dp"
+    width: "64dp"
+    padding: ["4dp", "4dp"]
+    font_name: "Arial"
+    font_size: "13sp"
+    text_size: self.size
+    halign: "center"
+    valign: "center"
+    cursor_color: root.foreground_color
+"""
+)
 
 
 class HoverInput(CentralizedHotkeyTextInput):
