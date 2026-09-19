@@ -6,7 +6,7 @@ from kivy.properties import (
     ObjectProperty, OptionProperty, BooleanProperty, ListProperty
 )
 from ui.components.mdi_window import MDIWindow
-from ui.components.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from typing import Optional, List
 from ui.mdi.window_manager import (
     IWindowManager, TilingWindowManager, FloatingWindowManager

@@ -9,7 +9,7 @@ from libs.uix.workspace_manager import WorkspaceBehavior
 from operator import attrgetter
 from collections import defaultdict
 from typing import List, Optional
-from ui.components.context_menu import (
+from libs.uix.context_menu import (
     ContextMenu, ContextMenuButton, ContextMenuItem
 )
 

@@ -19,7 +19,7 @@ import libs.uix.recycle_spinner
 import ui.components.scroll_layout
 import ui.components.scroll_layout_map
 import libs.uix.workspace_manager
-import ui.components.context_menu
+import libs.uix.context_menu
 import libs.uix.snippet
 import ui.components.database_table
 import ui.components.mdi_window

@@ -6,7 +6,7 @@ from database.playback import RowPlayback
 from database.scene import RowScene
 from ui.mdi.editor.maps.playback.playback_ui import EditorPlaybackUi
 from operator import attrgetter
-from ui.components.context_menu import (
+from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
 

@@ -1,7 +1,7 @@
 from kivy.properties import (
     NumericProperty, BooleanProperty, AliasProperty
 )
-from ui.components.context_menu import (
+from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
 from typing import Union, Optional

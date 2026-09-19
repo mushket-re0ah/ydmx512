@@ -10,7 +10,7 @@ from libs.uix.workspace_manager import WorkspaceBehavior
 from ui.components.scroll_layout import ScrollLayout
 from libs.mouse_manager.hover import HoverBehavior, NestedHoverBehavior
 from libs.animation import AnimationBehavior
-from ui.components.context_menu import ContextMenu
+from libs.uix.context_menu import ContextMenu
 from misc import constants
 from misc import colorscheme as cs
 from enum import Enum

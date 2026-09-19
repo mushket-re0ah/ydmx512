@@ -6,7 +6,7 @@ from typing import List, Tuple
 from database import db
 from database.playback import RowPlayback
 from ui.mdi.processing.playback_ui import PlaybackUiProcessing
-from ui.components.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 
 
 Builder.load_file("ui/mdi/processing/processing_map.kv")

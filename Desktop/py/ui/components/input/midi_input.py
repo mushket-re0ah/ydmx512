@@ -1,7 +1,7 @@
 from kivy.properties import NumericProperty
 from libs.midi.notes import MIDI_NOTES
 from ui.components.input import NumericInput
-from ui.components.context_menu import (
+from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
 from database import db

@@ -4,7 +4,7 @@ from kivy.properties import (
     BooleanProperty, ObjectProperty, NumericProperty, AliasProperty,
     StringProperty, ColorProperty
 )
-from ui.components.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.animation import AnimationBehavior
 from database.mdi_manager import WindowManager, FlexManager

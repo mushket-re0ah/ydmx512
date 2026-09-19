@@ -3,7 +3,7 @@ from kivy.properties import NumericProperty, AliasProperty, BooleanProperty
 from typing import Union
 from libs.uix.behaviors.tooltip import TooltipBehavior
 from misc import colorscheme as cs
-from ui.components.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from libs.mouse_manager import cursor_manager
 from kivy.lang import Builder
 from libs.animation import StatefulColorProperty, AnimationBehavior

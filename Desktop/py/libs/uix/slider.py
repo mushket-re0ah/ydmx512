@@ -5,7 +5,7 @@ from kivy.uix.boxlayout import BoxLayout
 from libs.animation import AnimationBehavior
 from libs.uix.behaviors.tooltip import TooltipBehavior
 from typing import Union
-from ui.components.context_menu import (
+from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
 from kivy.utils import boundary
