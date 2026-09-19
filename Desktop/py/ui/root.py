@@ -9,7 +9,7 @@ import ui.mdi.mdi_container
 import libs.uix.layouts
 import libs.uix.label
 import libs.uix.button
-import ui.components.splitter
+import libs.uix.splitter
 import ui.components.input
 import ui.components.rotary_button
 import libs.uix.restricted_scrollview
