@@ -34,3 +34,15 @@ HoverSlider = _cs(
 TitleNumericSlider = _cs(
     title_bg=_h("#262F34FF"),
 )
+
+Slider2D = _cs(
+    dot_color_normal=_h("#00DDDDFF"),
+    dot_color_hover=_h("#00DD89FF"),
+    dot_color_disabled=_h("#00AAAAFF"),
+    dot_color_focused=_h("#FFFFFFFF"),
+    
+    line_color_normal=_h("#00DDDDFF"),
+    line_color_hover=_h("#00DD89FF"),
+    line_color_disabled=_h("#00AAAAFF"),
+    line_color_focused=_h("#FFFFFFFF"),
+)
