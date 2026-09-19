@@ -10,6 +10,12 @@ def _h(s):
 def _cs(**kwargs) -> namedtuple:
     return namedtuple("Colorscheme", kwargs)(**kwargs)
 
+
+general = _cs(
+    menu_bg=_h("#2C3235FF"),
+    menu_wrap_bg=_h("#596267FF"),
+)
+
 Label = _cs(
     fg=_h("#FFFFFFFF"),
     fg_disabled=_h("#AFAFAFFF"),

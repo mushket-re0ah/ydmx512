@@ -7,7 +7,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.utils import boundary
 from libs.uix.workspace_manager import WorkspaceBehavior
-from ui.components.scroll_layout import ScrollLayout
+from libs.uix.scroll_layout import ScrollLayout
 from libs.mouse_manager.hover import HoverBehavior, NestedHoverBehavior
 from libs.animation import AnimationBehavior
 from libs.uix.context_menu import ContextMenu

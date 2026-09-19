@@ -2,7 +2,7 @@ from kivy.properties import ObjectProperty
 from kivy.clock import Clock
 from kivy.lang import Builder
 from libs.uix.layouts import SectionPanel
-from ui.components.scroll_layout import ScrollLayout
+from libs.uix.scroll_layout import ScrollLayout
 from libs.uix.slider import TitleNumericHoverSlider
 from misc import constants
 from libs.dmx512.universe import DMX512Universe

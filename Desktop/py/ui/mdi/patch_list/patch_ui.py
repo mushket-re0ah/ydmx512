@@ -3,7 +3,6 @@ from kivy.properties import ObjectProperty
 from kivy.clock import Clock
 from ui.components.scroll_layout_map import SelectableBehavior
 from ui.components.patch_ui import BasePatchUi
-from ui.components.scroll_layout_map import SelectableBehavior
 
 
 Builder.load_file("ui/mdi/patch_list/patch_ui.kv")
