@@ -2,7 +2,7 @@ from kivy.properties import ObjectProperty, StringProperty, NumericProperty, Boo
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from libs.uix.layouts import StencilBoxLayout
-from ui.components.scroll_layout import ScrollLayout
+from libs.uix.scroll_layout import ScrollLayout
 from database.fixture_param import RowFixtureParam
 from database.fixture import RowFixture, FixtureChannelsGroup
 from misc import sub_proc, constants

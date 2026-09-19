@@ -1,4 +1,5 @@
 #:import cs misc.colorscheme
+#:import uix_cs libs.uix.colorscheme
 #:import imgs_path misc.imgs_path
 
 
@@ -17,7 +18,7 @@
 
     canvas.before:
         Color:
-            rgba: cs.general.menu_wrap_bg
+            rgba: uix_cs.general.menu_wrap_bg
         Rectangle:
             pos: self.pos
             size: self.size
@@ -42,7 +43,7 @@
             text_size: self.size
             canvas.before:
                 Color:
-                    rgba: cs.general.menu_bg
+                    rgba: uix_cs.general.menu_bg
                 Rectangle:
                     pos: self.pos
                     size: self.size

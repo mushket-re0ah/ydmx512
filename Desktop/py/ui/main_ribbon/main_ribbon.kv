@@ -2,6 +2,7 @@
 #:include ui/main_ribbon/scene_temp/scene_temp.kv
 #:include ui/main_ribbon/serial_devices.kv
 #:include ui/main_ribbon/midi_devices.kv
+#:import uix_cs libs.uix.colorscheme
 
 
 <MDIToggleButton>:  # HoverToggleButton:
@@ -40,7 +41,7 @@
 
     canvas.before:
         Color:
-            rgb: cs.general.menu_wrap_bg
+            rgb: uix_cs.general.menu_wrap_bg
         Rectangle:
             pos: self.pos
             size: self.size

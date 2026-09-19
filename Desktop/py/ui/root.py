@@ -16,7 +16,7 @@ import libs.uix.restricted_scrollview
 import libs.uix.recycle_restricted_scrollview
 import ui.components.recycle_dropdown
 import libs.uix.recycle_spinner
-import ui.components.scroll_layout
+import libs.uix.scroll_layout
 import ui.components.scroll_layout_map
 import libs.uix.workspace_manager
 import libs.uix.context_menu

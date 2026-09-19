@@ -12,6 +12,7 @@ from kivy.lang import Builder
 from typing import Dict, Optional
 
 Builder.load_string("""
+#:import uix_cs libs.uix.colorscheme
 #:import Window kivy.core.window.Window
 
 
@@ -30,7 +31,7 @@ Builder.load_string("""
     height: "24dp"
     canvas.before:
         Color:
-            rgba: cs.general.menu_wrap_bg
+            rgba: uix_cs.general.menu_wrap_bg
         Rectangle:
             pos: self.pos
             size: self.size

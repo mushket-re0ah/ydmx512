@@ -26,13 +26,6 @@ def _cs(**kwargs) -> namedtuple:
     return namedtuple("Colorscheme", kwargs)(**kwargs)
 
 
-
-general = _cs(
-    menu_bg=_h("#2C3235FF"),
-    menu_wrap_bg=_h("#596267FF"),
-)
-
-
 MenuPanel = _cs(
     bg=_h("#677075FF"),
     border=_h("#596267FF"),

@@ -2,7 +2,7 @@ from kivy.properties import (
     ObjectProperty, NumericProperty, BooleanProperty
 )
 from kivy.core.window import Window
-from ui.components.scroll_layout import ScrollLayout
+from libs.uix.scroll_layout import ScrollLayout
 from libs.uix.behaviors.modal import ModalBehavior
 from kivy.lang import Builder
 

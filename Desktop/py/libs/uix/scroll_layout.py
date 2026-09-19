@@ -8,7 +8,57 @@ from kivy.lang import Builder
 from kivy.metrics import dp
 
 
-Builder.load_file("ui/components/scroll_layout.kv")
+Builder.load_string("""
+#:import uix_cs libs.uix.colorscheme
+
+<ScrollBar>:  # BoxLayout
+    layout_cursor: layout_cursor
+    cursor: cursor
+
+    size_hint: (None, 1) if self.orientation == "vertical" else (1, None)
+    size: (self._default_width, self._default_height)
+    canvas.before:
+        Color:
+            rgba: uix_cs.general.menu_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    ArrowImageButton:
+        reverse_arrow: True
+        vertical_arrow: root.orientation == "vertical"
+        arrow_size: ["10dp", "6dp"] if self.vertical_arrow else ["6dp", "10dp"]
+        arrow_offset_right: "5dp" if self.vertical_arrow else "8dp"
+        size_hint: (1, None) if root.orientation == "vertical" else (None, 1)
+        height: root.width
+        width: root.height
+        on_press: root.on_press_btn_scroll(1)
+        disabled: root.scroll_at_start
+
+    RelativeLayout:
+        id: layout_cursor
+        ImageButton:
+            id: cursor
+
+    ArrowImageButton:
+        vertical_arrow: root.orientation == "vertical"
+        arrow_size: ["10dp", "6dp"] if self.vertical_arrow else ["6dp", "10dp"]
+        arrow_offset_right: "5dp" if self.vertical_arrow else "6dp"
+        size_hint: (1, None) if root.orientation == "vertical" else (None, 1)
+        height: root.width
+        width: root.height
+        on_press: root.on_press_btn_scroll(-1)
+        disabled: root.scroll_at_end
+
+
+<ScrollLayout>:  # BoxLayout
+    box_vertical: box_vertical
+
+    orientation: "vertical"
+    BoxLayout:
+        id: box_vertical
+"""
+)
 
 
 class ScrollBar(BoxLayout):

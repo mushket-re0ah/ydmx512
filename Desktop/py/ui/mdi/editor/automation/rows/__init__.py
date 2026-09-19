@@ -3,7 +3,7 @@ from kivy.properties import ObjectProperty, ListProperty, ObjectProperty, Numeri
 from kivy.lang import Builder
 from database.fixture import RowFixture
 from database.fixture_param import RowFixtureParam
-from ui.components.scroll_layout import ScrollLayout
+from libs.uix.scroll_layout import ScrollLayout
 from typing import List, Optional, Tuple, Dict, Set
 from collections import defaultdict
 from libs.dmx512_render import DMXRenderDot, InterpolationType
