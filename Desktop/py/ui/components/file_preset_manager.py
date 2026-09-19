@@ -3,7 +3,7 @@ from kivy.clock import Clock
 from libs.uix.layouts import ModalBoxLayout, WindowModalBoxLayout
 from pathlib import Path
 from kivy.lang import Builder
-from misc import logger
+from libs import logger
 
 Builder.load_file("ui/components/file_preset_manager.kv")
 

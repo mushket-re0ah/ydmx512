@@ -11,7 +11,7 @@ from pathlib import Path
 import shutil
 from database.brand import RowBrand
 from database import db
-from misc import logger
+from libs import logger
 
 
 Builder.load_file("ui/mdi/library/fixture_editor.kv")

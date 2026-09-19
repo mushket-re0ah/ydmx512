@@ -3,7 +3,7 @@ from kivy.event import EventDispatcher
 from kivy.uix.widget import Widget
 from enum import Enum, auto
 from typing import Tuple, Iterable
-from misc import logger
+from libs import logger
 
 
 def _values_differ(prop, old, new):

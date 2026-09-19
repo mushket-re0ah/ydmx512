@@ -20,7 +20,7 @@ from libs.sdl2_keyboard import manager as keyboard_manager
 from database.playback.renderer import PlaybackRenderer
 from ui.mdi.editor.automation.tools import RemoveSelectedDotsTool, PasteTool
 from database.patch import RowPatch
-from misc import logger
+from libs import logger
 from libs.dmx512 import dmx512
 from contextlib import contextmanager
 

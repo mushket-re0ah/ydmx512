@@ -1,5 +1,5 @@
 from threading import Thread
-from misc import logger
+from libs import logger
 from misc import constants
 from libs.utils import ThrottledCall
 import time

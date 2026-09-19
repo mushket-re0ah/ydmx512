@@ -1,8 +1,6 @@
 from typing import Callable, List, Tuple, NamedTuple
 from . import exit_code
-import logging
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 class AsyncProcessContext(NamedTuple):

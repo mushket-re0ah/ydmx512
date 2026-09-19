@@ -1,4 +1,4 @@
-from misc import logger
+from libs import logger
 from libs.sub_proc import exit_code
 from typing import Optional
 import sys
@@ -127,7 +127,7 @@ def kivy_execute() -> int:
 
 def backup_menu_execute():
     from libs.sub_proc import exit_code
-    from misc import logger
+    from libs import logger
     import sys
     exit_status = exit_code.EXIT_SUCCESS
     logger.info("==== Запуск backup menu приложения... ====")
@@ -161,9 +161,10 @@ if __name__ == '__main__':
         chain=False,
     )
 
-    from misc import logger
     from libs.sub_proc import exit_code
-    logger.init()
+    from libs import logger
+    from misc import constants
+    logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES, constants.SESSION_LOG_ENV_KEY)
     import os
     from misc import constants
     exec_backup_menu = os.environ.get(constants.BACKUP_MENU_ENV_KEY)

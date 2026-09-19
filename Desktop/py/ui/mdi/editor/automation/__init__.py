@@ -163,13 +163,13 @@ class Automation(AutoUnbindBehavior, MenuPanel):
 
     def _on_player_start(self, player: PlaybackPlayer, beat_counter: BeatCounter):
         self._bind_beat_counter(beat_counter)
-        from misc import logger
+        from libs import logger
         logger.debug("_on_player_start")
 
     def _on_player_stop(self, player: PlaybackPlayer, beat_counter: BeatCounter):
         self._unbind_beat_counter()
         self.player_frame = None
-        from misc import logger
+        from libs import logger
         logger.debug("_on_player_stop")
 
     def _update_xwidth(self, *args):

@@ -10,7 +10,7 @@ from presets.param_presets import ParamPresetData
 from presets.fixture_presets import FixturePresetData
 from misc import dmx_utils
 from typing import List
-from misc import logger
+from libs import logger
 
 
 class EditorTool:

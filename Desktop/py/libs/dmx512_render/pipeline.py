@@ -1,9 +1,7 @@
 from . import render_interpolation
 from .misc import XYGrid, DMXRenderDot, InterpolationType
 from typing import Optional, List
-import logging
-
-logger = logging.getLogger(__name__)
+from libs import logger
 
 
 class RenderPipeline:
