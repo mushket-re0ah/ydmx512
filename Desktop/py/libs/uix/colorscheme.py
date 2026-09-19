@@ -1,5 +1,6 @@
 from kivy.utils import get_color_from_hex as _kivy_get_color_from_hex
 from collections import namedtuple
+from libs.animation import ColorDiff
 
 
 def _h(s):
@@ -65,4 +66,26 @@ ArrowToggleButton = _cs(
     arrow_color_down=_h("#D1D127FF"),
     arrow_color_hover=_h("#D1D127FF"),
     arrow_color_disabled=_h("#7C7C7CFF"),
+)
+
+RotaryButton = _cs(
+    texture_color_normal=_h("#FFFFFFFF"),
+    texture_color_hover_diff=ColorDiff(0, 0, -0x32, 0x00),  # FFFFCD
+    texture_color_disabled_diff=ColorDiff(-0x55, -0x55, -0x55, 0x00),  # AAAAAA
+    texture_color_focused_diff=ColorDiff(-0x32, -0x32, -0x66, 0x00),  # CDCD99
+    
+    rotary_active_color_normal=_h("#AFFF80FF"),
+    rotary_active_color_hover_diff=ColorDiff(-0x10, -0x10, -0x30, 0x00),  # 9FEF50FF
+    rotary_active_color_disabled_diff=ColorDiff(-0x30, -0x20, -0x30, 0x00),  # 7FDF50FF
+    rotary_active_color_focused_diff=ColorDiff(0x10, 0x00, 0x10, 0x00),  # BFFF90FF
+    
+    rotary_passive_color_normal=_h("#2C3235FF"),
+    rotary_passive_color_hover_diff=ColorDiff(0x00, 0x00, 0x00, 0x00),  # 2C3235FF
+    rotary_passive_color_disabled_diff=ColorDiff(-0x10, -0x10, 0x0F, 0x00),  # 1C2244FF
+    rotary_passive_color_focused_diff=ColorDiff(0x10, 0x10, 0x0F, 0x00),  # 3C4244FF
+)
+
+PanRotaryButton = _cs(
+    rotary_active_color_right_normal=_h("#96FFFFDD"),
+    rotary_active_color_left_normal=_h("#BD7FF4FF"),
 )
