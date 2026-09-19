@@ -15,7 +15,7 @@ import ui.components.rotary_button
 import libs.uix.restricted_scrollview
 import libs.uix.recycle_restricted_scrollview
 import ui.components.recycle_dropdown
-import ui.components.recycle_spinner
+import libs.uix.recycle_spinner
 import ui.components.scroll_layout
 import ui.components.scroll_layout_map
 import libs.uix.workspace_manager
