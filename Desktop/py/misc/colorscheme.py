@@ -207,11 +207,6 @@ CheckerSlider = _cs(
     border_color_normal=_h("#6C7275FF"),
 )
 
-FileListButton = _cs(
-    dir_bg=_h("#CCCCCCCC"),
-    file_bg=_h("#FFFFFFFF"),
-)
-
 ModalMenu = _cs(
     title_bg=_h("#1F292EFF"),
 )

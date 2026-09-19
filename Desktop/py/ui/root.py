@@ -23,7 +23,7 @@ import libs.uix.context_menu
 import libs.uix.snippet
 import ui.components.database_table
 import ui.components.mdi_window
-import ui.components.filelist
+import libs.uix.filelist
 
 
 class Root(BoxLayout):

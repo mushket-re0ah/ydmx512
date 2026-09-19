@@ -95,3 +95,8 @@ PanRotaryButton = _cs(
     rotary_active_color_right_normal=_h("#96FFFFDD"),
     rotary_active_color_left_normal=_h("#BD7FF4FF"),
 )
+
+FileListButton = _cs(
+    dir_bg=_h("#CCCCCCCC"),
+    file_bg=_h("#FFFFFFFF"),
+)

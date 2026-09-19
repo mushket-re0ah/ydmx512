@@ -13,7 +13,7 @@ from misc import constants
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
-import ui.components.filelist
+import libs.uix.filelist
 import libs.uix.recycle_restricted_scrollview
 import sys
 from misc import exit_code
