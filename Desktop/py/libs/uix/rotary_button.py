@@ -2,7 +2,7 @@ from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, AliasProperty, BooleanProperty
 from typing import Union
 from libs.uix.behaviors.tooltip import TooltipBehavior
-from libs.uix import colorscheme as cs
+from libs.uix import colorscheme as uix_cs
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from libs.mouse_manager import cursor_manager
 from kivy.lang import Builder
@@ -48,27 +48,27 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
     TEXTURE_PADDING_SIZE = 1 - TEXTURE_PADDING_POS * 2
 
     texture_color = StatefulColorProperty(
-        normal=cs.RotaryButton.texture_color_normal,
+        normal=uix_cs.RotaryButton.texture_color_normal,
         states={
-            "disabled": cs.RotaryButton.texture_color_disabled_diff,
-            "focus": cs.RotaryButton.texture_color_focused_diff,
-            "hover": cs.RotaryButton.texture_color_hover_diff,
+            "disabled": uix_cs.RotaryButton.texture_color_disabled_diff,
+            "focus": uix_cs.RotaryButton.texture_color_focused_diff,
+            "hover": uix_cs.RotaryButton.texture_color_hover_diff,
         }
     )
     rotary_active_color = StatefulColorProperty(
-        normal=cs.RotaryButton.rotary_active_color_normal,
+        normal=uix_cs.RotaryButton.rotary_active_color_normal,
         states={
-            "disabled": cs.RotaryButton.rotary_active_color_disabled_diff,
-            "focus": cs.RotaryButton.rotary_active_color_focused_diff,
-            "hover": cs.RotaryButton.rotary_active_color_hover_diff,
+            "disabled": uix_cs.RotaryButton.rotary_active_color_disabled_diff,
+            "focus": uix_cs.RotaryButton.rotary_active_color_focused_diff,
+            "hover": uix_cs.RotaryButton.rotary_active_color_hover_diff,
         }
     )
     rotary_passive_color = StatefulColorProperty(
-        normal=cs.RotaryButton.rotary_passive_color_normal,
+        normal=uix_cs.RotaryButton.rotary_passive_color_normal,
         states={
-            "disabled": cs.RotaryButton.rotary_passive_color_disabled_diff,
-            "focus": cs.RotaryButton.rotary_passive_color_focused_diff,
-            "hover": cs.RotaryButton.rotary_passive_color_hover_diff,
+            "disabled": uix_cs.RotaryButton.rotary_passive_color_disabled_diff,
+            "focus": uix_cs.RotaryButton.rotary_passive_color_focused_diff,
+            "hover": uix_cs.RotaryButton.rotary_passive_color_hover_diff,
         }
     )
 
@@ -170,8 +170,8 @@ class PanRotaryButton(RotaryButton):
     angle_start = NumericProperty(-180)
     angle_end = NumericProperty(180)
 
-    color_left = cs.PanRotaryButton.rotary_active_color_left_normal
-    color_right = cs.PanRotaryButton.rotary_active_color_right_normal
+    color_left = uix_cs.PanRotaryButton.rotary_active_color_left_normal
+    color_right = uix_cs.PanRotaryButton.rotary_active_color_right_normal
 
     def on_kv_post(self, _):
         super().on_kv_post(_)

@@ -6,7 +6,7 @@ from kivy.utils import boundary
 from kivy.uix.widget import Widget
 from kivy.lang import Builder
 from libs.mouse_manager import cursor_manager
-from libs.uix import colorscheme as cs
+from libs.uix import colorscheme as uix_cs
 from libs.animation import StatefulColorProperty
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from libs.properties import ContextualNumericProperty
@@ -42,19 +42,19 @@ Builder.load_string("""
 
 class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
     dot_color = StatefulColorProperty(
-        normal=cs.Slider2D.dot_color_normal,
+        normal=uix_cs.Slider2D.dot_color_normal,
         states={
-            "disabled": cs.Slider2D.dot_color_disabled,
-            "focus": cs.Slider2D.dot_color_focused,
-            "hover": cs.Slider2D.dot_color_hover,
+            "disabled": uix_cs.Slider2D.dot_color_disabled,
+            "focus": uix_cs.Slider2D.dot_color_focused,
+            "hover": uix_cs.Slider2D.dot_color_hover,
         }
     )
     line_color = StatefulColorProperty(
-        normal=cs.Slider2D.line_color_normal,
+        normal=uix_cs.Slider2D.line_color_normal,
         states={
-            "disabled": cs.Slider2D.line_color_disabled,
-            "focus": cs.Slider2D.line_color_focused,
-            "hover": cs.Slider2D.line_color_hover,
+            "disabled": uix_cs.Slider2D.line_color_disabled,
+            "focus": uix_cs.Slider2D.line_color_focused,
+            "hover": uix_cs.Slider2D.line_color_hover,
         }
     )
 

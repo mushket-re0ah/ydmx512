@@ -14,6 +14,7 @@ from misc import constants
 from libs.kivy_utils import AutoUnbindBehavior
 from kivy.core.text import Label as CoreLabel
 from kivy.lang import Builder
+from libs.uix import colorscheme as uix_cs
 from misc import colorscheme as cs
 from kivy.graphics import *
 from ui.mdi.editor.automation.tools import EditorTool
@@ -294,7 +295,7 @@ class Automation(AutoUnbindBehavior, MenuPanel):
         if text not in self.label_cache:
             label = CoreLabel(text=text,
                               font_size=self.LABEL_FONT_SIZE,
-                              color=cs.Label.fg)
+                              color=uix_cs.Label.fg)
             self.label_cache[text] = label
             label.refresh()
         return self.label_cache.get(text, None)

@@ -9,7 +9,7 @@ from kivy.properties import (
 from libs.mouse_manager.hover import HoverBehavior
 from libs.animation import AnimationBehavior
 from libs.uix.behaviors.tooltip import TooltipBehavior
-from libs.uix import colorscheme as cs
+from libs.uix import colorscheme as uix_cs
 from misc import imgs_path
 from libs.mouse_manager import cursor_manager
 from libs.uix.layouts import ModalBoxLayout
@@ -218,14 +218,14 @@ class ExpansiveToggleButtonBehavior(ToggleButtonBehavior):
 
 class _ButtonBase(AnimationBehavior, TooltipBehavior):
     background_color = StatefulColorProperty(
-        normal=cs.HoverButton.background_color_normal,
+        normal=uix_cs.HoverButton.background_color_normal,
         states={
-            "disabled": cs.HoverButton.background_color_disabled,
-            ("is_down", "hover"): cs.HoverButton.background_color_hover,
-            "is_down": cs.HoverButton.background_color_down,
-            ("pressed", "hover"): cs.HoverButton.background_color_hover,
-            "pressed": cs.HoverButton.background_color_down,
-            "hover": cs.HoverButton.background_color_hover,
+            "disabled": uix_cs.HoverButton.background_color_disabled,
+            ("is_down", "hover"): uix_cs.HoverButton.background_color_hover,
+            "is_down": uix_cs.HoverButton.background_color_down,
+            ("pressed", "hover"): uix_cs.HoverButton.background_color_hover,
+            "pressed": uix_cs.HoverButton.background_color_down,
+            "hover": uix_cs.HoverButton.background_color_hover,
         }
     )
     background_normal = StringProperty(imgs_path.button_background_normal)
@@ -362,23 +362,23 @@ class ColorToggleButton(AnimationBehavior, HoverBehavior, ExpansiveToggleButtonB
     source = StringProperty("")
 
     border_color = StatefulColorProperty(
-        normal=cs.ColorToggleButton.border_color_normal,
+        normal=uix_cs.ColorToggleButton.border_color_normal,
         states={
-            ("is_down", "hover"): cs.ColorToggleButton.border_color_hover,
-            "is_down": cs.ColorToggleButton.border_color_is_select,
-            "hover": cs.ColorToggleButton.border_color_hover,
+            ("is_down", "hover"): uix_cs.ColorToggleButton.border_color_hover,
+            "is_down": uix_cs.ColorToggleButton.border_color_is_select,
+            "hover": uix_cs.ColorToggleButton.border_color_hover,
         }
     )
 
 
 class ArrowBehavior(EventDispatcher):
     arrow_color = StatefulColorProperty(
-        normal=cs.ArrowToggleButton.arrow_color_normal,
+        normal=uix_cs.ArrowToggleButton.arrow_color_normal,
         states={
-            "disabled": cs.ArrowToggleButton.arrow_color_disabled,
-            ("is_down", "hover"): cs.ArrowToggleButton.arrow_color_hover,
-            "is_down": cs.ArrowToggleButton.arrow_color_down,
-            "hover": cs.ArrowToggleButton.arrow_color_hover,
+            "disabled": uix_cs.ArrowToggleButton.arrow_color_disabled,
+            ("is_down", "hover"): uix_cs.ArrowToggleButton.arrow_color_hover,
+            "is_down": uix_cs.ArrowToggleButton.arrow_color_down,
+            "hover": uix_cs.ArrowToggleButton.arrow_color_hover,
         }
     )
 

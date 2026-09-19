@@ -663,8 +663,8 @@
         [+] splitter
         [+] context_menu
         [+] rotary_button
-        [+-] menu_components
-            [-] Надо оформить как python классы
+        [+] menu_components
+            [+] Надо оформить как python классы
         [+] overflow_layout
         [+] scroll_layout
         [+] recycle_dropdown
@@ -673,7 +673,15 @@
         [+] input
         [+] database_table
         [+] device_list_panel
+        [-] ribbon
+        [-] mdi
+            [-] window_manager
+            [-] mdi_container
+            [-] mdi_container_manager
+            [-] mdi_window
+        [-] scroll_layout_map
         [-] imgs_path используется от основного app везде
+        [+] Привести в порядок uix_cs/cs
 [+-] Установка значений патча напрямую через патч а не прозвон
     [+] Механизм сделан, но он кривоват и графически и функционально
 

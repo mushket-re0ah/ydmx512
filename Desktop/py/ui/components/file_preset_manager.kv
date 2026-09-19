@@ -1,3 +1,5 @@
+#:import uix_cs libs.uix.colorscheme
+
 <FilePresetModal>: # WindowModalBoxLayout
     size: ("400dp", "200dp")
 
@@ -60,7 +62,7 @@
         halign: "center"
         canvas.before:
             Color:
-                rgba: cs.ModalMenu.title_bg
+                rgba: uix_cs.ModalMenu.title_bg
             Rectangle:
                 size: self.size
                 pos: self.pos

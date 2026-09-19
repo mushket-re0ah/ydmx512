@@ -7,7 +7,7 @@ from libs.uix.button import HoverToggleButton
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from libs.properties import ContextualNumericProperty
 from libs.animation import StatefulColorProperty
-from libs.uix import colorscheme as cs
+from libs.uix import colorscheme as uix_cs
 from kivy.lang import Builder
 from typing import Dict, Optional
 
@@ -56,9 +56,9 @@ class WorkspaceToggleButton(HoverToggleButton):
 
     animation_time = 0.14
     color = StatefulColorProperty(
-        normal=cs.WorkspaceToggleButton.color_if_contain,
+        normal=uix_cs.WorkspaceToggleButton.color_if_contain,
         states={
-            "is_workspace_not_contain": cs.WorkspaceToggleButton.color_if_not_contain,
+            "is_workspace_not_contain": uix_cs.WorkspaceToggleButton.color_if_not_contain,
         }
     )
     def set_workspace_contain(self, *args):

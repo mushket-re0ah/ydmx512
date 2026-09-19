@@ -1,3 +1,4 @@
+#:import uix_cs libs.uix.colorscheme
 #:import db database.db
 
 
@@ -70,8 +71,8 @@
         valign: "center"
         title_text: "кадр [X]"
         orientation: "horizontal"
-        bg: cs.LabelRow.bg
-        fg: cs.LabelRow.fg
+        bg: uix_cs.LabelRow.bg
+        fg: uix_cs.LabelRow.fg
         font_size: "11sp"
         disabled: not root.automation.row_panel.dots_selected if root.automation else True
         NumericInputDotX:
@@ -90,8 +91,8 @@
         valign: "center"
         title_text: "значение [Y]"
         orientation: "horizontal"
-        bg: cs.LabelRow.bg
-        fg: cs.LabelRow.fg
+        bg: uix_cs.LabelRow.bg
+        fg: uix_cs.LabelRow.fg
         font_size: "11sp"
         disabled: not root.automation.row_panel.dots_selected if root.automation else True
         NumericInput:
@@ -111,8 +112,8 @@
         valign: "center"
         title_text: "сброс"
         orientation: "horizontal"
-        bg: cs.LabelRow.bg
-        fg: cs.LabelRow.fg
+        bg: uix_cs.LabelRow.bg
+        fg: uix_cs.LabelRow.fg
         font_size: "11sp"
         ImageButton:
             id: btn_discard
@@ -128,8 +129,8 @@
         halign: "center"
         valign: "center"
         title_text: "плеер"
-        bg: cs.LabelRow.bg
-        fg: cs.LabelRow.fg
+        bg: uix_cs.LabelRow.bg
+        fg: uix_cs.LabelRow.fg
         font_size: "11sp"
         orientation: "horizontal"
         ImageToggleButton:
@@ -155,8 +156,8 @@
         halign: "center"
         valign: "center"
         title_text: "фаза"
-        bg: cs.LabelRow.bg
-        fg: cs.LabelRow.fg
+        bg: uix_cs.LabelRow.bg
+        fg: uix_cs.LabelRow.fg
         font_size: "11sp"
         orientation: "horizontal"
         HoverToggleButton:
@@ -203,8 +204,8 @@
         halign: "center"
         valign: "center"
         title_text: "честный рендер"
-        bg: cs.LabelRow.bg
-        fg: cs.LabelRow.fg
+        bg: uix_cs.LabelRow.bg
+        fg: uix_cs.LabelRow.fg
         font_size: "11sp"
         orientation: "horizontal"
         ImageToggleButton:
@@ -222,8 +223,8 @@
         halign: "center"
         valign: "center"
         title_text: "масштаб [Y]"
-        bg: cs.LabelRow.bg
-        fg: cs.LabelRow.fg
+        bg: uix_cs.LabelRow.bg
+        fg: uix_cs.LabelRow.fg
         font_size: "11sp"
         orientation: "horizontal"
         RotaryButton:
