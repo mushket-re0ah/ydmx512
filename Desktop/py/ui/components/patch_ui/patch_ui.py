@@ -4,7 +4,7 @@ from kivy.properties import ObjectProperty, ColorProperty, NumericProperty
 from kivy.animation import Animation
 from ui.components.scroll_layout_map import GridBehavior
 from ui.components.scroll_layout_map import MapScrollLayout
-from ui.components.button import HoverToggleButton
+from libs.uix.button import HoverToggleButton
 from database.patch import RowPatch
 from typing import Tuple
 from misc import colorscheme as cs

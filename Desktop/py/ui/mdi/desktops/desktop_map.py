@@ -1,7 +1,7 @@
 from kivy.properties import ObjectProperty, AliasProperty
 from libs.uix.layouts import SectionPanel
 from libs.uix.workspace_manager import WorkspaceBehavior
-from ui.components.button import HoverToggleButton
+from libs.uix.button import HoverToggleButton
 from ui.mdi.desktops.desktop_uix import DesktopUix
 from ui.mdi.desktops.desktop_rotary import DesktopRotaryUix
 from ui.mdi.desktops.desktop_slider_2d import DesktopSlider2D

@@ -6,7 +6,7 @@ from kivy.properties import (
 from kivy.clock import Clock
 from kivy.animation import Animation
 from ui.components.scroll_layout_map import SelectableBehavior
-from ui.components.button import ImageToggleButton
+from libs.uix.button import ImageToggleButton
 from database.desktop_uix import RowDesktopUix
 from ui.components.scroll_layout_map import MapScrollLayout
 from typing import Tuple

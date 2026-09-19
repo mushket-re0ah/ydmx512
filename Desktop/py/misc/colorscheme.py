@@ -137,19 +137,6 @@ SelectableBehavior = _cs(
     border_color_is_select=_h("#00FFFFFF"),
 )
 
-ColorToggleButton = _cs(
-    border_color_normal=_h("#00000000"),
-    border_color_hover=_h("#0000FFFF"),
-    border_color_is_select=_h("#00FFFFFF"),
-)
-
-ArrowToggleButton = _cs(
-    arrow_color_normal=_h("#AFAFAFFF"),
-    arrow_color_down=_h("#D1D127FF"),
-    arrow_color_hover=_h("#D1D127FF"),
-    arrow_color_disabled=_h("#7C7C7CFF"),
-)
-
 AutomationToolbar = _cs(
     bg=_h("#2E393EFF"),
 )
@@ -199,13 +186,6 @@ CheckboxPhaseInterpatchX = _cs(
     fg_active=_h("#FF5FFFDD"),
     fg_active_disabled=_h("#DF3FDFDD"),
     fg_disabled=_h("#CFDFCFDD"),
-)
-
-HoverButton = _cs(
-    background_color_normal=_h("#FFFFFFFF"),
-    background_color_down=_h("#FFFFFFFF"),
-    background_color_hover=_h("#FFFFCBFF"),
-    background_color_disabled=_h("#AAAAAAFF"),
 )
 
 HoverInput = _cs(

@@ -46,3 +46,23 @@ Slider2D = _cs(
     line_color_disabled=_h("#00AAAAFF"),
     line_color_focused=_h("#FFFFFFFF"),
 )
+
+HoverButton = _cs(
+    background_color_normal=_h("#FFFFFFFF"),
+    background_color_down=_h("#FFFFFFFF"),
+    background_color_hover=_h("#FFFFCBFF"),
+    background_color_disabled=_h("#AAAAAAFF"),
+)
+
+ColorToggleButton = _cs(
+    border_color_normal=_h("#00000000"),
+    border_color_hover=_h("#0000FFFF"),
+    border_color_is_select=_h("#00FFFFFF"),
+)
+
+ArrowToggleButton = _cs(
+    arrow_color_normal=_h("#AFAFAFFF"),
+    arrow_color_down=_h("#D1D127FF"),
+    arrow_color_hover=_h("#D1D127FF"),
+    arrow_color_disabled=_h("#7C7C7CFF"),
+)

@@ -6,7 +6,7 @@ from kivy.properties import (
 from kivy.animation import Animation
 from ui.components.scroll_layout_map import GridBehavior
 from ui.components.scroll_layout_map import MapScrollLayout
-from ui.components.button import ImageButton
+from libs.uix.button import ImageButton
 from database.playback import RowPlayback, PlaybackPlayer
 from typing import Tuple
 from misc import colorscheme as cs

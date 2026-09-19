@@ -12,7 +12,7 @@ from libs.dmx512_render import DMXRenderDot, InterpolationType
 from database.playback import RowPlayback
 from database.patch import RowPatch
 from kivy.lang import Builder
-from ui.components.button import HoverToggleButton
+from libs.uix.button import HoverToggleButton
 from typing import NamedTuple, List, Tuple, Optional, Set, Dict
 from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
 from collections import defaultdict

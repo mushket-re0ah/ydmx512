@@ -1,4 +1,4 @@
-from ui.components.button import ArrowToggleButton, HoverButton
+from libs.uix.button import ArrowToggleButton, HoverButton
 from libs.uix.behaviors.recycle_dropdown import RecycleDropdownBehavior
 from libs.uix.restricted_scrollview import RestrictedScrollView
 from kivy.properties import ObjectProperty, StringProperty

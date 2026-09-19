@@ -1,7 +1,7 @@
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from libs.uix.layouts import ModalBoxLayout
-from ui.components.button import HoverButton
+from libs.uix.button import HoverButton
 from database import db
 
 

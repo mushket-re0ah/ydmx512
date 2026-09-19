@@ -1,6 +1,6 @@
 from kivy.properties import NumericProperty, ColorProperty
 from kivy.clock import Clock
-from ui.components.button import ImageButton
+from libs.uix.button import ImageButton
 from database import db
 from collections import deque
 import time
