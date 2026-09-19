@@ -2,7 +2,7 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from ui.components.mdi_window import MDIWindow
 from libs.uix.button import ImageToggleButton, HoverToggleButton
-from ui.components.overflow_layout import OverflowLayout
+from libs.uix.overflow_layout import OverflowLayout
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty
 from kivy.clock import Clock
 from typing import List, Optional
