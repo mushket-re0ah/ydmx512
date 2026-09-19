@@ -1,5 +1,5 @@
 from kivy.properties import ObjectProperty, StringProperty, ColorProperty
-from ui.components.device_list_panel import DeviceUi, DeviceListPanel
+from libs.uix.device_list_panel import DeviceUi, DeviceListPanel
 from libs.midi.observer import observer as midi_observer
 from misc import colorscheme
 
