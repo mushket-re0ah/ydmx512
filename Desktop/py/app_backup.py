@@ -16,7 +16,7 @@ from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
 import libs.uix.filelist
 import libs.uix.recycle_restricted_scrollview
 import sys
-from misc import exit_code
+from libs.sub_proc import exit_code
 
 
 Builder.load_string(
