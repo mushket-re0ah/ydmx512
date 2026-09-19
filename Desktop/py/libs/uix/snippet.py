@@ -3,7 +3,7 @@ from libs.uix.behaviors.recycle_dropdown import RecycleDropdownBehavior
 from kivy.properties import (
     ObjectProperty, StringProperty, BooleanProperty, NumericProperty
 )
-from ui.components.recycle_spinner import SpinnerHoverButton
+from libs.uix.recycle_spinner import SpinnerHoverButton
 from ui.components.recycle_dropdown import RecycleDropdown
 from kivy.uix.widget import Widget
 from libs.uix.behaviors.modal import ModalBehavior

@@ -1,7 +1,7 @@
 from kivy.uix.widget import Widget
 from typing import Optional, Callable, Dict
 from libs.kivy_json_orm.table_implementation import DatabaseRow
-from ui.components.recycle_spinner import RecycleSpinner
+from libs.uix.recycle_spinner import RecycleSpinner
 from ui.components.input import HoverInput, HEXAInput, NumericInput
 from libs.uix.button import HoverButton, HoverToggleButton
 from dataclasses import dataclass, field
