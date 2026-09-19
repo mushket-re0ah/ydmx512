@@ -1,5 +1,5 @@
 from ui.mdi.desktops.desktop_uix import DesktopUix
-from ui.components.slider2d import Slider2D
+from libs.uix.slider2d import Slider2D
 from kivy.lang import Builder
 
 
