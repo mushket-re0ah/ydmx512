@@ -7,10 +7,10 @@ from database.fixture_param import RowFixtureParam
 from kivy.lang import Builder
 from libs.dmx512 import dmx512
 from libs.uix import slider
+import libs.uix.menu_components
 
 
 Builder.load_file("ui/components/patch_ui/patch_controller.kv")
-Builder.load_file("ui/components/menu_components.kv")
 
 
 class PatchControllerMenuChannel(BoxLayout):

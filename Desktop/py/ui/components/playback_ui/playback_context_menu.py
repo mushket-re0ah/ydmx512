@@ -2,10 +2,10 @@ from kivy.properties import ObjectProperty, AliasProperty
 from kivy.lang import Builder
 from libs.uix.layouts import ModalBoxLayout
 from database.playback import RowPlayback
+import libs.uix.menu_components
 
 
 Builder.load_file("ui/components/playback_ui/playback_context_menu.kv")
-Builder.load_file("ui/components/menu_components.kv")
 
 
 class PlaybackContextMenu(ModalBoxLayout):
