@@ -629,10 +629,10 @@
             [+] Исправлен баг с обнаружением элементов, которые должны перехватывать прокрутку колесом мыши. Изменена система, теперь классы виджетов должны регистрироваться в реестре RestrictedScrollview
         [+] RecycleRestrictedScrollView
         [+] layouts
-        [-] WorkspaceManager
+        [+] WorkspaceManager
             [+] Исправлена прокрутка по колесу мыши: порядок был перепутан
             [+] Добавлена анимация смены цвета кнопкам столов
-            [-] workspace_count и workspaces dict инициализируется до __init__. По-хорошему надо в on_kv_post, однако к тому моменту workspaces уже должен существовать. Во такая вот хуйня. Ровно так же WorkspaceSwitcherMenu создает ровно 9 кнопок, несмотря на workspace_count
+            [+] workspace_count и workspaces dict инициализируется до __init__. По-хорошему надо в on_kv_post, однако к тому моменту workspaces уже должен существовать. Во такая вот хуйня. Ровно так же WorkspaceSwitcherMenu создает ровно 9 кнопок, несмотря на workspace_count
             [+] В switch_toggle исправлен вызов trigger_action
         [+] snippet
             [+] Сломан. В него нельзя писать. А запись должна фильтровать dropdown

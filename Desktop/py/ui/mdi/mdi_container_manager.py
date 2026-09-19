@@ -27,6 +27,7 @@ class MDIContainerManager(AutoUnbindBehavior, WorkspaceManager):
     orientation_switcher = ObjectProperty(allownone=True)
 
     def on_kv_post(self, _):
+        super().on_kv_post(_)
         self.menu.add_widget(Widget(size_hint=(1, 1)))
         self.window_switcher = WindowManagerSwitcher(mdi_manager=self)
         self.menu.add_widget(self.window_switcher)

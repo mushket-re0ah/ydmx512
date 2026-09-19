@@ -83,9 +83,8 @@ class WorkspaceSwitcherMenu(TouchMouseBehavior, BoxLayout):
         super().__init__(**kwargs)
 
     def on_kv_post(self, _):
-        for i in range(9):
+        for i in range(self.workspace_manager.workspace_count):
             self._add_toggle(i)
-        self.switch_toggle(self.workspace_manager.workspace_now_index or 0)
 
     def _add_toggle(self, workspace_index: int) -> None:
         toggle = WorkspaceToggleButton(
@@ -124,7 +123,7 @@ class WorkspaceManager(BoxLayout):
 
     workspaces: Dict[int, WorkspaceBehavior] = None
     workspace_now_index = ContextualNumericProperty(
-        default=None,
+        default=0,
         min_getter=lambda self: 0,
         max_getter=lambda self: self.workspace_count - 1,
         dependencies=["workspace_count"]
@@ -149,11 +148,11 @@ class WorkspaceManager(BoxLayout):
     def on_kv_post(self, _) -> None:
         if self.workspace_cls is None:
             raise ValueError(f"{self}: workspace_cls not defined")
-        Clock.schedule_once(self._init_dispatch, -1)
-
-    def _init_dispatch(self, _):
-        initial = self.workspace_now_index if self.workspace_now_index is not None else 0
+        initial = self.workspace_now_index
         self.set_workspace(initial)
+        prop = self.property("workspace_now_index")
+        if initial == prop.defaultvalue:
+            prop.dispatch(self)
 
     def set_workspace(self, workspace_index: int) -> None:
         self.workspace_now_index = workspace_index
