@@ -7,7 +7,7 @@ from kivy.properties import (StringProperty, OptionProperty,
 )
 from kivy.lang import Builder
 from libs.animation import StatefulColorProperty, AnimationBehavior
-from libs.uix import colorscheme as cs
+from libs.uix import colorscheme as uix_cs
 
 
 Builder.load_string("""
@@ -96,9 +96,9 @@ class RestrictedLabel(Widget):
                             options=["bottom", "middle", "center", "top"])
 
     color = StatefulColorProperty(
-        normal=cs.Label.fg,
+        normal=uix_cs.Label.fg,
         states={
-            "disabled": cs.Label.fg_disabled,
+            "disabled": uix_cs.Label.fg_disabled,
         }
     )
 

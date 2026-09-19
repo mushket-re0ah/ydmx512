@@ -126,3 +126,32 @@ MidiInput = _cs(
 DatabaseTable = _cs(
     bg=_h("#1C2225FF"),
 )
+
+MenuPanel = _cs(
+    bg=_h("#677075FF"),
+    border=_h("#596267FF"),
+)
+
+SectionPanel = _cs(
+    bg=_h("#677075FF"),
+    fg=_h("#2C3235FF"),
+)
+
+SubSectionPanel = _cs(
+    bg=_h("#717A7FFF"),
+    fg=_h("#2C3235FF"),
+)
+
+Modal = _cs(
+    bg=_h("#2E393EFF"),
+    border_color=_h("#888888FF"),
+)
+
+LabelRow = _cs(
+    bg=_h("#495257FF"),
+    fg=_h("#BCBCBCFF"),
+)
+
+ModalMenu = _cs(
+    title_bg=_h("#1F292EFF"),
+)

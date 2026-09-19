@@ -14,7 +14,7 @@ from libs.animation import StatefulColorProperty
 from libs.properties import ContextualNumericProperty
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from libs.uix.restricted_scrollview import RestrictedScrollView
-from libs.uix import colorscheme as cs
+from libs.uix import colorscheme as uix_cs
 from kivy.lang import Builder
 
 
@@ -97,19 +97,19 @@ Builder.load_string("""
 
 class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget):
     value_track_color = StatefulColorProperty(
-        normal=cs.HoverSlider.value_track_color_normal,
+        normal=uix_cs.HoverSlider.value_track_color_normal,
         states={
-            "focus": cs.HoverSlider.value_track_color_focused,
-            "disabled": cs.HoverSlider.value_track_color_disabled,
-            "hover": cs.HoverSlider.value_track_color_hover,
+            "focus": uix_cs.HoverSlider.value_track_color_focused,
+            "disabled": uix_cs.HoverSlider.value_track_color_disabled,
+            "hover": uix_cs.HoverSlider.value_track_color_hover,
         }
     )
     background_color = StatefulColorProperty(
-        normal=cs.HoverSlider.background_color_normal,
+        normal=uix_cs.HoverSlider.background_color_normal,
         states={
-            "focus": cs.HoverSlider.background_color_focused,
-            "disabled": cs.HoverSlider.background_color_disabled,
-            "hover": cs.HoverSlider.background_color_hover,
+            "focus": uix_cs.HoverSlider.background_color_focused,
+            "disabled": uix_cs.HoverSlider.background_color_disabled,
+            "hover": uix_cs.HoverSlider.background_color_hover,
         }
     )
 

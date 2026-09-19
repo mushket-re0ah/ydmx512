@@ -4,7 +4,7 @@ from libs.uix.input.textinput import CentralizedHotkeyTextInput
 from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
-from libs.uix import colorscheme as cs
+from libs.uix import colorscheme as uix_cs
 from libs.animation import StatefulColorProperty
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from kivy.lang import Builder
@@ -28,27 +28,27 @@ class HoverInput(CentralizedHotkeyTextInput):
     visible_focus = BooleanProperty(False)
 
     background_color = StatefulColorProperty(
-        normal=cs.HoverInput.background_color_normal,
+        normal=uix_cs.HoverInput.background_color_normal,
         states={
-            "disabled": cs.HoverInput.background_color_disabled,
-            "visible_focus": cs.HoverInput.background_color_focused,
-            "hover": cs.HoverInput.background_color_hover,
+            "disabled": uix_cs.HoverInput.background_color_disabled,
+            "visible_focus": uix_cs.HoverInput.background_color_focused,
+            "hover": uix_cs.HoverInput.background_color_hover,
         }
     )
     foreground_color = StatefulColorProperty(
-        normal=cs.HoverInput.foreground_color_normal,
+        normal=uix_cs.HoverInput.foreground_color_normal,
         states={
-            "disabled": cs.HoverInput.foreground_color_disabled,
-            "visible_focus": cs.HoverInput.foreground_color_focused,
-            "hover": cs.HoverInput.foreground_color_hover,
+            "disabled": uix_cs.HoverInput.foreground_color_disabled,
+            "visible_focus": uix_cs.HoverInput.foreground_color_focused,
+            "hover": uix_cs.HoverInput.foreground_color_hover,
         }
     )
     border_color = StatefulColorProperty(
-        normal=cs.HoverInput.border_color_normal,
+        normal=uix_cs.HoverInput.border_color_normal,
         states={
-            "disabled": cs.HoverInput.border_color_disabled,
-            "visible_focus": cs.HoverInput.border_color_focused,
-            "hover": cs.HoverInput.border_color_hover,
+            "disabled": uix_cs.HoverInput.border_color_disabled,
+            "visible_focus": uix_cs.HoverInput.border_color_focused,
+            "hover": uix_cs.HoverInput.border_color_hover,
         }
     )
 

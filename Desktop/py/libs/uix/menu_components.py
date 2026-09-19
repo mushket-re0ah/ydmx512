@@ -1,20 +1,22 @@
-# RestrictedLabel
-# HoverInput
-# NumericInput
-# HoverToggleButton
-# MidiInput
-# HotkeyInput
-# RecycleSpinner
-# ColorToggleButton
+from .label import RestrictedLabel
+from .input.hover_input import HoverInput
+from .input.numeric_input import NumericInput
+from .input.hotkey_input import HotkeyInput
+from .input.midi_input import MidiInput
+from .button import HoverToggleButton
+from .button import ColorToggleButton
+from .recycle_spinner import RecycleSpinner
 from kivy.lang import Builder
 
 Builder.load_string("""
+#:import uix_cs libs.uix.colorscheme
+
 <MenuLabel@RestrictedLabel>:
     size_hint: (1, 1)
     font_size: "12sp"
     canvas.before:
         Color:
-            rgba: cs.LabelRow.bg
+            rgba: uix_cs.LabelRow.bg
         Rectangle:
             pos: self.pos
             size: self.size
@@ -57,3 +59,26 @@ Builder.load_string("""
 """
 )
 
+class MenuLabel(RestrictedLabel):
+    pass
+
+class MenuHoverInput(HoverInput):
+    pass
+
+class MenuNumericInput(NumericInput):
+    pass
+
+class MenuToggleButton(HoverToggleButton):
+    pass
+
+class MenuMidiInput(MidiInput):
+    pass
+
+class MenuHotkeyInput(HotkeyInput):
+    pass
+
+class MenuSpinner(RecycleSpinner):
+    pass
+
+class MenuColorToggle(ColorToggleButton):
+    pass

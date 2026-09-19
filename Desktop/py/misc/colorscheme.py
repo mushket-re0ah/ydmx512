@@ -26,30 +26,10 @@ def _cs(**kwargs) -> namedtuple:
     return namedtuple("Colorscheme", kwargs)(**kwargs)
 
 
-MenuPanel = _cs(
-    bg=_h("#677075FF"),
-    border=_h("#596267FF"),
-)
-
-SectionPanel = _cs(
-    bg=_h("#677075FF"),
-    fg=_h("#2C3235FF"),
-)
-
-SubSectionPanel = _cs(
-    bg=_h("#717A7FFF"),
-    fg=_h("#2C3235FF"),
-)
-
 MDIWindow = _cs(
     border_normal=_h("#00000000"),
     border_focused=_h("#00FFFFFF"),
     border_selected=_h("#44FF88FF"),
-)
-
-Label = _cs(
-    fg=_h("#FFFFFFFF"),
-    fg_disabled=_h("#AFAFAFFF"),
 )
 
 BeatLabel = _cs(
@@ -110,22 +90,6 @@ PlaybackPlayButton = _cs(
     background_color_disabled=_h("#412E27FF"),
 )
 
-Modal = _cs(
-    bg=_h("#2E393EFF"),
-    border_color=_h("#888888FF"),
-)
-
-LabelRow = _cs(
-    bg=_h("#495257FF"),
-    fg=_h("#BCBCBCFF"),
-)
-
-SelectableBehavior = _cs(
-    border_color_normal=_h("#00000000"),
-    border_color_hover=_h("#0000FFFF"),
-    border_color_is_select=_h("#00FFFFFF"),
-)
-
 AutomationToolbar = _cs(
     bg=_h("#2E393EFF"),
 )
@@ -181,10 +145,6 @@ CheckerSlider = _cs(
     border_color_normal=_h("#6C7275FF"),
 )
 
-ModalMenu = _cs(
-    title_bg=_h("#1F292EFF"),
-)
-
 RowParam = _cs(
     dot_color_linear=_h("#00FFFFFF"),
     dot_color_linear_selected=_h("#FF00FFFF"),
@@ -199,6 +159,12 @@ RowParam = _cs(
 RowDotsSelector = _cs(
     bg=_h("#00FFFF33"),
     border=_h("00FFFFFF"),
+)
+
+SelectableBehavior = _cs(
+    border_color_normal=_h("#00000000"),
+    border_color_hover=_h("#0000FFFF"),
+    border_color_is_select=_h("#00FFFFFF"),
 )
 
 MapLayout = _cs(

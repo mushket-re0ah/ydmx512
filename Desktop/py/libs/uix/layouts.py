@@ -1,11 +1,13 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, ColorProperty, NumericProperty, ObjectProperty
-from misc import colorscheme as cs
+from libs.uix import colorscheme as uix_cs
 from kivy.uix.stencilview import StencilView
 from libs.uix.behaviors.modal import ModalBehavior
 from kivy.lang import Builder
 
 Builder.load_string("""
+#:import uix_cs libs.uix.colorscheme
+
 <MenuPanel>:  # StencilBoxLayout
     padding: ["4dp", "4dp", "4dp", "4dp"]
     spacing: "2dp"
@@ -13,12 +15,12 @@ Builder.load_string("""
     height: "64dp"
     canvas.before:
         Color:
-            rgb: cs.MenuPanel.bg
+            rgb: uix_cs.MenuPanel.bg
         Rectangle:
             pos: self.pos
             size: self.size
         Color:
-            rgba: cs.MenuPanel.border
+            rgba: uix_cs.MenuPanel.border
         Line:
             width: dp(2)
             rectangle: (self.x, self.y, self.width, self.height)
@@ -50,8 +52,8 @@ Builder.load_string("""
 
 
 <SubSectionPanel>:  # SectionPanel
-    -bg: cs.SubSectionPanel.bg
-    -fg: cs.SubSectionPanel.fg
+    -bg: uix_cs.SubSectionPanel.bg
+    -fg: uix_cs.SubSectionPanel.fg
     font_size: "12sp"
 
 
@@ -62,12 +64,12 @@ Builder.load_string("""
     padding: ("4dp", "4dp")
     canvas:
         Color:
-            rgba: cs.Modal.bg
+            rgba: uix_cs.Modal.bg
         Rectangle:
             pos: self.pos
             size: self.size
         Color:
-            rgba: cs.Modal.border_color
+            rgba: uix_cs.Modal.border_color
         Line:
             width: dp(1.0)
             rectangle: (self.x, self.y, self.width, self.height)
@@ -94,8 +96,8 @@ class MenuPanel(StencilBoxLayout):
 
 class SectionPanel(BoxLayout):
     title_text = StringProperty("NOT SETTED (SECTION PANEL)")
-    bg = ColorProperty(cs.SectionPanel.bg)
-    fg = ColorProperty(cs.SectionPanel.fg)
+    bg = ColorProperty(uix_cs.SectionPanel.bg)
+    fg = ColorProperty(uix_cs.SectionPanel.fg)
     halign = StringProperty("left")
     valign = StringProperty("top")
     font_size = NumericProperty("11dp")
