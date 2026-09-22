@@ -1,21 +1,22 @@
 from kivy.properties import ObjectProperty, StringProperty
-from ui.components.mdi_window import MDIWindow
+from ui.components.database_mdi_window import DatabaseMDIWindow
 from database import db
 from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP
 
 
-class MDIProcessing(MDIWindow):
+class MDIProcessing(DatabaseMDIWindow):
     _db_title_id = "processing"
-    title_id = StringProperty(_db_title_id)
     title = StringProperty("Процессинг")
 
     menu = ObjectProperty()
     processing_map = ObjectProperty()
 
-    def on_open(self):
-        if not self.menu:
-            self.__create_playback_map()
-            self.__create_menu()
+    def on_hidden(self, _, hidden: bool):
+        super().on_hidden(_, hidden)
+        if hidden or self.menu:
+            return
+        self.__create_playback_map()
+        self.__create_menu()
 
     def create_playback(self):
         db.playback.add_row()

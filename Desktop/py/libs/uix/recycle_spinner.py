@@ -1,6 +1,7 @@
 from libs.uix.button import ArrowToggleButton, HoverButton
 from libs.uix.behaviors.recycle_dropdown import RecycleDropdownBehavior
 from libs.uix.restricted_scrollview import RestrictedScrollView
+from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.lang import Builder
 

@@ -1,14 +1,13 @@
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty, AliasProperty
-from ui.components.mdi_window import MDIWindow
+from ui.components.database_mdi_window import DatabaseMDIWindow
 from libs.serialize import *
 from typing import List, Optional
 from misc import constants
 from libs.properties import ClampedNumericProperty
 
 
-class MDIChecker(MDIWindow):
+class MDIChecker(DatabaseMDIWindow):
     _db_title_id = "checker"
-    title_id = StringProperty(_db_title_id)
 
     title = StringProperty("Прозвон")
     universe_now = ClampedNumericProperty(1, 1, constants.DMX_UNIVERSE_COUNT)
@@ -21,10 +20,12 @@ class MDIChecker(MDIWindow):
         "channels_ui.box.scrollview/scroll_element@universe_now": 0
     }
 
-    def on_open(self):
-        if not self.menu:
-            self.__create_channels_ui()
-            self.__create_menu()
+    def on_hidden(self, _, hidden: bool):
+        super().on_hidden(_, hidden)
+        if hidden or self.menu:
+            return
+        self.__create_channels_ui()
+        self.__create_menu()
 
     def __create_menu(self):
         from ui.mdi.checker.menu import CheckerMenu
