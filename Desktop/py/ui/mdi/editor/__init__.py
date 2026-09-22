@@ -1,5 +1,5 @@
 from kivy.properties import StringProperty, ObjectProperty
-from ui.components.mdi_window import MDIWindow
+from ui.components.database_mdi_window import DatabaseMDIWindow
 from database.playback import RowPlayback
 from database.patch import RowPatch
 from database import db
@@ -8,9 +8,8 @@ from typing import Optional, Dict, List
 from collections import defaultdict
 
 
-class MDIEditor(MDIWindow):
+class MDIEditor(DatabaseMDIWindow):
     _db_title_id = "editor"
-    title_id = StringProperty(_db_title_id)
     title = StringProperty("Редактор")
 
     playback = ObjectProperty(None, allownone=True, rebind=True)
@@ -36,9 +35,11 @@ class MDIEditor(MDIWindow):
 
     content = ObjectProperty()
 
-    def on_open(self):
-        if not self.content:
-            self.__create_content()
+    def on_hidden(self, _, hidden: bool):
+        super().on_hidden(_, hidden)
+        if hidden or self.content:
+            return
+        self.__create_content()
 
     def __create_content(self):
         from ui.mdi.editor.content import EditorContent

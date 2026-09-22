@@ -1,6 +1,6 @@
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from ui.components.mdi_window import MDIWindow
+from libs.uix.mdi.mdi_window import MDIWindow
 from libs.uix.button import ImageToggleButton, HoverToggleButton
 from libs.uix.overflow_layout import OverflowLayout
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty
@@ -26,33 +26,32 @@ from database import db
 class MDIToggleButton(ImageToggleButton):
     """Управляет показом/скрытием MDI окон. Синхронизирован с состоянием
     конкретного окна."""
-
-    main_ribbon = ObjectProperty()
+    mdi_container_manager = ObjectProperty()
     mdi = ObjectProperty()
-    hidden = BooleanProperty(False)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.mdi.bind(on_close=self.on_mdi_close, on_open=self.on_mdi_open)
+    def on_kv_post(self, _):
+        self.mdi.bind(hidden=self._set_state_by_mdi)
+        self._set_state_by_mdi(self.mdi, self.mdi.hidden)
 
-    def on_mdi_close(self, mdi: MDIWindow):
-        self.is_down = False
+    def _set_state_by_mdi(self, _, hidden: bool):
+        self.state = "normal" if hidden else "down"
 
-    def on_mdi_open(self, mdi: MDIWindow):
-        self.is_down = True
-
-    def on_is_down(self, _, is_down):
-        if is_down:
-            self.mdi.open()
-        else:
-            self.mdi.close()
+    def on_state(self, _, state: str):
+        if not self.mdi_container_manager._database_loaded:
+            return
+        if state == "down":
+            self.mdi_container_manager.show_mdi(self.mdi)
+        elif state == "normal":
+            self.mdi_container_manager.hide_mdi(self.mdi)
 
 
 class MDIMenuRibbonBox(KeyboardBehavior, OverflowLayout):
     """Меню, содержащее MDIToggleButton. Учитывает переполнение размера, и в
     случае переполнения создает выпадающий список с невлезающими MDI"""
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    mdi_container_manager = ObjectProperty()
+
+    def init(self, mdi_container_manager):
+        self.mdi_container_manager = mdi_container_manager
         self.mdi_list = []
         for mdi_cls in (
                 MDIProcessing, MDIEditor, MDIPatchList, MDILibrary,
@@ -66,16 +65,18 @@ class MDIMenuRibbonBox(KeyboardBehavior, OverflowLayout):
 
     def create_hotkeys(self) -> Optional[dict]:
         return {
-            frozenset({f"F{i + 1}"}): lambda mdi=mdi: mdi.invert_hidden()
+            frozenset({f"F{i + 1}"}): lambda mdi=mdi: self.toggle_mdi(mdi)
             for i, mdi in enumerate(self.mdi_list)
         }
 
+    def toggle_mdi(self, mdi: MDIWindow):
+        if mdi.hidden:
+            self.mdi_container_manager.show_mdi(mdi)
+        else:
+            self.mdi_container_manager.hide_mdi(mdi)
+
     def create_mdi(self, mdi_cls: "class MDIWindow", mdi_id: str) -> MDIWindow:
-        mdi_db_row = db.mdi_window.by_title_id(mdi_id)
-        if mdi_db_row is None:
-            mdi_db_row = db.mdi_window.add_row(title_id=mdi_cls._db_title_id)
-        mdi = mdi_cls(mdi_db_row=mdi_db_row)
-        setattr(App.get_running_app(), mdi_id, mdi)
+        mdi = mdi_cls(hidden=True)
         setattr(self, mdi_id, mdi)
         return mdi
 
@@ -83,7 +84,7 @@ class MDIMenuRibbonBox(KeyboardBehavior, OverflowLayout):
         icon_normal = getattr(imgs_path, f"{mdi_id}_normal")
         icon_down = getattr(imgs_path, f"{mdi_id}_down")
         return MDIToggleButton(
-            main_ribbon=self,
+            mdi_container_manager=self.mdi_container_manager,
             mdi=mdi,
             background_normal=icon_normal,
             background_down=icon_down
@@ -91,6 +92,8 @@ class MDIMenuRibbonBox(KeyboardBehavior, OverflowLayout):
 
 
 class MainRibbon(BoxLayout):
+    mdi_container_manager = ObjectProperty()
+
     mdi_menu = ObjectProperty()
     scene_dimmer = ObjectProperty()
     serial_devices = ObjectProperty()
@@ -98,9 +101,12 @@ class MainRibbon(BoxLayout):
     settings = ObjectProperty()
 
     def on_kv_post(self, _):
+        mdi = self.mdi_menu.box.init(self.mdi_container_manager)
         mdi_cls = MDISettings
         mdi_id = mdi_cls._db_title_id
         mdi = self.mdi_menu.box.create_mdi(mdi_cls, mdi_id)
         self.settings = mdi
+        self.mdi_menu.box.mdi_list.append(mdi)
         toggle = self.mdi_menu.box.create_toggle(mdi, mdi_id)
         self.add_widget(toggle)
+        self.mdi_list = self.mdi_menu.box.mdi_list

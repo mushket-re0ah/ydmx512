@@ -73,9 +73,6 @@ class DesktopApp(KeyboardBehavior, App):
             frozenset({"F12"}): self.fullscreen_toggle
         }
 
-    def get_mdi_by_title_id(self, title_id: str) -> "MDIWindow":
-        return getattr(self, title_id)
-
     def on_stop(self):
         if constants.PROFILING_CPU:
             import yappi

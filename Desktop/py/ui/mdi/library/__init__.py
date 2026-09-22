@@ -1,6 +1,6 @@
 from kivy.properties import ObjectProperty, StringProperty, DictProperty
 from kivy.lang import Builder
-from ui.components.mdi_window import MDIWindow
+from ui.components.database_mdi_window import DatabaseMDIWindow
 from ui.mdi.library.table import LibraryTable
 from database import db
 from database.fixture import RowFixture, FixtureChannelsGroup
@@ -130,9 +130,8 @@ class EditorState(ContextState):
             return library.view_context.fixture_editor_edit
 
 
-class MDILibrary(MDIWindow):
+class MDILibrary(DatabaseMDIWindow):
     _db_title_id = "library"
-    title_id = StringProperty(_db_title_id)
     title = StringProperty("Библиотека")
 
     menu = ObjectProperty()
@@ -147,10 +146,35 @@ class MDILibrary(MDIWindow):
     ContextTables = LibraryContextTables
 
     context_state: ContextState = None
-    def on_open(self):
-        if not self.menu:
-            self.__create_menu()
-            self.__init_context()
+    def on_hidden(self, _, hidden: bool):
+        super().on_hidden(_, hidden)
+        if hidden or self.menu:
+            return
+        self.__create_menu()
+        self.__init_context()
+
+
+
+    # Костыль для нового view_context
+    def get_view_context(self):
+        return self.state.get("view_context", {})
+    def set_view_context(self, view_context):
+        state = self.state.copy()
+        state["view_context"] = view_context
+        self.state = state
+        return True
+    view_context = AliasProperty(
+        get_view_context,
+        set_view_context,
+    )
+    def on_view_context(self, _, view_context):
+        self._save_vc()
+    def _save_vc(self):
+        self.mdi_db_row.edit(view_context=self.view_context)
+
+
+
+
 
     def change_context_now(self, context: LibraryContexts, row: RowFixture = None):
         new_state = self._state_factory(context, row)
@@ -163,10 +187,11 @@ class MDILibrary(MDIWindow):
         self.context_state.enter(self)
 
     def __init_context(self):
-        if not self.view_context:
+        # костыльные обращения к view_context
+        if not self.mdi_db_row.view_context:
             self.view_context = LibraryViewContext()
         else:
-            self.view_context = LibraryViewContext.from_data(self.view_context)
+            self.view_context = LibraryViewContext.from_data(self.mdi_db_row.view_context)
 
         self.context_state = self._state_factory(
             self.view_context.context_now,

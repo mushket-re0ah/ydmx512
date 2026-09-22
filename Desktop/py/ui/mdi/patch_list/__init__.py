@@ -1,4 +1,4 @@
-from ui.components.mdi_window import MDIWindow
+from ui.components.database_mdi_window import DatabaseMDIWindow
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from database.fixture import RowFixture
 from database.patch import RowPatch
@@ -9,9 +9,8 @@ from libs.serialize import *
 from libs.kivy_json_orm.fields import table_ref_serializer, table_ref_deserializer
 
 
-class MDIPatchList(MDIWindow):
+class MDIPatchList(DatabaseMDIWindow):
     _db_title_id = "patch_list"
-    title_id = StringProperty(_db_title_id)  # Должно быть переназначено в наследнике
     title = StringProperty("Патч-лист")
 
     menu = ObjectProperty()
@@ -34,10 +33,12 @@ class MDIPatchList(MDIWindow):
         "menu.input_set_workspace/value": 1,
     }
 
-    def on_open(self):
-        if not self.menu:
-            self.__create_patch_map()
-            self.__create_menu()
+    def on_hidden(self, _, hidden: bool):
+        super().on_hidden(_, hidden)
+        if hidden or self.menu:
+            return
+        self.__create_patch_map()
+        self.__create_menu()
 
     def create_patch(self,
                      fixture: RowFixture,

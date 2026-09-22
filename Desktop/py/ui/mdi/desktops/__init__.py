@@ -1,18 +1,19 @@
-from ui.components.mdi_window import MDIWindow
+from ui.components.database_mdi_window import DatabaseMDIWindow
 from kivy.properties import StringProperty, ObjectProperty
 from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP
 
 
-class MDIDesktops(MDIWindow):
+class MDIDesktops(DatabaseMDIWindow):
     _db_title_id = "desktops"
-    title_id = StringProperty(_db_title_id)
     title = StringProperty("Рабочие столы")
 
     desktop_map = ObjectProperty()
 
-    def on_open(self):
-        if not self.desktop_map:
-            self.__create_map()
+    def on_hidden(self, _, hidden: bool):
+        super().on_hidden(_, hidden)
+        if hidden or self.desktop_map:
+            return
+        self.__create_map()
 
     def __create_map(self):
         from ui.mdi.desktops.desktop_map import DesktopMap

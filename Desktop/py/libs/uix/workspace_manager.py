@@ -133,6 +133,7 @@ class WorkspaceManager(BoxLayout):
         self.register_event_type("on_workspace_opened")
         self.register_event_type("on_workspace_closed")
         self.register_event_type("on_workspace_created")
+        self.register_event_type("on_workspace_removed")
         self.workspaces = {i: None for i in range(self.workspace_count)}
         super().__init__(**kwargs)
 
@@ -143,6 +144,9 @@ class WorkspaceManager(BoxLayout):
         pass
 
     def on_workspace_created(self, workspace_index: int, workspace: WorkspaceBehavior):
+        pass
+
+    def on_workspace_removed(self, workspace_index: int, workspace: WorkspaceBehavior):
         pass
 
     def on_kv_post(self, _) -> None:
@@ -163,6 +167,7 @@ class WorkspaceManager(BoxLayout):
             workspace = self._create_workspace_instance(workspace_index)
             self.workspaces[workspace_index] = workspace
             self.menu.get_toggle(workspace_index).workspace = workspace
+            self.dispatch("on_workspace_created", workspace_index, workspace)
         return workspace
 
     def _create_workspace_instance(self, workspace_index: int) -> WorkspaceBehavior:
@@ -176,6 +181,7 @@ class WorkspaceManager(BoxLayout):
             if not workspace_now.if_contain:
                 self.menu.get_toggle(index).workspace = None
                 self.workspaces[index] = None
+                self.dispatch("on_workspace_removed", index, workspace_now)
             workspace_now.showed = False
             self.remove_widget(workspace_now)
             self.dispatch("on_workspace_closed", index, workspace_now)
@@ -190,16 +196,13 @@ class WorkspaceManager(BoxLayout):
         self.dispatch("on_workspace_opened", workspace_index, workspace)
 
     workspace_now = AliasProperty(
-        lambda self: self.workspaces[self.workspace_now_index],
+        lambda self: self.create_workspace(self.workspace_now_index),
         bind=["workspace_now_index"], rebind=True
     )
 
     prev_workspace_index = None
     def on_workspace_now_index(self, _, index: int):
-        workspace_new = self.workspaces[index] is None
         self._hide_workspace(self.prev_workspace_index)
         workspace = self.create_workspace(index)
         self._show_workspace(index, workspace)
-        if workspace_new:
-            self.dispatch("on_workspace_created", index, workspace)
         self.prev_workspace_index = index
