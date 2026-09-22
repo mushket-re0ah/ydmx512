@@ -22,6 +22,5 @@ class TableMDIManager(DatabaseTable):
     workspace_index = ClampedNumericField(0, 0, constants.DATABASE_MDI_WORKSPACES_COUNT)
 
     def _create_default(self):
-        self.mdi_data = MdiData()
         for workspace_index in range(constants.DATABASE_MDI_WORKSPACES_COUNT):
             self.add_row(workspace_index=workspace_index)
