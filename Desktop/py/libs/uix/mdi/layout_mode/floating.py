@@ -11,10 +11,10 @@ from enum import Enum, auto
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 
 
-class FlexMode(Enum):
-    LEFT = auto()
-    RIGHT = auto()
-    VERTICAL = auto()
+class FlexMode(str, Enum):
+    LEFT = "left"
+    RIGHT = "right"
+    VERTICAL = "vertical"
 
 
 class FloatingLayoutMode(ILayoutMode):
@@ -41,6 +41,17 @@ class FloatingLayoutMode(ILayoutMode):
 
     def _on_mdi_state(self, mdi, state: dict):
         self.apply_mdi_expand(mdi, mdi.get_layout_state("expanded", False))
+        flex = self._get_mdi_flex_state(mdi)
+        if flex is None:
+            return
+
+        self._save_lock = True
+        try:
+            mdi.size_hint = flex["size_hint"]
+            mdi.size = flex["size"]
+            mdi.pos = flex["pos"]
+        finally:
+            self._save_lock = False
 
     def _mdi_bind(self, mdi: MDIWindow):
         if mdi.get_layout_state("size", None) is None:
@@ -61,9 +72,19 @@ class FloatingLayoutMode(ILayoutMode):
 
     def _save_mdi_state(self, mdi, *args):
         expanded = mdi.get_layout_state("expanded", False)
-        flex = mdi.get_layout_state("flex", None) is not None
-        if expanded or flex or self._save_lock:
+        if expanded or self._save_lock:
             return
+        flex = mdi.get_layout_state("flex", None)
+        if flex is not None:
+            flex = flex.copy()
+            flex.update(
+                size_hint=mdi.size_hint[:],
+                size=mdi.size[:],
+                pos=mdi.pos[:],
+            )
+            mdi.set_layout_state(flex=flex)
+            return
+
         mdi.set_layout_state(
             size_hint=mdi.size_hint[:],
             size=mdi.size[:],
@@ -162,7 +183,7 @@ class FloatingLayoutMode(ILayoutMode):
             self._reset_flex(mdi)
             return
 
-        if self._get_mdi_flex_state(mdi) is None:
+        if self._get_mdi_flex_mode(mdi) is None:
             self._start_flex(mdi, flex_type)
 
         self._apply_flex_style(mdi, width, x)
@@ -178,11 +199,16 @@ class FloatingLayoutMode(ILayoutMode):
             size_hint=mdi.size_hint[:],
             size=mdi.size[:],
             pos=mdi.pos[:],
-            flex=flex_type,
+            flex={
+                "mode": flex_type,
+                "size_hint": mdi.size_hint[:],
+                "size": mdi.size[:],
+                "pos": mdi.pos[:],
+            },
         )
 
     def _reset_flex(self, mdi):
-        if self._get_mdi_flex_state(mdi) is not None:
+        if self._get_mdi_flex_mode(mdi) is not None:
             mdi.size_hint = mdi.get_layout_state("size_hint", (None, None))
             mdi.size = mdi.get_layout_state("size", mdi.size[:])
             mdi.pos = mdi.get_layout_state("pos", mdi.pos[:])
@@ -191,6 +217,19 @@ class FloatingLayoutMode(ILayoutMode):
 
     def _get_mdi_flex_state(self, mdi: MDIWindow):
         return mdi.get_layout_state("flex", None)
+
+    def _get_mdi_flex_mode(self, mdi: MDIWindow):
+        flex = mdi.get_layout_state("flex", None)
+
+        if flex is None:
+            return None
+
+        flex_mode = flex["mode"]
+
+        if not isinstance(flex_mode, FlexMode):
+            flex_mode = FlexMode(flex_mode)
+
+        return flex_mode
 
     def resize_mdi(self, side: WidgetSide, mdi: MDIWindow,
                    mouse_pos: Tuple[float, float]):
@@ -201,7 +240,7 @@ class FloatingLayoutMode(ILayoutMode):
 
         mouse_x, mouse_y = mouse_pos
         container = self.mdi_container
-        flex_state = self._get_mdi_flex_state(mdi)
+        flex_mode = self._get_mdi_flex_mode(mdi)
 
         new_width = mdi.width
         new_height = mdi.height
@@ -209,10 +248,10 @@ class FloatingLayoutMode(ILayoutMode):
         y = mdi.y
 
         # Правый край
-        if side in RIGHT_WIDGET_SIDES and flex_state is not FlexMode.RIGHT:
+        if side in RIGHT_WIDGET_SIDES and flex_mode is not FlexMode.RIGHT:
             new_width = min(mouse_x - mdi.x, container.width - mdi.x)
         # Левый край
-        elif side in LEFT_WIDGET_SIDES and flex_state is not FlexMode.LEFT:
+        elif side in LEFT_WIDGET_SIDES and flex_mode is not FlexMode.LEFT:
             new_x = max(0, mouse_x)
             new_width = mdi.right - new_x
             if new_width >= mdi.window_minimum_width:
@@ -223,7 +262,7 @@ class FloatingLayoutMode(ILayoutMode):
                 x = mdi.right - new_width
 
         # Верхний/нижний край
-        if flex_state is None:
+        if flex_mode is None:
             if side in TOP_WIDGET_SIDES:
                 new_height = min(mouse_y - mdi.y, container.height - mdi.y)
             elif side in BOTTOM_WIDGET_SIDES:
