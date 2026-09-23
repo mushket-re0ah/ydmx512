@@ -30,7 +30,10 @@ def patch_window_sdl2_keyboard_input():
 
         events = []
         while True:
-            event = self._win.poll()
+            try:
+                event = self._win.poll()
+            except SystemError:
+                continue
             if not event:
                 break
             if event is None:
