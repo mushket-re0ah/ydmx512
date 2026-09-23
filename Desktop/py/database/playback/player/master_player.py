@@ -28,14 +28,14 @@ class PlaybackMasterPlayer:
     def _loop(self):
         if not self.player_list:
             return
-        used_addresses = set()
-        for player in self.player_list:
+        used_fulladdresses = set()
+        for player in reversed(self.player_list):
             for patch, address_list in player.playback.renderer.patch_addresses.items():
                 universe = patch.universe
                 for address in address_list:
-                    if address in used_addresses:
+                    fulladdress = (universe, address)
+                    if fulladdress in used_fulladdresses:
                         continue
-                    used_addresses.add(address)
                     value = player.get_patch_render(
                         patch,
                         address - patch.start_address,
@@ -43,5 +43,6 @@ class PlaybackMasterPlayer:
                     )
                     if value is not None:
                         dmx512.set_value(universe, address, value)
+                        used_fulladdresses.add(fulladdress)
 
 master_player = PlaybackMasterPlayer()
