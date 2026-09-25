@@ -78,3 +78,78 @@ if __name__ == "__main__":
             logger.info(f"Ошибка в лаунчере: {e}. Смерть через 3 секунды.")
             time.sleep(3)
             sys.exit(exit_code.EXIT_FAILURE)
+
+# from kivy.app import App
+# from kivy.lang import Builder
+# from kivy.properties import ObjectProperty
+# from kivy.uix.boxlayout import BoxLayout
+# from libs import sdl2_keyboard
+# from libs.uix.map_layout import *
+# from libs.mouse_manager import cursor_manager
+
+
+# class TestGridWidget(MapGridItemBehavior, BoxLayout):
+#     pass
+
+
+# Builder.load_string("""
+# <TestGridWidget>:
+#     size_hint: (None, None)
+#     canvas:
+#         Color:
+#             rgba: (1, 0, 0, 1)
+#         Rectangle:
+#             size: self.size
+#             pos: self.pos
+
+# <Root>:
+#     map_layout: map_layout
+#     w1: w1
+#     w2: w2
+#     padding: (40, 40, 40, 40)
+#     MyMapLayout:
+#         id: map_layout
+#         grid_padding: [8, 8, 8, 8]
+#         grid_spacing_size: [4, 4]
+#         cell_size: [16, 16]
+#         # grid_inversion_y: True
+#         max_grid_size: [24, 24]
+#         selectable: False
+#         TestGridWidget:
+#             id: w1
+#             grid_size: [3, 3]
+#             grid_pos: [0, 0]
+#             selectable: True
+#         TestGridWidget:
+#             id: w2
+#             grid_size: [3, 3]
+#             grid_pos: [0, 3]
+#             selectable: True
+#         TestGridWidget:
+#             id: w3
+#             grid_size: [3, 3]
+#             grid_pos: [3, 0]
+#             selectable: True
+# """
+# )
+
+
+# class Root(BoxLayout):
+#     w1 = ObjectProperty()
+#     map_layout = ObjectProperty()
+
+#     def on_kv_post(self, _):
+#         # self.map_layout.move_grid_item(self.w1, 2, 2)
+#         # self.map_layout.remove_widget(self.w2)
+#         pass
+
+
+# class Test(App):
+#     def build(self):
+#         return Root()
+
+# if __name__ == "__main__":
+#     sdl2_keyboard.init()
+#     cursor_manager.init()
+#     from libs.mouse_manager.hover import HoverBehavior
+#     Test().run()

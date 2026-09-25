@@ -16,10 +16,8 @@ class MDIDesktops(DatabaseMDIWindow):
         self.__create_map()
 
     def __create_map(self):
-        from ui.mdi.desktops.desktop_map import DesktopMap
-        self.desktop_map = DesktopMap(
-            desktops=self
-        )
+        from ui.mdi.desktops.desktop_map_section import DesktopMapSection
+        self.desktop_map = DesktopMapSection(desktops=self)
         self.add_widget(self.desktop_map)
 
     def on_key_down(self, scancode: int, keycode: str):

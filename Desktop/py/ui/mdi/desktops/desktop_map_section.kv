@@ -1,4 +1,4 @@
-#:import WorkspaceMapScrollLayout ui.components.scroll_layout_map.WorkspaceMapScrollLayout
+#:import DesktopMap ui.mdi.desktops.desktop_map.DesktopMap
 
 
 <MapFreezeToggleDesktop>:  # HoverToggleButton
@@ -7,11 +7,11 @@
     width: "128dp"
 
 
-<DesktopMap>:  # SectionPanel
+<DesktopMapSection>:  # SectionPanel
     workspace_manager: workspace_manager
 
     size_hint: (1, 1)
     title_text: "Рабочий стол #{}".format(workspace_manager.workspace_now_index + 1 if workspace_manager.workspace_now_index else 1)
     WorkspaceManager:
         id: workspace_manager
-        workspace_cls: WorkspaceMapScrollLayout
+        workspace_cls: DesktopMap

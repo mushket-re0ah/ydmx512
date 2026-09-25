@@ -1,8 +1,13 @@
-<PlaybackMap>:  # SectionPanel
+#:import constants misc.constants
+
+<PlaybackMapSection>:  # SectionPanel
     pb_map: pb_map
 
     size_hint: (1, 1)
     title_text: "Плейбеки"
-
-    MapScrollLayout:
+    PlaybackMap:
         id: pb_map
+
+<PlaybackMap>:  # MapLayout
+    max_grid_size: [constants.MAP_LAYOUT_MAX_SIZE, constants.MAP_LAYOUT_MAX_SIZE]
+    grid_padding: [2, 2, 2, 2]

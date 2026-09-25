@@ -7,20 +7,21 @@ from database import db
 from database.playback import RowPlayback
 from ui.mdi.processing.playback_ui import PlaybackUiProcessing
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.map_layout import MapLayout
 
 
 Builder.load_file("ui/mdi/processing/processing_map.kv")
 
 
-class PlaybackMap(SectionPanel):
+class PlaybackMapSection(SectionPanel):
     processing = ObjectProperty()
     pb_map = ObjectProperty()
     view_context = ObjectProperty()
 
-    selected = AliasProperty(lambda self: self.pb_map.box.selected, cache=True)
 
+class PlaybackMap(MapLayout):
     def _get_player_list_by_hotkey(self, key: str) -> Tuple[RowPlayback]:
-        return (ui.playback.player for ui in self.pb_map.box.children
+        return (ui.playback.player for ui in self.layout.children
                     if ui.playback.player.hotkey == key)
 
     key_down = set()
@@ -39,21 +40,21 @@ class PlaybackMap(SectionPanel):
                 player.stop()
 
     def on_kv_post(self, _):
+        super().on_kv_post(_)
         self.__init_map()
         db.playback.bind(on_add_row=self.on_add_playback)
         db.playback.bind(on_remove_row=self.on_remove_playback)
         db.playback.bind(on_scene_change=self.on_scene_change)
-        self.pb_map.box._create_context_menu = self._create_context_menu
 
     def on_add_playback(self, _, playback: RowPlayback):
-        self.pb_map.add_widget(PlaybackUiProcessing(
-                playback_map=self.pb_map,
+        self.add_widget(PlaybackUiProcessing(
+                playback_map=self,
                 playback=playback
             )
         )
 
     def on_remove_playback(self, _, playback: RowPlayback):
-        playback_ui = next((i for i in self.pb_map.box.children if i.playback is playback), None)
+        playback_ui = next((i for i in self.layout.children if i.playback is playback), None)
         if playback_ui is not None:
             playback_ui._self_destroy()
 
@@ -61,21 +62,21 @@ class PlaybackMap(SectionPanel):
         self.__init_map()
 
     def __init_map(self):
-        self.pb_map.box.clear_widgets()
+        self.clear_widgets()
         for playback in db.playback.rows.values():
-            self.pb_map.add_widget(PlaybackUiProcessing(
+            self.add_widget(PlaybackUiProcessing(
                     create_animation=False,
-                    playback_map=self.pb_map,
+                    playback_map=self,
                     playback=playback
                 )
             )
 
     def start_all(self, *args):
-        for ui in self.pb_map.box.children:
+        for ui in self.layout.children:
             ui.playback.player.start()
 
     def stop_all(self, *args):
-        for ui in self.pb_map.box.children:
+        for ui in self.layout.children:
             ui.playback.player.stop()
 
     def start_selected(self, *args):
@@ -88,7 +89,7 @@ class PlaybackMap(SectionPanel):
 
     def delete_selected(self, *args):
         for ui in self.selected:
-            ui._self_destroy()
+            db.playback.remove_row(ui.playback)
 
     def edit_selected(self, *args):
         from ui.components.playback_ui.playback_context_menu import PlaybackContextMenu

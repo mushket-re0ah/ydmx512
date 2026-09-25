@@ -15,9 +15,3 @@
 <EditorPatchUi>:  # RelativeLayout
     playback: self.patch_map_editor.playback
     blocked: self.playback is None
-    canvas.after:
-        Color:
-            rgba: self.border_color
-        Line:
-            width: dp(1.0)
-            rectangle: (self.x, self.y, self.width, self.height)

@@ -2,8 +2,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang.builder import Builder
 from kivy.properties import ObjectProperty, ColorProperty, NumericProperty
 from kivy.animation import Animation
-from ui.components.scroll_layout_map import GridBehavior
-from ui.components.scroll_layout_map import MapScrollLayout
+from libs.uix.map_layout import MapGridItemBehavior, MapLayout
 from libs.uix.button import HoverToggleButton
 from database.patch import RowPatch
 from typing import Tuple
@@ -21,7 +20,7 @@ class BasePatchUiTiltButton(HoverToggleButton):
     patch_ui = ObjectProperty()
 
 
-class BasePatchUi(GridBehavior, RelativeLayout):
+class BasePatchUi(MapGridItemBehavior, RelativeLayout):
     input_start_address = ObjectProperty()
     input_universe = ObjectProperty()
     lbl_addr_info = ObjectProperty()
@@ -31,7 +30,7 @@ class BasePatchUi(GridBehavior, RelativeLayout):
     button_pan = ObjectProperty()
     button_tilt = ObjectProperty()
 
-    patch_map: MapScrollLayout = ObjectProperty()
+    patch_map: MapLayout = ObjectProperty()
     patch: RowPatch = ObjectProperty(rebind=True)
     bg = ColorProperty(cs.PatchUi.bg)
     opacity = NumericProperty(1)
@@ -41,10 +40,11 @@ class BasePatchUi(GridBehavior, RelativeLayout):
         self._do_create_animation(create_animation)
 
     def on_kv_post(self, _):
+        super().on_kv_post(_)
         patch = self.patch
         patch_map = self.patch_map
         self._create_pan_tilt_toggle(patch)
-        self.grid_x, self.grid_y = self._get_init_attrs(patch, patch_map)
+        self.grid_pos = self._get_init_attrs(patch, patch_map)
         if patch.grid_pos[0] is None:
             self._save_pos(None)
 
@@ -61,14 +61,11 @@ class BasePatchUi(GridBehavior, RelativeLayout):
 
     def _get_init_attrs(self,
                         patch: RowPatch,
-                        patch_map: MapScrollLayout) -> Tuple[int, int]:
+                        patch_map: MapLayout) -> Tuple[int, int]:
         if patch.grid_pos[0] is None:
-            return patch_map.find_empty_pos(self)
+            return patch_map.find_empty_pos(*self.grid_size)
         else:
             return patch.grid_pos
-
-    def _save_pos(self, _):
-        self.patch.edit(grid_pos=(self.grid_x, self.grid_y))
 
     def _self_destroy(self):
         self.disabled = True
@@ -77,9 +74,22 @@ class BasePatchUi(GridBehavior, RelativeLayout):
         anim.start(self)
 
     def on_self_destroy(self, *args):
-        self.parent.remove_widget(self)
+        self.parent.map_layout.remove_widget(self)
 
-    def open_context_menu(self, pos: Tuple[float, float]):
+    def _save_pos(self, _):
+        self.patch.edit(grid_pos=self.grid_pos)
+
+    # def on_touch_down(self, touch):
+    #     if not self.collide_point(*touch.pos):
+    #         return False
+    #     if super().on_touch_down(touch):
+    #         return True
+    #     if touch.button == "right":
+    #         self._open_context_menu(touch.pos)
+    #         return True
+    #     return False
+
+    def _open_context_menu(self, pos: Tuple[float, float]):
         from ui.components.patch_ui.patch_context_menu import PatchContextMenu
         PatchContextMenu(
             patch=self.patch
@@ -90,13 +100,3 @@ class BasePatchUi(GridBehavior, RelativeLayout):
         PatchControllerMenu(
             patch=self.patch
         ).open(self, pos=(self.right, self.top))
-
-    def _check_allow_move_widget(self, widget) -> bool:
-        if widget is self:
-            return True
-        if widget in {self.input_start_address, self.input_universe, self.input_title, self.button_pan, self.button_tilt}:
-            return False
-        elif widget in (self.lbl_addr_info, self.image_fixture):
-            return True
-        else:
-            raise ValueError(f"unexpected widget {widget}")

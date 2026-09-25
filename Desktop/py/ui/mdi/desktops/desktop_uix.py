@@ -5,14 +5,13 @@ from kivy.properties import (
 )
 from kivy.clock import Clock
 from kivy.animation import Animation
-from ui.components.scroll_layout_map import SelectableBehavior
 from libs.uix.button import ImageToggleButton
 from database.desktop_uix import RowDesktopUix
-from ui.components.scroll_layout_map import MapScrollLayout
 from typing import Tuple
 from kivy.lang import Builder
 from misc import colorscheme as cs
 from misc.player.status import PlayerStatus
+from libs.uix.map_layout import MapGridItemBehavior
 
 
 Builder.load_file("ui/mdi/desktops/desktop_uix.kv")
@@ -26,7 +25,7 @@ class MomentToggleButton(ImageToggleButton):
             super().trigger_action(0)
 
 
-class DesktopUix(SelectableBehavior, RelativeLayout):
+class DesktopUix(MapGridItemBehavior, RelativeLayout):
     desktop_map = ObjectProperty()
     desktop_uix = ObjectProperty(rebind=True)
 
@@ -37,15 +36,13 @@ class DesktopUix(SelectableBehavior, RelativeLayout):
     trigger_save_pos = None
     def __init__(self, create_animation=True, **kwargs):
         self.trigger_save_pos = Clock.create_trigger(self._save_pos, 0)
-        self.bind(
-            grid_x=self.trigger_save_pos,
-            grid_y=self.trigger_save_pos,
-        )
-        super().__init__(**kwargs)
+        self.bind(grid_pos=self.trigger_save_pos)
+        super().__init__(selectable=True, **kwargs)
         self._do_create_animation(create_animation)
 
     def on_kv_post(self, _):
-        self.grid_x, self.grid_y = self._get_init_attrs(self.desktop_uix, self.desktop_map)
+        super().on_kv_post(_)
+        self.grid_pos = self._get_init_attrs(self.desktop_uix, self.desktop_map)
         self.desktop_uix.player.bind(status=self.on_player_status)
         self.on_player_status(None, self.desktop_uix.player.status)
 
@@ -61,12 +58,12 @@ class DesktopUix(SelectableBehavior, RelativeLayout):
                         desktop_uix: RowDesktopUix,
                         desktop_map: MapScrollLayout) -> Tuple[int, int]:
         if desktop_uix.grid_pos[0] is None:
-            return desktop_map.find_empty_pos(self)
+            return desktop_map.find_empty_pos(*self.grid_pos)
         else:
             return desktop_uix.grid_pos
 
     def _save_pos(self, _):
-        self.desktop_uix.edit(grid_pos=(self.grid_x, self.grid_y))
+        self.desktop_uix.edit(grid_pos=self.grid_pos)
 
     def _self_destroy(self):
         self.disabled = True
@@ -75,9 +72,19 @@ class DesktopUix(SelectableBehavior, RelativeLayout):
         anim.start(self)
 
     def on_self_destroy(self, *args):
-        self.parent.remove_widget(self)
+        self.parent.map_layout.remove_widget(self)
 
-    def open_context_menu(self, pos: Tuple[float, float]):
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        if super().on_touch_down(touch):
+            return True
+        if touch.button == "right":
+            self._open_context_menu(touch.pos)
+            return True
+        return False
+
+    def _open_context_menu(self, pos: Tuple[float, float]):
         from ui.mdi.desktops.uix_context_menu import DesktopUixContextMenu
         DesktopUixContextMenu(
             desktop_uix=self.desktop_uix

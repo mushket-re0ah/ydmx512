@@ -19,8 +19,8 @@ class TouchMouseBehavior:
                     return True
             elif touch.button == "left":
                 if self.drag_enabled:
-                    touch.grab(self)
                     if self.on_drag_start(touch):
+                        touch.grab(self)
                         return True
                 if self.on_left_click(touch):
                     return True

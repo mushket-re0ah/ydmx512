@@ -63,6 +63,6 @@ class MDIPatchList(DatabaseMDIWindow):
         self.add_widget(self.menu, 1)
 
     def __create_patch_map(self):
-        from ui.mdi.patch_list.patch_map import PatchMap
-        self.patch_map = PatchMap(patch_list=self)
+        from ui.mdi.patch_list.patch_map_section import PatchMapSection
+        self.patch_map = PatchMapSection(patch_list=self)
         self.add_widget(self.patch_map)

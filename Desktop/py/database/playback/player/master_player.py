@@ -22,7 +22,9 @@ class PlaybackMasterPlayer:
         for universe, address_list in player.playback.renderer.universe_addresses.items():
             clear_address_list = address_list.copy()
             for p in self.player_list:
-                clear_address_list -= p.playback.renderer.universe_addresses[universe]
+                p_renderer = p.playback.renderer
+                if universe in p_renderer.universe_addresses:
+                    clear_address_list -= p_renderer.universe_addresses[universe]
             dmx512.clear_matrix_by_address_list(universe, clear_address_list)
 
     def _loop(self):

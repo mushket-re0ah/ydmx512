@@ -21,7 +21,7 @@ import libs.uix.snippet
 import libs.uix.database_table
 import libs.uix.mdi.mdi_window
 import libs.uix.filelist
-import ui.components.scroll_layout_map
+import libs.uix.map_layout
 
 
 class Root(BoxLayout):
