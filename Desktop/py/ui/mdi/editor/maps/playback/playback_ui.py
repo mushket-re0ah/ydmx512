@@ -6,7 +6,7 @@ from misc import colorscheme as cs
 
 
 class EditorPlaybackUi(BasePlaybackUi):
-    playback_section = ObjectProperty()
+    playback_map = ObjectProperty()
     is_limiters = BooleanProperty(False)
     edit_label_size = NumericProperty("20dp")
     edit_label_x = NumericProperty("76dp")
@@ -15,14 +15,14 @@ class EditorPlaybackUi(BasePlaybackUi):
     def __init__(self, create_animation=True, **kwargs):
         playback = kwargs["playback"]
         playback_map = kwargs["playback_map"]
-        playback.bind(grid_pos=playback_map.box._trigger_calc_resize)
+        playback.bind(grid_pos=self.setter("grid_pos"))
         super().__init__(create_animation, **kwargs)
 
     select_edited_playback_ev = None
-    def on_playback_section(self, _, playback_section):
+    def on_playback_map(self, _, playback_map):
         select_edited_playback_ev = Clock.create_trigger(self.on_select_edited_playback, -1)
         self.select_edited_playback_ev = select_edited_playback_ev
-        playback_section.bind(playback=select_edited_playback_ev)
+        playback_map.bind(playback=select_edited_playback_ev)
         self.bind(
             edit_label_size=select_edited_playback_ev,
             pos=select_edited_playback_ev,
@@ -31,7 +31,7 @@ class EditorPlaybackUi(BasePlaybackUi):
 
     def on_select_edited_playback(self, _):
         self.canvas.remove_group("selected_edit")
-        if self.playback is self.playback_section.playback:
+        if self.playback is self.playback_map.playback:
             with self.canvas:
                 Color(*cs.EditorPlaybackUi.selected_edit_color)
                 SmoothEllipse(
@@ -41,4 +41,4 @@ class EditorPlaybackUi(BasePlaybackUi):
                 )
 
     def on_release_play_button(self):
-        self.playback_section.playback = self.playback
+        self.playback_map.playback = self.playback

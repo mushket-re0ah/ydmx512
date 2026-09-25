@@ -62,6 +62,7 @@ class HoverInput(CentralizedHotkeyTextInput):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and touch.button == "right":
             self.open_context_menu(touch.pos)
+            return True
         else:
             return super().on_touch_down(touch)
 

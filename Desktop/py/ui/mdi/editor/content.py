@@ -1,8 +1,8 @@
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
-from ui.mdi.editor.maps import playback_map
-from ui.mdi.editor.maps import patch_map
+from ui.mdi.editor.maps.playback import playback_map
+from ui.mdi.editor.maps.patch import patch_map
 import ui.mdi.editor.automation
 from libs.properties import BindableObjectProperty
 

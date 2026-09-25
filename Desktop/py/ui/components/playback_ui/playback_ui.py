@@ -4,8 +4,7 @@ from kivy.properties import (
     ObjectProperty, ColorProperty, NumericProperty, StringProperty
 )
 from kivy.animation import Animation
-from ui.components.scroll_layout_map import GridBehavior
-from ui.components.scroll_layout_map import MapScrollLayout
+from libs.uix.map_layout import MapGridItemBehavior, MapLayout
 from libs.uix.button import ImageButton
 from database.playback import RowPlayback, PlaybackPlayer
 from typing import Tuple
@@ -42,7 +41,7 @@ class PlaybackPlayButton(ImageButton):
         self._trigger_animate()
 
 
-class BasePlaybackUi(GridBehavior, RelativeLayout):
+class BasePlaybackUi(MapGridItemBehavior, RelativeLayout):
     lbl_cur_beat = ObjectProperty()
     play_button = ObjectProperty()
     input_title = ObjectProperty()
@@ -51,7 +50,7 @@ class BasePlaybackUi(GridBehavior, RelativeLayout):
     rotary_intensive = ObjectProperty()
 
     playback: RowPlayback = ObjectProperty(rebind=True)
-    playback_map: MapScrollLayout = ObjectProperty()
+    playback_map: MapLayout = ObjectProperty()
     bg = ColorProperty(cs.PlaybackUi.bg_stop_normal)
     opacity = NumericProperty(1)
 
@@ -60,9 +59,10 @@ class BasePlaybackUi(GridBehavior, RelativeLayout):
         self._do_create_animation(create_animation)
 
     def on_kv_post(self, _):
+        super().on_kv_post(_)
         playback = self.playback
         playback_map = self.playback_map
-        self.grid_x, self.grid_y = self._get_init_attrs(playback, playback_map)
+        self.grid_pos = self._get_init_attrs(playback, playback_map)
         if playback.grid_pos[0] is None:
             self._save_pos(None)
         playback.player.bind(status=self.on_player_status)
@@ -78,9 +78,9 @@ class BasePlaybackUi(GridBehavior, RelativeLayout):
 
     def _get_init_attrs(self,
                         playback: RowPlayback,
-                        playback_map: MapScrollLayout) -> Tuple[int, int]:
+                        playback_map: MapLayout) -> Tuple[int, int]:
         if playback.grid_pos[0] is None:
-            return playback_map.find_empty_pos(self)
+            return playback_map.find_empty_pos(*self.grid_size)
         else:
             return playback.grid_pos
 
@@ -91,12 +91,22 @@ class BasePlaybackUi(GridBehavior, RelativeLayout):
         anim.start(self)
 
     def on_self_destroy(self, *args):
-        self.parent.remove_widget(self)
+        self.parent.map_layout.remove_widget(self)
 
     def _save_pos(self, _):
-        self.playback.edit(grid_pos=(self.grid_x, self.grid_y))
+        self.playback.edit(grid_pos=self.grid_pos)
 
-    def open_context_menu(self, pos: Tuple[float, float]):
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        if super().on_touch_down(touch):
+            return True
+        if touch.button == "right":
+            self._open_context_menu(touch.pos)
+            return True
+        return False
+
+    def _open_context_menu(self, pos: Tuple[float, float]):
         from ui.components.playback_ui.playback_context_menu import PlaybackContextMenu
         PlaybackContextMenu(
             playback_list=[self.playback]
@@ -107,13 +117,3 @@ class BasePlaybackUi(GridBehavior, RelativeLayout):
 
     def on_press_play_button(self):
         pass
-
-    def _check_allow_move_widget(self, widget) -> bool:
-        if widget is self:
-            return True
-        if widget in {self.play_button, self.input_title, self.input_hotkey, self.input_midi, self.rotary_intensive}:
-            return False
-        elif widget is self.lbl_cur_beat:
-            return True
-        else:
-            raise ValueError(f"unexpected widget {widget}")

@@ -97,14 +97,17 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
     def on_drag_start(self, touch):
         self.focus = True
         touch.ud["start_value"] = self.value
+        return True
 
     def on_drag(self, touch, delta_x, delta_y):
         y_offset = delta_y / self.drag_sensitivity
         y_offset *= self._get_full_value()
         self.value = touch.ud["start_value"] + y_offset
+        return True
 
     def on_drag_end(self, touch):
         self.focus = False
+        return True
 
     def on_scroll_up(self, touch):
         self.value -= self.step_mouse_scroll

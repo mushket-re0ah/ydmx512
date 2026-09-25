@@ -9,7 +9,7 @@ class MDIProcessing(DatabaseMDIWindow):
     title = StringProperty("Процессинг")
 
     menu = ObjectProperty()
-    processing_map = ObjectProperty()
+    map_section = ObjectProperty()
 
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)
@@ -25,19 +25,19 @@ class MDIProcessing(DatabaseMDIWindow):
         from ui.mdi.processing.menu import ProcessingMenu
         self.menu = ProcessingMenu(
             processing=self,
-            processing_map=self.processing_map,
+            map_layout=self.map_section.pb_map,
             view_context=self.view_context)
         self.add_widget(self.menu, 1)
 
     def __create_playback_map(self):
-        from ui.mdi.processing.processing_map import PlaybackMap
-        self.processing_map = PlaybackMap(
+        from ui.mdi.processing.processing_map import PlaybackMapSection
+        self.map_section = PlaybackMapSection(
             processing=self,
             view_context=self.view_context)
-        self.add_widget(self.processing_map)
+        self.add_widget(self.map_section)
 
     def on_key_down(self, scancode: int, keycode: str):
-        self.processing_map.on_key_down(SDL_SCANCODE_TO_KEYCODE_MAP[scancode])
+        self.map_section.pb_map.on_key_down(SDL_SCANCODE_TO_KEYCODE_MAP[scancode])
 
     def on_key_up(self, scancode: int, keycode: str):
-        self.processing_map.on_key_up(SDL_SCANCODE_TO_KEYCODE_MAP[scancode])
+        self.map_section.pb_map.on_key_up(SDL_SCANCODE_TO_KEYCODE_MAP[scancode])

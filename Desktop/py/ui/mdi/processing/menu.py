@@ -8,5 +8,5 @@ Builder.load_file("ui/mdi/processing/menu.kv")
 
 class ProcessingMenu(MenuPanel):
     processing = ObjectProperty()
-    processing_map = ObjectProperty()
+    map_layout = ObjectProperty()
     view_context = ObjectProperty()

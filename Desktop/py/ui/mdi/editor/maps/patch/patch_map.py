@@ -26,16 +26,10 @@ class PatchEditorMap(MenuPanel):
 
     def on_workspace_opened(self, _, workspace_index: int, workspace: WorkspaceBehavior):
         self.workspace_now = workspace
-        workspace.selectable = False
-        workspace.resize_by_children = True
-        workspace.invert_grid = True
-        workspace.box.child_grid_pos_attrgetter = attrgetter("patch.grid_pos")
-        workspace.box.open_context_menu = self.open_context_menu
-        workspace.box._create_context_menu = self._create_context_menu
 
     def on_active_patch(self, _, active_patch: List[RowPatch]):
         for workspace in [i for i in self.workspace_manager.workspaces.values() if i is not None]:
-            for patch_ui in workspace.box.children:
+            for patch_ui in workspace.layout.children:
                 patch_ui._activate_block = True
                 patch_ui.is_down = patch_ui.patch in active_patch
                 patch_ui._activate_block = False
@@ -76,7 +70,7 @@ class PatchEditorMap(MenuPanel):
     def on_remove_patch(self, _, patch: RowPatch):
         wm = self.workspace_manager
         workspace = wm.workspaces[patch.workspace]
-        patch_ui = next((i for i in workspace.box.children if i.patch is patch), None)
+        patch_ui = next((i for i in workspace.layout.children if i.patch is patch), None)
         if patch_ui is not None:
             patch_ui._self_destroy()
 
@@ -96,7 +90,7 @@ class PatchEditorMap(MenuPanel):
         wm = self.workspace_manager
         for workspace in wm.workspaces.values():
             if workspace:
-                workspace.box.clear_widgets()
+                workspace.clear_widgets()
 
         grouped = defaultdict(list)
         for patch in db.patch.rows.values():
@@ -118,23 +112,7 @@ class PatchEditorMap(MenuPanel):
 
     def get_patch_ui_by_row_patch(self, patch: RowPatch) -> Optional[EditorPatchUi]:
         for workspace in [i for i in self.workspace_manager.workspaces.values() if i is not None]:
-            patch_ui = next((i for i in workspace.box.children if i.patch is patch), None)
+            patch_ui = next((i for i in workspace.layout.children if i.patch is patch), None)
             if patch_ui:
                 return patch_ui
         return None
-
-    def open_context_menu(self, pos: tuple):
-        pass
-
-    def _create_context_menu(self) -> ContextMenu:
-        return None
-        return ContextMenu(items=[
-            ContextMenuItem(
-                widget_class=ContextMenuButton,
-                kwargs={
-                    "text": "Создать плейбек",
-                    "on_release": lambda _: db.playback.add_row(),
-                }
-            ),
-            ]
-        )

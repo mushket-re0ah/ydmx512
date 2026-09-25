@@ -14,6 +14,7 @@ from libs.animation import StatefulColorProperty
 from libs import logger
 from ui.mdi.editor.automation.tools import InterpatchPhaseTool
 from database.playback.renderer.render_data import InterpatchSpec
+from kivy.uix.relativelayout import RelativeLayout
 from database.playback import RowPlayback
 Builder.load_file("ui/mdi/editor/maps/patch/patch_ui.kv")
 
@@ -35,7 +36,7 @@ class ButtonInterpatchUngroup(HoverButton):
         automation.tool_action("finish")
 
 
-class EditorPatchUi(AutoUnbindBehavior, AnimationBehavior, HoverBehavior, ExpansiveToggleButtonBehavior, BasePatchUi):
+class EditorPatchUi(ExpansiveToggleButtonBehavior, BasePatchUi):
     is_limiters = BooleanProperty(False)
     blocked = BooleanProperty(True)  # Блок на случай если не выбран плейбек
 
@@ -66,7 +67,7 @@ class EditorPatchUi(AutoUnbindBehavior, AnimationBehavior, HoverBehavior, Expans
     def __init__(self, create_animation=True, **kwargs):
         patch = kwargs["patch"]
         patch_map = kwargs["patch_map"]
-        patch.bind(grid_pos=patch_map.box._trigger_calc_resize)
+        patch.bind(grid_pos=self.setter("grid_pos"))
         super().__init__(**kwargs)
         self.patch_map_editor.editor_content.bind(on_render_changed=self._sync_render)
 

@@ -17,7 +17,7 @@ class MDIEditor(DatabaseMDIWindow):
     view_context_template = {
         "content.splitter_x/size": [0, 0],
         "content.splitter_y/size": [0, 0],
-        "content.playback_map/playback": {
+        "content.playback_map.pb_map/playback": {
             "default": None,
             "serialize": table_ref_serializer(),
             "deserialize": table_ref_deserializer(lambda: db.playback)

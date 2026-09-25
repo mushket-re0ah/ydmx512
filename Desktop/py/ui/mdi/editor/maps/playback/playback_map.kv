@@ -1,11 +1,16 @@
-<PlaybackEditorMap>:  # MenuPanel
+#:import constants misc.constants
+
+<PlaybackEditorMapSection>:  # MenuPanel
     pb_map: pb_map
 
     size_hint: (1, 1)
     -width: 0
 
-    MapScrollLayout:
+    playback: pb_map.playback
+
+    PlaybackEditorMap:
         id: pb_map
-        selectable: False
-        resize_by_children: True
-        invert_grid: True
+
+<PlaybackEditorMap>:
+    max_grid_size: [constants.MAP_LAYOUT_MAX_SIZE, constants.MAP_LAYOUT_MAX_SIZE]
+    grid_padding: [2, 2, 2, 2]

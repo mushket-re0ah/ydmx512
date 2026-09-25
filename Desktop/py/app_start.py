@@ -186,27 +186,27 @@ if __name__ == '__main__':
             logger.error(exc_info=True)
         logger.info("==== Завершение kivy приложения... ====")
 
-        import sys
-        import threading
-        import traceback
+        # import sys
+        # import threading
+        # import traceback
 
 
-        logger.info("=== THREADS BEFORE EXIT ===")
+        # logger.info("=== THREADS BEFORE EXIT ===")
 
-        frames = sys._current_frames()
+        # frames = sys._current_frames()
 
-        for thread in threading.enumerate():
-            logger.info(
-                f"thread={thread.name!r}, "
-                f"ident={thread.ident}, "
-                f"native_id={thread.native_id}, "
-                f"daemon={thread.daemon}, "
-                f"alive={thread.is_alive()}"
-            )
+        # for thread in threading.enumerate():
+        #     logger.info(
+        #         f"thread={thread.name!r}, "
+        #         f"ident={thread.ident}, "
+        #         f"native_id={thread.native_id}, "
+        #         f"daemon={thread.daemon}, "
+        #         f"alive={thread.is_alive()}"
+        #     )
 
-            frame = frames.get(thread.ident)
-            if frame:
-                logger.info(
-                    "".join(traceback.format_stack(frame))
-                )
+        #     frame = frames.get(thread.ident)
+        #     if frame:
+        #         logger.info(
+        #             "".join(traceback.format_stack(frame))
+        #         )
         sys.exit(exit_status)

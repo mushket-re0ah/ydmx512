@@ -3,7 +3,7 @@ from kivy.event import EventDispatcher
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from enum import Enum, auto
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, Optional
 from libs import logger
 
 
@@ -232,6 +232,18 @@ def walk_by_parents(widget: Widget) -> Widget:
         if parent is None:
             return None
         parent = parent.parent
+
+
+def walk_by_children(widget: Widget, x: float, y: float) -> Optional[Widget]:
+    # x, y — в системе родителя widget
+    if not widget.collide_point(x, y):
+        return None
+    lx, ly = widget.to_local(x, y)
+    for child in reversed(widget.children):  # сверху вниз по z-order
+        hit = walk_by_children(child, lx, ly)
+        if hit is not None:
+            return hit
+    return widget
 
 
 class WidgetSide(Enum):

@@ -161,22 +161,6 @@ RowDotsSelector = _cs(
     border=_h("00FFFFFF"),
 )
 
-SelectableBehavior = _cs(
-    border_color_normal=_h("#00000000"),
-    border_color_hover=_h("#0000FFFF"),
-    border_color_is_select=_h("#00FFFFFF"),
-)
-
-MapLayout = _cs(
-    bg=_h("#525A5EFF"),
-    grid_color=_h("#FFFFFF1A"),
-)
-
-MapSelector = _cs(
-    bg=_h("#00FFFF33"),
-    border=_h("00FFFFFF"),
-)
-
 DesktopUix = _cs(
     tx_led_disabled=_h("#000000FF"),
     tx_led_active=_h("#00FF00FF"),
