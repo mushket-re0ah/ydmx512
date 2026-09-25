@@ -39,7 +39,7 @@ class PlaybackEditorMap(EditorMapLayout):
         )
 
     def on_remove_playback(self, _, playback: RowPlayback):
-        playback_ui = next((i for i in self.layout.children
+        playback_ui = next((i for i in self.grid_items
                                     if i.playback is playback), None)
         if playback_ui is not None:
             playback_ui._self_destroy()

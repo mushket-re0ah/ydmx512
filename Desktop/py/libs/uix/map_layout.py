@@ -18,6 +18,7 @@ from libs.kivy_utils import AutoUnbindBehavior, walk_by_children
 from libs.sdl2_keyboard import manager as keyboard_manager
 from libs.uix import colorscheme as uix_cs
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
+from weakref import WeakKeyDictionary
 
 
 Builder.load_string("""
@@ -79,7 +80,7 @@ Builder.load_string("""
                         size: root._grid_render_size
 
 <WorkspaceMapLayout>:
-    if_contain: False if self.layout is None else len(self.layout.children) > 0
+    if_contain: False if self.layout is None else len(self.grid_items) > 0
 """)
 
 
@@ -173,6 +174,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
     selectable = BooleanProperty(True)
 
     selected = ListProperty()
+    grid_items = ListProperty()
 
     _columns = NumericProperty()
     _rows = NumericProperty()
@@ -755,6 +757,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             grid_size=self._on_grid_item_geometry_change,
         )
         self._sync_grid_item(widget)
+        self.grid_items = [*self.grid_items, widget]
 
     def _unbind_grid_item(self, widget):
         self.unselect(widget)
@@ -763,6 +766,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         if geometry is not None:
             self._release_grid_item(widget, geometry)
         widget.map_layout = None
+        self.grid_items = [x for x in self.grid_items if x is not widget]
 
     def _on_grid_item_geometry_change(self, widget, _):
         self._sync_grid_item(widget)
@@ -966,3 +970,60 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
 
 class WorkspaceMapLayout(MapLayout, WorkspaceBehavior):
     pass
+
+
+class DesignScaledContainer:
+    """Mixin для MapGridItemBehavior, чтобы виджеты умели подгонять размер
+    детей под произвольный размер клетки и spacing, и в том числе если
+    проектировались под один grid_size, то чтобы можно было задать другой.
+    Да, зачастую это повлечет искажение соотношения изначальной геометрии, но...
+    НЕ ЗАДАВАЙТЕ ЗНАЧЕНИЯ В DP И SP ДЛЯ ДЕТЕЙ!
+    ЗНАЧЕНИЯ В KV - БЕЗРАЗМЕРНЫЕ ЧИСЛА!
+    """
+    design_grid_size = VariableListProperty([0, 0], length=2)  # MUST BE OVERRIDE
+    _design_cell_width = 16
+    _design_cell_height = 16
+    _design = None  # {widget: (pos, size)}
+    _design_pixel_width = None
+    _design_pixel_height = None
+
+    @staticmethod
+    def _walk(widget):
+        for child in widget.children:
+            yield child
+            yield from DesignScaledContainer._walk(child)
+
+    def on_kv_post(self, _):
+        super().on_kv_post(_)
+        self._capture_design()
+        self.bind(size=self._apply_design)
+        self._apply_design()
+
+    def _capture_design(self):
+        # Пиксельный размер, под который рисовался дизайн в kv.
+        self._design_pixel_width = self.design_grid_size[0] * self._design_cell_width
+        self._design_pixel_height = self.design_grid_size[1] * self._design_cell_height
+
+        design = WeakKeyDictionary()
+        for child in self._walk(self):
+            font_size = None
+            if hasattr(child, "font_size"):
+                font_size = child.font_size
+            design[child] = (tuple(child.pos), tuple(child.size), font_size)
+        self._design = design
+
+    def _apply_design(self, *_):
+        if not self._design or not self.map_layout:
+            return
+
+        sx = self.width  / self._design_pixel_width
+        sy = self.height / self._design_pixel_height
+        s_min = min(sx, sy)
+        for widget, (pos, size, font_size) in list(self._design.items()):
+            x, y = pos
+            w, h = size
+            # не надо писать dp/sp строки, т.к. metrics учтены в self.width/height
+            widget.pos  = (x * sx, y * sy)
+            widget.size = (w * sx, h * sy)
+            if font_size:
+                widget.font_size = font_size * s_min

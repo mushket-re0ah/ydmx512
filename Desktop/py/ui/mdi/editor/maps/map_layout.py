@@ -26,9 +26,10 @@ Builder.load_string("""
     selectable: False
     max_grid_size: [constants.MAP_LAYOUT_MAX_SIZE, constants.MAP_LAYOUT_MAX_SIZE]
     grid_padding: [2, 2, 2, 2]
+    grid_spacing: [4, 4]
 
 <WorkspaceEditorMapLayout>:
-    if_contain: False if self.layout is None else len(self.layout.children) > 0
+    if_contain: False if self.layout is None else len(self.grid_items) > 0
 """)
 
 
@@ -53,8 +54,7 @@ class EditorMapLayout(MapLayout):
         padding_w = self.grid_padding[0] + self.grid_padding[2]
         padding_h = self.grid_padding[1] + self.grid_padding[3]
 
-        widgets = [w for w in self.layout.children
-                   if isinstance(w, MapGridItemBehavior)]
+        widgets = self.grid_items[:]
 
         if not widgets:
             self._offset = (0, 0)

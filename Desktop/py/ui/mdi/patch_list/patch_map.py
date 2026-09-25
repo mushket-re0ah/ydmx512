@@ -8,6 +8,7 @@ Builder.load_string("""
 <PatchMap>:
     max_grid_size: [constants.MAP_LAYOUT_MAX_SIZE, constants.MAP_LAYOUT_MAX_SIZE]
     grid_padding: [2, 2, 2, 2]
+    grid_spacing: [4, 4]
 """
 )
 

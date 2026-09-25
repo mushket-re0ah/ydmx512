@@ -1,17 +1,15 @@
 <BasePatchUiPanButton>:  # HoverToggleButton
     text: "П"
-    size_hint: (None, None)
-    size: ("24dp", "14dp")
-    pos: ("72dp", "82dp")
+    size_hint: (0.25, 0.146)
+    pos_hint: {"x": 0.75, "y": 0.854}
     is_down: self.patch_ui.patch.invert_pan
     on_is_down: self.patch_ui.patch.edit(invert_pan=self.is_down)
 
 
 <BasePatchUiTiltButton>:  # HoverToggleButton
     text: "Т"
-    size_hint: (None, None)
-    size: ("24dp", "14dp")
-    pos: ("72dp", "68dp")
+    size_hint: (0.25, 0.146)
+    pos_hint: {"x": 0.75, "y": 0.708}
     is_down: self.patch_ui.patch.invert_tilt
     on_is_down: self.patch_ui.patch.edit(invert_tilt=self.is_down)
 
@@ -25,7 +23,7 @@
     input_title: input_title.__self__
 
     size_hint: (None, None)
-    grid_size: [6, 6]
+    grid_size: [5, 5]
     canvas.before:
         Color:
             rgba: self.bg
@@ -34,16 +32,16 @@
             size: self.size
     NumericInput:
         id: input_start_address
-        pos: (0, "72dp")
-        size: ("24dp", "24dp")
+        pos_hint: {"x": 0, "y": 0.75}
+        size_hint: [0.25, 0.25]
         minimum: 1
         maximum: constants.DMX_ADDRESS_COUNT
         value: root.patch.start_address
         on_value: root.patch.edit(start_address=self.value)
     NumericInput:
         id: input_universe
-        pos: (0, "48dp")
-        size: ("24dp", "24dp")
+        pos_hint: {"x": 0, "y": 0.5}
+        size_hint: [0.25, 0.25]
         minimum: 1
         maximum: constants.DMX_UNIVERSE_COUNT
         value: root.patch.universe
@@ -59,22 +57,19 @@
         color: cs.PatchUi.addr_info_addr_conflict if root.patch.is_address_conflict else cs.PatchUi.addr_info_normal
     Image:
         id: image_fixture
-        size_hint: (None, None)
-        size: ("50dp", "50dp")
+        size_hint: (0.52, 0.52)
         pos: ("{}dp".format((root.width - self.size[0]) // 2), "{}dp".format(root.height - self.size[1] - 10))
         source: (constants.FIXTURE_IMGS_PATH / root.patch.fixture.icon).as_posix()
     HoverToggleButton:
         id: toggle_controller
-        size_hint: (None, None)
-        size: ("24dp", "18dp")
+        size_hint: (0.25, 0.1785)
         text: "c"
-        pos: ("{}dp".format(root.width - self.size[0]), "36dp")
+        pos_hint: {"x": 0.75, "y": 0.375}
         on_is_down: root.open_controller_menu()
     HoverInput:
         id: input_title
-        size_hint: (1, None)
-        height: "24dp"
-        pos: (0, "14dp")
+        size_hint: (1, 0.25)
+        pos_hint: {"x": 0, "y": 0.146}
         multiline: False
         text: root.patch.title
         on_text: root.patch.edit(title=self.text)
