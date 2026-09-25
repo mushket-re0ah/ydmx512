@@ -63,7 +63,7 @@ class DesktopMapSection(SectionPanel):
     selected = AliasProperty(lambda self: self.workspace_manager.workspace_now.selected, cache=True)
 
     def _get_desktop_uix_list_by_hotkey(self, key: str) -> Tuple[RowDesktopUix]:
-        return (ui.desktop_uix for ui in self.workspace_now.layout.children
+        return (ui.desktop_uix for ui in self.workspace_now.grid_items
                     if ui.desktop_uix.player.hotkey == key)
 
     key_down = set()
@@ -109,7 +109,7 @@ class DesktopMapSection(SectionPanel):
 
     def on_remove_desktop_uix(self, _, desktop_uix: RowDesktopUix):
         workspace = self.workspace_manager.workspace_now
-        desktop_uix_ui = next((i for i in workspace.layout.children if i.desktop_uix is desktop_uix), None)
+        desktop_uix_ui = next((i for i in workspace.grid_items if i.desktop_uix is desktop_uix), None)
         if desktop_uix_ui is not None:
             desktop_uix_ui._self_destroy()
 

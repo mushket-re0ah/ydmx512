@@ -91,12 +91,15 @@ class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
     def on_drag_start(self, touch):
         self.focus = True
         self._set_from_touch(touch)
+        return True
 
     def on_drag(self, touch, delta_x, delta_y):
         self._set_from_touch(touch)
+        return True
 
     def on_drag_end(self, touch):
         self.focus = False
+        return True
 
     def _set_from_touch(self, touch):
         minmax_x = max(self.value_x_maximum - self.value_x_minimum, 1)

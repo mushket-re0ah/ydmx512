@@ -21,7 +21,7 @@ class PlaybackMapSection(SectionPanel):
 
 class PlaybackMap(MapLayout):
     def _get_player_list_by_hotkey(self, key: str) -> Tuple[RowPlayback]:
-        return (ui.playback.player for ui in self.layout.children
+        return (ui.playback.player for ui in self.grid_items
                     if ui.playback.player.hotkey == key)
 
     key_down = set()
@@ -54,7 +54,7 @@ class PlaybackMap(MapLayout):
         )
 
     def on_remove_playback(self, _, playback: RowPlayback):
-        playback_ui = next((i for i in self.layout.children if i.playback is playback), None)
+        playback_ui = next((i for i in self.grid_items if i.playback is playback), None)
         if playback_ui is not None:
             playback_ui._self_destroy()
 
@@ -72,11 +72,11 @@ class PlaybackMap(MapLayout):
             )
 
     def start_all(self, *args):
-        for ui in self.layout.children:
+        for ui in self.grid_items:
             ui.playback.player.start()
 
     def stop_all(self, *args):
-        for ui in self.layout.children:
+        for ui in self.grid_items:
             ui.playback.player.stop()
 
     def start_selected(self, *args):

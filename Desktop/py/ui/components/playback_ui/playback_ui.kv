@@ -28,8 +28,7 @@
     rotary_intensive: rotary_intensive.__self__
 
     size_hint: (None, None)
-    grid_width: 6
-    grid_height: 6
+    grid_size: [5, 5]
     canvas.before:
         Color:
             rgba: root.playback.color
@@ -48,49 +47,44 @@
     RestrictedLabel:
         id: lbl_cur_beat
         size_hint: (None, None)
-        text: str(root.playback.player.beat_now) + "/" + str(root.playback.player.real_beats_count)
         font_size: "11sp"
-        size: self.texture_size
+        text: str(root.playback.player.beat_now) + "/" + str(root.playback.player.real_beats_count)
         text_size: (None, None)
         pos: ("{}dp".format((root.width - self.size[0]) // 2), "{}dp".format(root.height - self.size[1] - 6))
+        size: self.texture_size
     PlaybackPlayButton:
         id: play_button
-        size_hint: (None, None)
-        size: ("90dp", "30dp")
-        pos: ("3dp", "46dp")
+        size_hint: [0.938, 0.313]
+        pos_hint: {"x": 0.032, "y": 0.48}
         playback: root.playback
         player: root.playback.player
         on_release: root.on_release_play_button()
         on_press: root.on_press_play_button()
     HoverInput:
         id: input_title
-        size_hint: (None, None)
-        size: ("90dp", "18dp")
+        size_hint: [0.938, 0.188]
+        pos_hint: {"x": 0.032, "y": 0.292}
         font_size: "11sp"
         multiline: False
         text: root.playback.title
         on_text: root.playback.edit(title=self.text)
-        pos: ("3dp", "28dp")
     HotkeyInput:
         id: input_hotkey
-        size_hint: (None, None)
-        size: ("24dp", "19dp")
+        size_hint: [0.25, 0.198]
+        pos_hint: {"x": 0.032, "y": 0.073}
         font_size: "12sp"
         text: root.playback.player.hotkey
         on_text: root.playback.player.edit(hotkey=self.text)
-        pos: ("3dp", "7dp")
     MidiInput:
         id: input_midi
-        size_hint: (None, None)
-        size: ("30dp", "19dp")
+        size_hint: [0.313, 0.198]
+        pos_hint: {"x": 0.303, "y": 0.073}
         font_size: "12sp"
         value: root.playback.player.midi_channel
         on_value: root.playback.player.edit(midi_channel=self.value)
-        pos: ("29dp", "7dp")
     RotaryButton:
         id: rotary_intensive
-        size_hint: (None, None)
-        size: ("19dp", "19dp")
+        size_hint: [0.198, 0.198]
+        pos_hint: {"x": 0.75, "y": 0.073}
         value: root.playback.renderer.intensive
         on_value: root.playback.renderer.edit(intensive=self.value)
-        pos: ("72dp", "7dp")

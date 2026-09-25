@@ -57,7 +57,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
 
     def on_remove_patch(self, _, patch: RowPatch):
         workspace = self.workspace_manager.workspace_now
-        patch_ui = next((i for i in workspace.layout.children if i.patch is patch), None)
+        patch_ui = next((i for i in workspace.grid_items if i.patch is patch), None)
         if patch_ui is not None:
             patch_ui._self_destroy()
 
@@ -121,7 +121,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
 
     def get_patch_ui_by_row_patch(self, patch: RowPatch) -> Optional[PatchUi]:
         for workspace in [i for i in self.workspace_manager.workspaces.values() if i is not None]:
-            patch_ui = next((i for i in workspace.layout.children if i.patch is patch), None)
+            patch_ui = next((i for i in workspace.grid_items if i.patch is patch), None)
             if patch_ui:
                 return patch_ui
         return None

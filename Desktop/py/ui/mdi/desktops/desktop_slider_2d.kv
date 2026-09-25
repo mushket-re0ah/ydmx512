@@ -1,20 +1,24 @@
 #:import PlayerStatus misc.player.status.PlayerStatus
 
+
 <DesktopSlider2D>:  # DesktopUix
-    grid_size: [11, 16]
+    grid_size: [9, 12]
     bg_image: imgs_path.slider2d_bg_thumb
 
     HoverInput:
         id: title_input
-        size_hint: (None, None)
+        size_hint: [0.9318, 0.086]
+        pos_hint: {"x": 0.0341, "y": 0.879}
         text: root.desktop_uix.title
-        font_size: "11sp"
+        font_size: 11
         multiline: False
         on_text: root.desktop_uix.edit(title=self.text)
-        pos: ("6dp", "225dp")
-        size: ("164dp", "22dp")
 
     Slider2D:
+        padding: 7
+        size_hint: [0.915, 0.629]
+        pos_hint: {"x": 0.034, "y": 0.226}
+
         value_x: root.desktop_uix._value_1
         value_y: root.desktop_uix._value_2
 
@@ -27,20 +31,15 @@
         on_value_x: root.desktop_uix.value_1 = self.value_x
         on_value_y: root.desktop_uix.value_2 = self.value_y
 
-        padding: "7dp"
-        size_hint: (None, None)
-        pos: ("6dp", "58dp")
-        size: ("161dp", "161dp")
         disabled: root.desktop_uix.player.status is PlayerStatus.RELEASE or root.desktop_uix.player.status is PlayerStatus.ATTACK
 
     SubSectionPanel:
         title_text: "-" if root.desktop_uix.fixture_param_1 is None else root.desktop_uix.fixture_param_1.title
-        size_hint: (None, None)
-        font_size: "10sp"
+        font_size: 10
         halign: "center"
         padding: 0
-        pos: ("8dp", "13dp")
-        size: ("47dp", "38dp")
+        size_hint: [0.267, 0.148]
+        pos_hint: {"x": 0.045, "y": 0.051}
         NumericInput:
             size_hint: (1, 1)
             minimum: root.desktop_uix.value_1_minimum
@@ -49,12 +48,11 @@
             on_value: root.desktop_uix.value_1 = self.value
     SubSectionPanel:
         title_text: "-" if root.desktop_uix.fixture_param_2 is None else root.desktop_uix.fixture_param_2.title
-        size_hint: (None, None)
-        font_size: "10sp"
+        size_hint: [0.267, 0.148]
+        pos_hint: {"x": 0.341, "y": 0.051}
+        font_size: 10
         halign: "center"
         padding: 0
-        pos: ("60dp", "13dp")
-        size: ("47dp", "38dp")
         NumericInput:
             size_hint: (1, 1)
             minimum: root.desktop_uix.value_2_minimum
@@ -63,15 +61,15 @@
             on_value: root.desktop_uix.value_2 = self.value
 
     HotkeyInput:
-        font_size: "12sp"
+        font_size: 12
         text: root.desktop_uix.player.hotkey
         on_text: root.desktop_uix.player.edit(hotkey=self.text)
-        pos: ("112dp", "20dp")
-        size: ("25dp", "25dp")
+        size_hint: [0.142, 0.098]
+        pos_hint: {"x": 0.64, "y": 0.078}
     MomentToggleButton:
         is_moment: root.desktop_uix.player.is_moment
         is_down: root.desktop_uix.active
         on_is_down: root.desktop_uix.edit(active=self.is_down)
         disabled: not root.desktop_uix.link_active or (root.desktop_uix.player.status is PlayerStatus.RELEASE)
-        pos: ("140dp", "20dp")
-        size: ("25dp", "25dp")
+        size_hint: [0.142, 0.097]
+        pos_hint: {"x": 0.795, "y": 0.078}

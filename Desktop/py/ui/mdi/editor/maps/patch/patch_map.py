@@ -29,7 +29,7 @@ class PatchEditorMap(MenuPanel):
 
     def on_active_patch(self, _, active_patch: List[RowPatch]):
         for workspace in [i for i in self.workspace_manager.workspaces.values() if i is not None]:
-            for patch_ui in workspace.layout.children:
+            for patch_ui in workspace.grid_items:
                 patch_ui._activate_block = True
                 patch_ui.is_down = patch_ui.patch in active_patch
                 patch_ui._activate_block = False
@@ -70,7 +70,7 @@ class PatchEditorMap(MenuPanel):
     def on_remove_patch(self, _, patch: RowPatch):
         wm = self.workspace_manager
         workspace = wm.workspaces[patch.workspace]
-        patch_ui = next((i for i in workspace.layout.children if i.patch is patch), None)
+        patch_ui = next((i for i in workspace.grid_items if i.patch is patch), None)
         if patch_ui is not None:
             patch_ui._self_destroy()
 
@@ -112,7 +112,7 @@ class PatchEditorMap(MenuPanel):
 
     def get_patch_ui_by_row_patch(self, patch: RowPatch) -> Optional[EditorPatchUi]:
         for workspace in [i for i in self.workspace_manager.workspaces.values() if i is not None]:
-            patch_ui = next((i for i in workspace.layout.children if i.patch is patch), None)
+            patch_ui = next((i for i in workspace.grid_items if i.patch is patch), None)
             if patch_ui:
                 return patch_ui
         return None
