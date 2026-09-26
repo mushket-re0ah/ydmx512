@@ -250,6 +250,9 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         if super().on_touch_down(touch):
             return True
 
+        if not self.scrollview.collide_point(*touch.pos):
+            return False
+
         # Никто из детей не взял, работаем сами
         mouse_pos = self.layout.to_widget(*touch.pos)
 
