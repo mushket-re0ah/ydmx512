@@ -143,6 +143,12 @@ CheckboxPhaseInterpatchX = _cs(
 
 CheckerSlider = _cs(
     border_color_normal=_h("#6C7275FF"),
+    title_bg=_h("#262F34FF"),
+    fixture_param_default=_h("000000FF")
+)
+
+CheckerPatchOverlayWidget = _cs(
+    border_color=_h("#565F64FF")
 )
 
 RowParam = _cs(
@@ -164,4 +170,8 @@ RowDotsSelector = _cs(
 DesktopUix = _cs(
     tx_led_disabled=_h("#000000FF"),
     tx_led_active=_h("#00FF00FF"),
+)
+
+EditorMapLayout = _cs(
+    outbound_background_color=_h("#4D5559FF"),
 )

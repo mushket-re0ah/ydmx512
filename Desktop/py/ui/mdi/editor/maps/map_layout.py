@@ -1,24 +1,9 @@
-from kivy.properties import (
-    ObjectProperty, NumericProperty, BooleanProperty,
-    ListProperty, ColorProperty, ReferenceListProperty,
-    VariableListProperty, AliasProperty
-)
-from kivy.clock import Clock
-from kivy.uix.widget import Widget
+from kivy.properties import NumericProperty, ColorProperty, ReferenceListProperty
 from libs.uix.workspace_manager import WorkspaceBehavior
-from libs.uix.scroll_layout import ScrollLayout
-from libs.mouse_manager.hover import NestedHoverBehavior
-from libs.animation import AnimationBehavior
-from typing import Tuple, Optional, Dict, Set
-from libs.animation import StatefulColorProperty
+from typing import Tuple
 from kivy.lang import Builder
-from math import ceil, floor
-from kivy.graphics.texture import Texture
-from libs.kivy_utils import AutoUnbindBehavior, walk_by_children
-from libs.sdl2_keyboard import manager as keyboard_manager
-from libs.uix import colorscheme as uix_cs
-from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
-from libs.uix.map_layout import MapGridItemBehavior, MapLayout
+from libs.uix.map_layout import MapLayout
+from misc import colorscheme as cs
 
 
 Builder.load_string("""
@@ -27,6 +12,12 @@ Builder.load_string("""
     max_grid_size: [constants.MAP_LAYOUT_MAX_SIZE, constants.MAP_LAYOUT_MAX_SIZE]
     grid_padding: [2, 2, 2, 2]
     grid_spacing: [4, 4]
+    canvas.before:
+        Color:
+            rgba: root.outbound_background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
 <WorkspaceEditorMapLayout>:
     if_contain: False if self.layout is None else len(self.grid_items) > 0
@@ -34,6 +25,7 @@ Builder.load_string("""
 
 
 class EditorMapLayout(MapLayout):
+    outbound_background_color = ColorProperty(cs.EditorMapLayout.outbound_background_color)
     _offset_x = NumericProperty(0)
     _offset_y = NumericProperty(0)
     _offset = ReferenceListProperty(_offset_x, _offset_y)
@@ -59,6 +51,7 @@ class EditorMapLayout(MapLayout):
         if not widgets:
             self._offset = (0, 0)
             self._grid_size = (0, 0)
+            self.max_grid_size = (0, 0)
             self.wrap_layout.size = (
                 max(self.scrollview.width, padding_w),
                 max(self.scrollview.height, padding_h),
@@ -76,7 +69,8 @@ class EditorMapLayout(MapLayout):
         self._offset = new_offset
 
         columns = max_x - min_x
-        rows    = max_y - min_y
+        rows = max_y - min_y
+        self.max_grid_size = (columns, rows)
         self._grid_size = (columns, rows)
 
         grid_w, grid_h = self.grid_size_to_pixel(columns, rows)

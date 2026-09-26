@@ -1,8 +1,42 @@
 #:import uix_cs libs.uix.colorscheme
+#:import cs misc.colorscheme
 
-<CheckerSlider>:  # TitleNumericHoverSlider
-    minimum: 0
-    maximum: 255
+
+<CheckerSlider>:  # BoxLayout
+    numeric: numeric
+    slider: slider
+
+    size_hint: (None, None)
+    orientation: "vertical"
+    spacing: "2dp"
+    HoverSlider:
+        id: slider
+        size_hint: (1, 1)
+        minimum: 0
+        maximum: 255
+        step_mouse_scroll: 5
+        value: root.value
+        on_value: root.value = self.value
+        on_hover: numeric.hover = self.hover
+        on_focus: numeric.visible_focus = self.focus
+    Widget:
+        size_hint: (1, None)
+        height: "4dp"
+        canvas.before:
+            Color:
+                rgba: root.fixture_param_color
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    NumericInput:
+        size_hint: (1, None)
+        id: numeric
+        minimum: 0
+        maximum: 255
+        value: root.value
+        on_value: root.value = self.value
+        on_hover: slider.hover = self.hover
+        on_visible_focus: slider.focus = self.visible_focus
 
 
 <CheckerChannelsUiList>:  # ScrollLayout
@@ -21,6 +55,7 @@
             width: self.minimum_width
             default_size: ("40dp", None)
             spacing: "4dp"
+            padding: "2dp"
             canvas.before:
                 Color:
                     rgba: uix_cs.HoverSlider.background_color_normal
@@ -29,11 +64,78 @@
                     pos: self.pos
 
 
+<CheckerAddressTitle>:  # RestrictedLabel
+    size_hint: (1, None)
+    font_size: "12sp"
+    canvas.before:
+        Color:
+            rgba: cs.CheckerSlider.title_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+<PatchOverlayWidget>:  # BoxLayout
+    size_hint: (None, 1)
+    canvas.before:
+        Color:
+            rgba: cs.CheckerPatchOverlayWidget.border_color
+        Line:
+            points: [self.x, self.top, self.x, self.y + 1, self.right, self.y + 1, self.right, self.top]
+    RestrictedLabel:
+        size_hint: (1, 1)
+        font_size: "12sp"
+        text: root.patch.title
+        text_size: (None, None)
+        size: self.texture_size
+
+
+<CheckerOverlay>:  # BoxLayout
+    channel_titles: channel_titles
+    patch_overlay: patch_overlay
+
+    orientation: "vertical"
+    size_hint: (1, None)
+    height: "44dp"
+    canvas.before:
+        Color:
+            rgba: uix_cs.HoverSlider.background_color_normal
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    RecycleRestrictedScrollView:
+        size_hint: (1, None)
+        height: "24dp"
+        id: channel_titles
+        viewclass: "CheckerAddressTitle"
+        scroll_by_content: True
+        do_scroll_by_element: True
+        do_scroll_y: False
+        RecycleBoxLayout:
+            size_hint: (None, None)
+            height: "24dp"
+            default_size_hint: (None, 1)
+            width: self.minimum_width
+            default_size: ("40dp", None)
+            spacing: "4dp"
+            padding: "2dp"
+    StencilRelativeLayout:
+        id: patch_overlay
+        size_hint: (1, 1)
+
+
 <CheckerChannelsUi>:  # SectionPanel
-    box: box
+    overlay: overlay
+    channel_sliders: channel_sliders
 
     size_hint: (1, 1)
     title_text: "Каналы DMX512"
-    CheckerChannelsUiList:
-        id: box
-        checker: root.checker
+    BoxLayout:
+        orientation: "vertical"
+        CheckerOverlay:
+            id: overlay
+            checker: root.checker
+            channel_sliders: channel_sliders
+        CheckerChannelsUiList:
+            id: channel_sliders
+            checker: root.checker
