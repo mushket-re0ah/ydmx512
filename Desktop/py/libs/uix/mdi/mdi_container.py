@@ -1,4 +1,3 @@
-from kivy.uix.stencilview import StencilView
 from kivy.properties import ObjectProperty, ListProperty, AliasProperty
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from typing import Optional, List, Type
@@ -8,34 +7,16 @@ from .layout_mode import (
     ILayoutMode, TilingLayoutMode, FloatingLayoutMode
 )
 from kivy.uix.relativelayout import RelativeLayout
+from libs.uix.layouts import StencilRelativeLayout
 from kivy.lang import Builder
 
 Builder.load_string("""
-<-MDIContainer>:  # RelativeLayout
+<MDIContainer>:  # StencilRelativeLayout
     size_hint: (1, 1)
-    canvas.before:
-        StencilPush
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        StencilUse
-
-        PushMatrix
-        Translate:
-            xy: self.pos
-
-    canvas.after:
-        PopMatrix
-
-        StencilUnUse
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        StencilPop
 """
 )
 
-class MDIContainer(AutoUnbindBehavior, RelativeLayout, StencilView):
+class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
     mdi_focused: Optional[MDIWindow] = ObjectProperty(None, allownone=True)
     mdi_list_showed: List[MDIWindow] = ListProperty()
 

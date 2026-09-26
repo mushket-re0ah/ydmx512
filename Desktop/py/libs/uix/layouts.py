@@ -1,4 +1,5 @@
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import StringProperty, ColorProperty, NumericProperty, ObjectProperty
 from libs.uix import colorscheme as uix_cs
 from kivy.uix.stencilview import StencilView
@@ -7,6 +8,29 @@ from kivy.lang import Builder
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
+
+<StencilBoxLayout>:  # StencilView, BoxLayout
+
+<-StencilRelativeLayout>:  # RelativeLayout
+    canvas.before:
+        StencilPush
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilUse
+
+        PushMatrix
+        Translate:
+            xy: self.pos
+
+    canvas.after:
+        PopMatrix
+
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilPop
 
 <MenuPanel>:  # StencilBoxLayout
     padding: ["4dp", "4dp", "4dp", "4dp"]
@@ -87,6 +111,10 @@ Builder.load_string("""
 
 
 class StencilBoxLayout(StencilView, BoxLayout):
+    pass
+
+
+class StencilRelativeLayout(RelativeLayout):
     pass
 
 

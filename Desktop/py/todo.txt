@@ -542,6 +542,104 @@
 [+] RestrictedScrollview, фикс для прокрутки по осям через middle кнопку мыши и исправление контрактов on_touch_down/on_touch_move, а так же grab для прокрутки по осям.
 [+] Для MapLayout улучшен алгоритм для перемещения items. RotaryButton регистрируется в прокрутке для RestrictedScrollView (костыль конечно лучше поправить и убрать вообще)
 [+] Исправлен on_touch_down у MapLayout, т.к. scrollview мог поглощать действия не предназначенные ему.
+[+] EditorMapLayout не рисует сетку за своими границами, а за границами outbound цвет (в misc/colorscheme: EditorMapLayout.outbound_background_color).
+[+] Разделить приложение на автономные библиотеки (относительно автономные)
+    [+] sdl2_keyboard
+    [+] mouse_manager
+        [+] Убрать из App set_system_cursor/set_software_cursor (зачем они там вообще?)
+        [+] Убрать зависимость от database
+        [+] Убрать MouseCursorTypes
+        [+] Вынести Hover
+        [+] Пользовательские программные курсоры
+    [+] animation
+    [+] midi
+    [+] beat_counter
+    [+] file_utils
+    [+] patch_loader
+    [+] properties
+    [+] command
+    [+] kivy_utils
+    [+] asset_manager
+    [+] serialize
+    [+] kivy_json_orm
+        [+] fields
+        [+] table_implementation
+        [+] database
+        [+] table_utils
+    [+] serial
+        [?] observer
+            [?] Вынести некий общий класс для observers? У них одинаковый интерфейс, у MIDI и Serial. События тоже. У LAN предположительно будет так же.
+    [+] dmx512
+        [+] константы
+    [+] dmx512 render
+        [+] Это должны быть два пайплайна: для динамики и статики. Первый для плеера, второй для рендера.
+            [+] Пайплайн плеера ведь и так выполнен в виде функциональной цепочки, разве нет?
+            [+] Статический рендер
+            [+] Вынос чистых функций и структур
+    [+] uix
+        [+] RestrictedLabel
+        [+] behaviors
+        [+] RestrictedScrollView
+            [+] Исправлен баг с обнаружением элементов, которые должны перехватывать прокрутку колесом мыши. Изменена система, теперь классы виджетов должны регистрироваться в реестре RestrictedScrollview
+        [+] RecycleRestrictedScrollView
+        [+] layouts
+        [+] WorkspaceManager
+            [+] Исправлена прокрутка по колесу мыши: порядок был перепутан
+            [+] Добавлена анимация смены цвета кнопкам столов
+            [+] workspace_count и workspaces dict инициализируется до __init__. По-хорошему надо в on_kv_post, однако к тому моменту workspaces уже должен существовать. Во такая вот хуйня. Ровно так же WorkspaceSwitcherMenu создает ровно 9 кнопок, несмотря на workspace_count
+            [+] В switch_toggle исправлен вызов trigger_action
+        [+] snippet
+            [+] Сломан. В него нельзя писать. А запись должна фильтровать dropdown
+            [?] Не вызывается super().on_focus, т.е. не создается клавиатурный контекст самого Input
+            [+] В RecycleDropdownBehavior теперь можно задать dropdown_cls
+            [+] Snippet использует свой собственный RecycleDropdown без блокировки контекста и с allow_hover_outside
+            [+] Фильтр
+        [+] RecycleDropdownBehavior
+            [+] Не является универсальным. Завязан на Input
+            [?] У нас тут такие специфичные штуки:
+                force_text
+                _set_text
+                text
+                value_to_str
+            Можно абстрагировать именно эту часть. Проблема специфичности ведь исключительно в названиях. Ну, кроме _set_text, но можно делать через setattr, в наследнике указав конкретный параметр строкой
+            [+] Добавлен аттрибут host_attr
+            [+] Добавлена фильтрация
+        [+] slider
+        [+] slider2d
+        [+] button
+        [+] recycle_spinner
+        [+] splitter
+        [+] context_menu
+        [+] rotary_button
+        [+] menu_components
+            [+] Надо оформить как python классы
+        [+] overflow_layout
+        [+] scroll_layout
+        [+] recycle_dropdown
+        [+] filelist
+        [+] color_selector
+        [+] input
+        [+] database_table
+        [+] device_list_panel
+        [+] mdi
+            [+] window_manager
+            [+] mdi_container
+            [+] mdi_container_manager
+            [+] mdi_window
+                [+] Избавиться от _db_title_id (т.к. он дублирует существующий title_id)
+            [+] Интеграция в основное приложение
+        [+] scroll_layout_map
+        [?-] imgs_path используется от основного app везде, т.е. в этом плане libs не изолированы (что в контексте проекта не имеет особого значения)
+        [+] Привести в порядок uix_cs/cs
+        [+] sub_proc
+        [+] logs
+        [+] ViewContextSaverMixin
+[+] TablePatch хранит теперь address_list: Dict[Tuple[int, int], List[Tuple[RowPatch, RowFixtureParam]]]
+[+] ScrollLayout.ScrollBar теперь делают grab на touch для прокрутки через кнопку курсора или прокрутки по cursor_layout
+[+] Прозвон: указывать что за патч
+    [+] Убран TitleNumericFader из libs. Специфичная вещь чисто для прозвона. Ему там не место.
+    [+] Цветовая дифферинциация CheckerSlider по параметру фикстуры.
+    [+] Показ overlay под адресами и над фейдерами с названием патча по ширине занимаемых каналов.
 
 
 [+-] Общая проблема. Объединено в одну задачу.
@@ -600,97 +698,6 @@
         [+] Desktops (нечего рефакторить; там нет кода для view_context)
         [+] Processing (нечего рефакторить; там нет кода для view_context)
         [-] Library
-[+-] Разделить приложение на автономные библиотеки (относительно автономные)
-    [+] sdl2_keyboard
-    [+] mouse_manager
-        [+] Убрать из App set_system_cursor/set_software_cursor (зачем они там вообще?)
-        [+] Убрать зависимость от database
-        [+] Убрать MouseCursorTypes
-        [+] Вынести Hover
-        [+] Пользовательские программные курсоры
-    [+] animation
-    [+] midi
-    [+] beat_counter
-    [+] file_utils
-    [+] patch_loader
-    [+] properties
-    [+] command
-    [+] kivy_utils
-    [+] asset_manager
-    [+] serialize
-    [+] kivy_json_orm
-        [+] fields
-        [+] table_implementation
-        [+] database
-        [+] table_utils
-    [+] serial
-        [?] observer
-            [?] Вынести некий общий класс для observers? У них одинаковый интерфейс, у MIDI и Serial. События тоже. У LAN предположительно будет так же.
-    [+] dmx512
-        [+] константы
-    [+] dmx512 render
-        [+] Это должны быть два пайплайна: для динамики и статики. Первый для плеера, второй для рендера.
-            [+] Пайплайн плеера ведь и так выполнен в виде функциональной цепочки, разве нет?
-            [+] Статический рендер
-            [+] Вынос чистых функций и структур
-    [-] uix
-        [+] RestrictedLabel
-        [+] behaviors
-        [+] RestrictedScrollView
-            [+] Исправлен баг с обнаружением элементов, которые должны перехватывать прокрутку колесом мыши. Изменена система, теперь классы виджетов должны регистрироваться в реестре RestrictedScrollview
-        [+] RecycleRestrictedScrollView
-        [+] layouts
-        [+] WorkspaceManager
-            [+] Исправлена прокрутка по колесу мыши: порядок был перепутан
-            [+] Добавлена анимация смены цвета кнопкам столов
-            [+] workspace_count и workspaces dict инициализируется до __init__. По-хорошему надо в on_kv_post, однако к тому моменту workspaces уже должен существовать. Во такая вот хуйня. Ровно так же WorkspaceSwitcherMenu создает ровно 9 кнопок, несмотря на workspace_count
-            [+] В switch_toggle исправлен вызов trigger_action
-        [+] snippet
-            [+] Сломан. В него нельзя писать. А запись должна фильтровать dropdown
-            [?] Не вызывается super().on_focus, т.е. не создается клавиатурный контекст самого Input
-            [+] В RecycleDropdownBehavior теперь можно задать dropdown_cls
-            [+] Snippet использует свой собственный RecycleDropdown без блокировки контекста и с allow_hover_outside
-            [+] Фильтр
-        [+] RecycleDropdownBehavior
-            [+] Не является универсальным. Завязан на Input
-            [?] У нас тут такие специфичные штуки:
-                force_text
-                _set_text
-                text
-                value_to_str
-            Можно абстрагировать именно эту часть. Проблема специфичности ведь исключительно в названиях. Ну, кроме _set_text, но можно делать через setattr, в наследнике указав конкретный параметр строкой
-            [+] Добавлен аттрибут host_attr
-            [+] Добавлена фильтрация
-        [+] slider
-        [+] slider2d
-        [+] button
-        [+] recycle_spinner
-        [+] splitter
-        [+] context_menu
-        [+] rotary_button
-        [+] menu_components
-            [+] Надо оформить как python классы
-        [+] overflow_layout
-        [+] scroll_layout
-        [+] recycle_dropdown
-        [+] filelist
-        [+] color_selector
-        [+] input
-        [+] database_table
-        [+] device_list_panel
-        [+] mdi
-            [+] window_manager
-            [+] mdi_container
-            [+] mdi_container_manager
-            [+] mdi_window
-                [+] Избавиться от _db_title_id (т.к. он дублирует существующий title_id)
-            [+] Интеграция в основное приложение
-        [+] scroll_layout_map
-        [-] imgs_path используется от основного app везде, т.е. в этом плане libs не изолированы (что в контексте проекта не имеет особого значения)
-        [+] Привести в порядок uix_cs/cs
-        [+] sub_proc
-        [+] logs
-        [+] ViewContextSaverMixin
 [+-] Установка значений патча напрямую через патч а не прозвон
     [+] Механизм сделан, но он кривоват и графически и функционально
 
@@ -797,12 +804,12 @@
     [-] Редактор: Надо учитывать удаление патча
 [-] Типизация
 [-] Тесты
-[-] Прозвон: указывать что за патч
 [-] Для Rotary в рабочих столах использовать оба значения?
     [?] Да, но об этом пока непонятно
 [-] Пресеты - выделить общие? Для фикстур разумеется нельзя, а вот для параметров - логично
 [-] Serial, midi: запоминать последний выбранный прибор и пытаться к нему подключиться при перезагрузке.
-
+[-] Сломалось сохранение состояния сплиттеров в editor
+[-] MDIPatchList.menu.input_fixture/selected на самом деле должен хранить text. Ну или и то и другое.
 
 
 

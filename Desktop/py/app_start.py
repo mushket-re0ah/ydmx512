@@ -152,14 +152,14 @@ def backup_menu_execute():
 
 
 if __name__ == '__main__':
-    import faulthandler
-    import signal
+    # import faulthandler
+    # import signal
 
-    faulthandler.register(
-        signal.SIGUSR1,
-        all_threads=True,
-        chain=False,
-    )
+    # faulthandler.register(
+    #     signal.SIGUSR1,
+    #     all_threads=True,
+    #     chain=False,
+    # )
 
     from libs.sub_proc import exit_code
     from libs import logger

@@ -11,7 +11,7 @@ from typing import Tuple
 from kivy.lang import Builder
 from misc import colorscheme as cs
 from misc.player.status import PlayerStatus
-from libs.uix.map_layout import MapGridItemBehavior
+from libs.uix.map_layout import MapGridItemBehavior, MapLayout
 
 
 Builder.load_file("ui/mdi/desktops/desktop_uix.kv")
@@ -56,7 +56,7 @@ class DesktopUix(MapGridItemBehavior, RelativeLayout):
 
     def _get_init_attrs(self,
                         desktop_uix: RowDesktopUix,
-                        desktop_map: MapScrollLayout) -> Tuple[int, int]:
+                        desktop_map: MapLayout) -> Tuple[int, int]:
         if desktop_uix.grid_pos[0] is None:
             return desktop_map.find_empty_pos(*self.grid_pos)
         else:

@@ -1,15 +1,16 @@
 from kivy.properties import (
-        StringProperty, NumericProperty, BooleanProperty, ObjectProperty,
-        ReferenceListProperty, AliasProperty
+    StringProperty, NumericProperty, BooleanProperty, ObjectProperty,
+    ReferenceListProperty, AliasProperty, DictProperty
 )
 from kivy.clock import Clock
 from kivy.utils import boundary
 from misc import constants
 from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
 from database.fixture import RowFixture
+from database.fixture_param import RowFixtureParam
 from database.scene import RowScene, TableScene, SceneTableMixin, SceneRowMixin
 from database import db
-from typing import Tuple, Tuple
+from typing import Tuple, Dict, List, Optional
 from libs.dmx512 import dmx512
 from libs.serialize import *
 from libs.properties import ClampedNumericProperty
@@ -61,6 +62,7 @@ class RowPatch(SceneRowMixin, DatabaseRow):
             self._table.check_address_conflict(self._prev_universe)
             self._table.check_address_conflict(universe)
             self._prev_universe = universe
+            self._table.update_address_info(self.universe)
 
     def get_end_address(self) -> int:
         self._table.check_address_conflict(self.universe)
@@ -75,7 +77,10 @@ class RowPatch(SceneRowMixin, DatabaseRow):
 
     def remove(self) -> "DatabaseRow":
         super().remove()
+
+    def on_remove(self):
         self._table.check_address_conflict(self.universe)
+        self._table.update_address_info(universe)
 
     def on_workspace(self, _, workspace: int):
         self._table.dispatch("on_workspace_any_patch", self, workspace)
@@ -84,7 +89,9 @@ class RowPatch(SceneRowMixin, DatabaseRow):
 class TablePatch(SceneTableMixin, DatabaseTable):
     cls_row = RowPatch
 
-    __events__ = ("on_workspace_any_patch",)
+    __events__ = ("on_workspace_any_patch",) + DatabaseTable.__events__
+
+    address_info: Dict[Tuple[int, int], List[Tuple[RowPatch, RowFixtureParam]]] = DictProperty()
 
     trigger_check_address_conflict = None
     _universes_need_to_check = None
@@ -108,19 +115,31 @@ class TablePatch(SceneTableMixin, DatabaseTable):
         return super().add_row(**kwargs)
 
     def _update_address_info(self, _):
+        address_info = {}
+
         dmx512.clear_default_matrix_all()
         patch_universes = set()
         for patch in self.rows.values():
-            patch_universes.add(patch.universe)
+            universe = patch.universe
+            patch_universes.add(universe)
             param_list = patch.fixture.param_list_unpacked
-            for address in range(patch.start_address, patch.end_address + 1):
+            for index, address in enumerate(range(patch.start_address, patch.end_address + 1)):
+                fixture_param = param_list[index]
+
+                address_info.setdefault((universe, address), []).append((patch, fixture_param))
+
                 dmx512.set_default_matrix_value(
-                    patch.universe,
+                    universe,
                     address,
-                    param_list[address - patch.start_address].default_value
+                    fixture_param.default_value
                 )
         for universe in patch_universes:
             dmx512.clear_matrix(universe)
+
+        self.address_info = address_info
+
+    def get_address_info(self, universe: int, address: int) -> Optional[Tuple[RowPatch, RowFixtureParam]]:
+        return self.address_info.get((universe, address), None)
 
     def check_address_conflict(self, universe: int):
         self._universes_need_to_check.add(universe)

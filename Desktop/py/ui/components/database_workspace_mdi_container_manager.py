@@ -1,6 +1,7 @@
 from libs.uix.mdi.workspace_mdi_container_manager import WorkspaceMDIContainerManager
 from libs.uix.mdi.layout_mode import TilingLayoutMode, FloatingLayoutMode
 from libs.uix.mdi.mdi_window import MDIWindow
+from libs.uix.workspace_manager import WorkspaceBehavior
 from database import db
 from typing import List
 from itertools import chain

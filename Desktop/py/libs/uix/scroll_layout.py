@@ -165,8 +165,11 @@ class ScrollBar(BoxLayout):
         if self._do_mouse_scroll(touch):
             return True
         if self._do_cursor(touch):
+            # чтобы передать кнопке событие. Хотя наверное стоило сделать это лучшим образом
+            touch.grab(self)
             return super().on_touch_down(touch)
         if self._check_scroll_by_cursor_layout(touch):
+            touch.grab(self)
             return True
         return super().on_touch_down(touch)
 
@@ -181,6 +184,8 @@ class ScrollBar(BoxLayout):
             return super().on_touch_move(touch)
 
     def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            touch.ungrab(self)
         self._start_pos = None
         self._scroll_by_cursor_layout = False
         if self._clock_btn_press:

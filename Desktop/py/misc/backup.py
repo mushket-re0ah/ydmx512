@@ -1,6 +1,6 @@
 from libs.sub_proc import run_async_process, AsyncProcessContext
 from misc import constants
-from typing import List
+from typing import List, Callable
 from pathlib import Path
 from libs.sub_proc import exit_code
 import sys

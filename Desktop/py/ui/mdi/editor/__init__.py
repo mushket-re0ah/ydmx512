@@ -15,8 +15,8 @@ class MDIEditor(DatabaseMDIWindow):
     playback = ObjectProperty(None, allownone=True, rebind=True)
 
     view_context_template = {
-        "content.splitter_x/size": [0, 0],
-        "content.splitter_y/size": [0, 0],
+        "content.splitter_x/width": 0,
+        "content.splitter_y/height": 0,
         "content.playback_map.pb_map/playback": {
             "default": None,
             "serialize": table_ref_serializer(),

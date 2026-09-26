@@ -4,7 +4,7 @@ from libs.kivy_utils import (
     WidgetSide, LEFT_WIDGET_SIDES, RIGHT_WIDGET_SIDES, TOP_WIDGET_SIDES,
     BOTTOM_WIDGET_SIDES, WIDGET_SIDE_CURSOR, get_cursor_zone
 )
-from typing import Tuple, Union, Optional
+from typing import Tuple, Union, Optional, List
 from .interface import ILayoutMode
 from kivy.clock import Clock
 from enum import Enum, auto

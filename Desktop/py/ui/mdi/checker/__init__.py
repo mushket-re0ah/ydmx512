@@ -17,7 +17,7 @@ class MDIChecker(DatabaseMDIWindow):
 
     view_context_template = {
         "universe_now": 1,
-        "channels_ui.box.scrollview/scroll_element@universe_now": 0
+        "channels_ui.channel_sliders.scrollview/scroll_element@universe_now": 0
     }
 
     def on_hidden(self, _, hidden: bool):
@@ -36,15 +36,15 @@ class MDIChecker(DatabaseMDIWindow):
         from ui.mdi.checker.channels_ui import CheckerChannelsUi
         self.channels_ui = CheckerChannelsUi(checker=self)
         self.add_widget(self.channels_ui)
-        self.channels_ui.box.scrollview.bind(
+        self.channels_ui.channel_sliders.scrollview.bind(
             scroll_element=self.setter("address_start")
         ) 
 
     def set_address_start(self, scroll_element: int):
-        self.channels_ui.box.scroll_element = scroll_element
+        self.channels_ui.channel_sliders.scroll_element = scroll_element
         return True
     address_start = AliasProperty(
-        lambda self: self.channels_ui.box.scroll_element + 1 if self.channels_ui.box.scroll_element else 0,
+        lambda self: self.channels_ui.channel_sliders.scroll_element + 1 if self.channels_ui.channel_sliders.scroll_element else 0,
         set_address_start
     )
 
