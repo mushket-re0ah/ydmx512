@@ -233,13 +233,29 @@ class RestrictedScrollView(StencilView):
             if touch.button == "middle" and self.scroll_by_content:
                 self._start_pos = touch.pos
                 self._start_scroll = [self.scroll_x, self.scroll_y]
-            elif touch.button == "scrollup":
+                touch.grab(self)
+                return True
+            elif touch.button == "scrollup" and self._can_scroll_by_y():
                 self.scroll_y_down()
-            elif touch.button == "scrolldown":
+                return True
+            elif touch.button == "scrolldown" and self._can_scroll_by_y():
                 self.scroll_y_up()
+                return True
             else:
                 return self.simulate_touch_down(touch)
         return False
+
+    def _can_scroll_by_y(self) -> bool:
+        if not self.do_scroll_y:
+            return False
+        vp = self._viewport
+        return vp is not None and vp.height > self.height
+
+    def _can_scroll_by_x(self) -> bool:
+        if not self.do_scroll_x:
+            return False
+        vp = self._viewport
+        return vp is not None and vp.width > self.width
 
     def _get_scrollable_widget(self):
         from libs.kivy_utils import walk_by_parents
@@ -295,11 +311,11 @@ class RestrictedScrollView(StencilView):
         if self._start_scroll:
             if self.do_scroll_x:
                 dx = self.convert_distance_to_scroll_x(touch.x - self._start_pos[0])
-                self.scroll_x = self._start_scroll[0] - dx
+                self.scroll_x = self._start_scroll[0] + dx
             if self.do_scroll_y:
                 dy = self.convert_distance_to_scroll_y(touch.y - self._start_pos[1])
                 self.scroll_y = self._start_scroll[1] - dy
-            return super().on_touch_move(touch)
+            return True
         touch.push()
         touch.apply_transform_2d(self.to_local)
         ret = super().on_touch_move(touch)
@@ -307,6 +323,8 @@ class RestrictedScrollView(StencilView):
         return ret
 
     def on_touch_up(self, touch):
+        if self._start_scroll:
+            touch.ungrab(self)
         self._start_pos = None
         self._start_scroll = None
         touch.push()

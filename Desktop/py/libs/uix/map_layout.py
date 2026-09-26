@@ -9,7 +9,7 @@ from libs.uix.workspace_manager import WorkspaceBehavior
 from libs.uix.scroll_layout import ScrollLayout
 from libs.mouse_manager.hover import NestedHoverBehavior
 from libs.animation import AnimationBehavior
-from typing import Tuple, Optional, Dict, Set
+from typing import Tuple, Optional, Dict, Set, Iterator
 from libs.animation import StatefulColorProperty
 from kivy.lang import Builder
 from math import ceil, floor
@@ -19,6 +19,7 @@ from libs.sdl2_keyboard import manager as keyboard_manager
 from libs.uix import colorscheme as uix_cs
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from weakref import WeakKeyDictionary
+from libs import logger
 
 
 Builder.load_string("""
@@ -56,6 +57,7 @@ Builder.load_string("""
     RestrictedScrollView:
         id: scrollview
         size_hint: (1, 1)
+        scroll_by_content: True
         BoxLayout:
             id: wrap_layout
             size_hint: (None, None)
@@ -241,7 +243,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         self._trigger_draw_grid()
 
     def on_touch_down(self, touch):
-        if self.disabled or not self._if_touch_inside_layout(touch):
+        if self.disabled:
             return super().on_touch_down(touch)
 
         # Сначала дети. Кто первый вернёт True - тот и обработал
@@ -283,22 +285,6 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             if self._touch_start_cell is not None:
                 self._update_selector(self._touch_start_cell)
         return True
-
-    def _if_touch_inside_layout(self, touch) -> bool:
-        mouse_pos = self.layout.to_widget(*touch.pos)
-        lx, ly = mouse_pos
-
-        sw = max(0, self.wrap_layout.width  - self.scrollview.width)
-        sh = max(0, self.wrap_layout.height - self.scrollview.height)
-
-        sx = self.scrollview.scroll_x * sw
-        sy = (1.0 - self.scrollview.scroll_y) * sh
-
-        vx0 = sx - (self.wrap_layout.x + self.layout.x)
-        vy0 = sy - (self.wrap_layout.y + self.layout.y)
-        vx1 = vx0 + self.scrollview.width
-        vy1 = vy0 + self.scrollview.height
-        return (vx0 <= lx <= vx1 and vy0 <= ly <= vy1)
 
     def on_touch_move(self, touch):
         if self._touch_start_pos is None:
@@ -431,15 +417,12 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         grid_height: int,
         exclude=None,
     ):
-        if exclude is not None:
-            exclude = exclude.__self__
+        selected = set() if exclude is None else {exclude.__self__}
         collisions = set()
-
-        for y in range(grid_y, grid_y + grid_height):
-            for x in range(grid_x, grid_x + grid_width):
-                for widget in self._grid_occupancy.get((x, y), ()):
-                    if widget is not exclude:
-                        collisions.add(widget)
+        for cell in self._cells_of(grid_x, grid_y, grid_width, grid_height):
+            for widget in self._grid_occupancy.get(cell, ()):
+                if widget not in selected:
+                    collisions.add(widget)
         return collisions
 
     def can_place(
@@ -450,22 +433,11 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         grid_height: int,
         exclude=None,
     ) -> bool:
-        if grid_x < 0 or grid_y < 0:
+        if not self._within_bounds(grid_x, grid_y, grid_width, grid_height):
             return False
 
-        if grid_x + grid_width > self.max_columns:
-            return False
-
-        if grid_y + grid_height > self.max_rows:
-            return False
-
-        return not self.get_grid_collisions(
-            grid_x,
-            grid_y,
-            grid_width,
-            grid_height,
-            exclude=exclude,
-        )
+        selected = set() if exclude is None else {exclude.__self__}
+        return self._cells_free(grid_x, grid_y, grid_width, grid_height, selected)
 
     def find_empty_pos(self, grid_width: int, grid_height: int) -> Optional[Tuple[int, int]]:
         if grid_width > self.max_columns or grid_height > self.max_rows:
@@ -502,7 +474,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         return None
 
     def _visible_cell_range(self) -> Tuple[int, int, int, int]:
-        """(left, bottom, right, top) — клетки, пересекающиеся с viewport'ом."""
+        """(left, bottom, right, top) - клетки, пересекающиеся с viewport'ом."""
         sw = max(0, self.wrap_layout.width  - self.scrollview.width)
         sh = max(0, self.wrap_layout.height - self.scrollview.height)
 
@@ -569,16 +541,107 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         if not positions or (delta_x == 0 and delta_y == 0):
             return positions
 
+        # 1. Fallback: per-widget, с docking и slip-through.
         if delta_x != 0 and delta_y != 0:
             p1 = self._resolve_drag_y(self._resolve_drag_x(positions, delta_x), delta_y)
             p2 = self._resolve_drag_x(self._resolve_drag_y(positions, delta_y), delta_x)
-            return min(
+            fallback = min(
                 (p1, p2),
                 key=lambda p: self._drag_score(positions, p, delta_x, delta_y),
             )
-        if delta_x != 0:
-            return self._resolve_drag_x(positions, delta_x)
-        return self._resolve_drag_y(positions, delta_y)
+        elif delta_x != 0:
+            fallback = self._resolve_drag_x(positions, delta_x)
+        else:
+            fallback = self._resolve_drag_y(positions, delta_y)
+
+        # 2. Combined jump с клампом - спасает от застревания на промежуточном
+        #    препятствии, когда целевая позиция свободна, но per-axis до неё
+        #    не доходит.
+        cx, cy = self._clamp_delta(positions, delta_x, delta_y)
+        if (cx, cy) == (0, 0):
+            return fallback
+        if not self._combined_target_free(positions, cx, cy):
+            return fallback
+
+        jump = {w: (p[0] + cx, p[1] + cy) for w, p in positions.items()}
+
+        # 3. Из двух - что ближе к желаемой дельте.
+        #    При равенстве предпочитаем fallback: docking и пристыковка к стенам.
+        fallback_score = self._drag_score(positions, fallback, delta_x, delta_y)
+        jump_score = self._drag_score(positions, jump, delta_x, delta_y)
+        if jump_score < fallback_score:
+            return jump
+        return fallback
+
+    def _clamp_delta(
+            self,
+            positions: Dict[Widget, Tuple[int, int]],
+            dx: int,
+            dy: int) -> Tuple[int, int]:
+        if dx > 0:
+            limit = min(self.max_columns - (x + w.grid_width)
+                        for w, (x, y) in positions.items())
+            dx = max(0, min(dx, limit))
+        elif dx < 0:
+            limit = max(-x for w, (x, y) in positions.items())
+            dx = min(0, max(dx, limit))
+
+        if dy > 0:
+            limit = min(self.max_rows - (y + w.grid_height)
+                        for w, (x, y) in positions.items())
+            dy = max(0, min(dy, limit))
+        elif dy < 0:
+            limit = max(-y for w, (x, y) in positions.items())
+            dy = min(0, max(dy, limit))
+
+        return (dx, dy)
+
+    def _combined_target_free(
+            self,
+            positions: Dict[Widget, Tuple[int, int]],
+            dx: int,
+            dy: int) -> bool:
+        selected = set(positions)
+        reserved = set()
+
+        for widget, (x, y) in positions.items():
+            nx, ny = x + dx, y + dy
+            w, h = widget.grid_width, widget.grid_height
+
+            if not self._cells_free(nx, ny, w, h, selected, reserved):
+                return False
+            reserved.update(self._cells_of(nx, ny, w, h))
+
+        return True
+
+    def _cells_of(self, x: int, y: int, w: int, h: int) -> Iterator[Tuple[int, int]]:
+        """Все клетки, которые занимает прямоугольник."""
+        for cy in range(y, y + h):
+            for cx in range(x, x + w):
+                yield (cx, cy)
+
+    def _within_bounds(self, x: int, y: int, w: int, h: int) -> bool:
+        return (x >= 0 and y >= 0
+                and x + w <= self.max_columns
+                and y + h <= self.max_rows)
+
+    def _cells_free(
+            self,
+            x: int,
+            y: int,
+            w: int,
+            h: int,
+            selected: Set[MapGridItemBehavior],
+            reserved: Optional[Set[Tuple[int, int]]]=None) -> bool:
+        """Свободны ли все клетки прямоугольника от не-выделенных
+        и от уже зарезервированных (для группового разрешения)."""
+        for cell in self._cells_of(x, y, w, h):
+            if reserved is not None and cell in reserved:
+                return False
+            for other in self._grid_occupancy.get(cell, ()):
+                if other not in selected:
+                    return False
+        return True
 
     def _drag_score(
             self,
@@ -677,13 +740,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             x += delta
         else:
             y += delta
-
-        for cy in range(y, y + h):
-            for cx in range(x, x + w):
-                for other in self._grid_occupancy.get((cx, cy), ()):
-                    if other not in selected:
-                        return False
-        return True
+        return self._cells_free(x, y, w, h, selected)
 
     @staticmethod
     def _shift(pos: Tuple[int, int], delta: int, axis: int) -> Tuple[int, int]:
@@ -1027,3 +1084,78 @@ class DesignScaledContainer:
             widget.size = (w * sx, h * sy)
             if font_size:
                 widget.font_size = font_size * s_min
+
+
+if __name__ == "__main__":
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.properties import ObjectProperty
+    from kivy.uix.boxlayout import BoxLayout
+    from libs import sdl2_keyboard
+    from libs.uix.map_layout import *
+    from libs.mouse_manager import cursor_manager
+
+
+    class TestGridWidget(MapGridItemBehavior, BoxLayout):
+        pass
+
+
+    Builder.load_string("""
+    <TestGridWidget>:
+        size_hint: (None, None)
+        canvas:
+            Color:
+                rgba: (1, 0, 0, 1)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+    <Root>:
+        map_layout: map_layout
+        w1: w1
+        w2: w2
+        padding: (40, 40, 40, 40)
+        MapLayout:
+            id: map_layout
+            grid_padding: [8, 8, 8, 8]
+            grid_spacing_size: [4, 4]
+            cell_size: [16, 16]
+            # grid_inversion_y: True
+            max_grid_size: [24, 24]
+            selectable: True
+            TestGridWidget:
+                id: w1
+                grid_size: [3, 3]
+                grid_pos: [0, 0]
+                selectable: True
+            TestGridWidget:
+                id: w2
+                grid_size: [3, 3]
+                grid_pos: [0, 3]
+                selectable: True
+            TestGridWidget:
+                id: w3
+                grid_size: [3, 3]
+                grid_pos: [3, 0]
+                selectable: True
+    """
+    )
+
+
+    class Root(BoxLayout):
+        w1 = ObjectProperty()
+        map_layout = ObjectProperty()
+
+        def on_kv_post(self, _):
+            # self.map_layout.move_grid_item(self.w1, 2, 2)
+            # self.map_layout.remove_widget(self.w2)
+            pass
+
+    class Test(App):
+        def build(self):
+            return Root()
+
+        sdl2_keyboard.init()
+        cursor_manager.init()
+        from libs.mouse_manager.hover import HoverBehavior
+        Test().run()
