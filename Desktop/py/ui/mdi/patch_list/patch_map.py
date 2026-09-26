@@ -16,4 +16,4 @@ Builder.load_string("""
 class PatchMap(WorkspaceMapLayout):
     def _create_context_menu(self):
         from ui.mdi.patch_list.map_context_menu import PatchMapContextMenu
-        return PatchMapContextMenu(patch_map=self.workspace_now)
+        return PatchMapContextMenu(patch_map=self)

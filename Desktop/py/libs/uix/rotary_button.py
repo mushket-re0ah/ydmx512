@@ -189,3 +189,6 @@ class PanRotaryButton(RotaryButton):
             prop.set_normal(self, self.color_right)
         else:
             prop.set_normal(self, self.color_left)
+
+from libs.uix.restricted_scrollview import RestrictedScrollView
+RestrictedScrollView.register_scrollable_widget_class(RotaryButton)
