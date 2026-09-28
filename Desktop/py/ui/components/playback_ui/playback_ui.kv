@@ -1,3 +1,5 @@
+#:import constants misc.constants
+
 <-PlaybackPlayButton>:  # ImageButton
     background_normal: self._image
     background_down: self._image
@@ -28,7 +30,7 @@
     rotary_intensive: rotary_intensive.__self__
 
     size_hint: (None, None)
-    grid_size: [5, 5]
+    grid_size: constants.BASE_PLAYBACK_GRID_SIZE
     canvas.before:
         Color:
             rgba: root.playback.color

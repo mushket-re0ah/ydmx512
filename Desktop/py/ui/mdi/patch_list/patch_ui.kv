@@ -4,15 +4,13 @@
 
     HoverButton:
         id: btn_remove
-        size_hint: (None, None)
-        size: ("60dp", "14dp")
-        pos: (0, 0)
+        size_hint: (0.625, 0.146)
+        pos_hint: {"x": 0.0, "y": 0.0}
         text: "удалить"
         on_release: root.patch.remove()
     HoverButton:
         id: btn_add
-        size_hint: (None, None)
-        size: ("36dp", "14dp")
-        pos: ("60dp", 0)
+        size_hint: (0.375, 0.146)
+        pos_hint: {"x": 0.625, "y": 0.0}
         text: "+"
         on_release: root.patch.copy(grid_pos=[None, None])

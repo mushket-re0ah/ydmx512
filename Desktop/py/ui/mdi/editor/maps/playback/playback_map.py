@@ -10,6 +10,7 @@ from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
 from ui.mdi.editor.maps.map_layout import EditorMapLayout
+from misc import constants
 
 
 Builder.load_file("ui/mdi/editor/maps/playback/playback_map.kv")
@@ -33,7 +34,7 @@ class PlaybackEditorMap(EditorMapLayout):
 
     def on_add_playback(self, _, playback: RowPlayback):
         self.add_widget(EditorPlaybackUi(
-                playback_map=self,
+                map_layout=self,
                 playback=playback
             )
         )
@@ -52,16 +53,19 @@ class PlaybackEditorMap(EditorMapLayout):
         for playback in db.playback.rows.values():
             self.add_widget(EditorPlaybackUi(
                     create_animation=False,
-                    playback_map=self,
+                    map_layout=self,
                     playback=playback
                 )
             )
+
+    def _ctx_create_playback(self, _):
+        db.playback.add_row(grid_pos=self.find_empty_pos(*constants.BASE_PLAYBACK_GRID_SIZE))
 
     def _create_context_menu(self) -> ContextMenu:
         return ContextMenu(items=[
             ContextMenuTemplates.button(
                 text="Создать плейбек",
-                on_release=lambda _: db.playback.add_row(),
+                on_release=self._ctx_create_playback,
             ),
             ]
         )

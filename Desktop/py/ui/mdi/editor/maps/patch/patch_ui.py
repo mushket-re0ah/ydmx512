@@ -64,9 +64,8 @@ class EditorPatchUi(ExpansiveToggleButtonBehavior, BasePatchUi):
     _label_interpatch_index = None
     _button_interpatch_ungroup = None
 
-    def __init__(self, create_animation=True, **kwargs):
+    def __init__(self, **kwargs):
         patch = kwargs["patch"]
-        patch_map = kwargs["patch_map"]
         patch.bind(grid_pos=self.setter("grid_pos"))
         super().__init__(**kwargs)
         self.patch_map_editor.editor_content.bind(on_render_changed=self._sync_render)

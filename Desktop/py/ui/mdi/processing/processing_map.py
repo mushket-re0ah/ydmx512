@@ -48,7 +48,7 @@ class PlaybackMap(MapLayout):
 
     def on_add_playback(self, _, playback: RowPlayback):
         self.add_widget(PlaybackUiProcessing(
-                playback_map=self,
+                map_layout=self,
                 playback=playback
             )
         )
@@ -66,7 +66,7 @@ class PlaybackMap(MapLayout):
         for playback in db.playback.rows.values():
             self.add_widget(PlaybackUiProcessing(
                     create_animation=False,
-                    playback_map=self,
+                    map_layout=self,
                     playback=playback
                 )
             )
