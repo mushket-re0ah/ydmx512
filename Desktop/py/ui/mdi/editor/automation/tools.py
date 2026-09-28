@@ -1,16 +1,14 @@
+from typing import List
 from kivy.utils import boundary
 from libs.dmx512_render import DMXRenderDot, InterpolationType
 from libs.sdl2_keyboard import manager as keyboard_manager
 from database.playback import PlaybackRenderRow
-from database.playback.renderer import render_utils
 from database.playback.renderer.render_data import RowPhaseSpec, RenderDots
 from database.patch import RowPatch
 from database.phase_curve_type import RowPhaseCurveType
 from presets.param_presets import ParamPresetData
 from presets.fixture_presets import FixturePresetData
 from misc import dmx_utils
-from typing import List
-from libs import logger
 
 
 class EditorTool:
@@ -49,15 +47,15 @@ class AddDotTool(EditorTool):
         if success:
             self.row_panel.dots_selected = created_dots
 
-    def on_touch_move(self, touch, source_widget):
+    def on_touch_move(self, _touch, _source_widget):
         self.automation.set_tool(MoveDotsTool, self._start_frame)
 
-    def on_touch_up(self, touch, source_widget):
+    def on_touch_up(self, _touch, _source_widget):
         self.finish()
 
 
 class SetDotTypeTool(EditorTool):
-    def on_touch_down(self, touch, source_widget):
+    def on_touch_down(self, _touch, _source_widget):
         selected_dots = self.row_panel.dots_selected
         if not selected_dots:
             self.finish()
@@ -128,7 +126,7 @@ class MoveDotsTool(EditorTool):
             norm_diff_x, norm_diff_y
         )
 
-    def on_touch_up(self, touch, source_widget):
+    def on_touch_up(self, _touch, _source_widget):
         self.finish()
 
 
@@ -182,7 +180,7 @@ class SelectAreaTool(EditorTool):
                                255 - self.start_frame[1])
         self.row_panel.update_area_selection(self.start_frame, (area_width, area_height), source_widget.data_row)
 
-    def on_touch_up(self, touch, source_widget):
+    def on_touch_up(self, _touch, _source_widget):
         self.row_panel.stop_area_selection()
         self.finish()
 

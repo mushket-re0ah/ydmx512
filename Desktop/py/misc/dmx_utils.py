@@ -1,7 +1,7 @@
+from typing import List, Dict
 from database.playback import PlaybackRenderRow
 from database.patch import RowPatch
 from libs.dmx512 import dmx512
-from typing import List, Dict
 
 
 def set_dmx_by_rows(row_to_value: Dict[PlaybackRenderRow, int]):

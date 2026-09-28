@@ -1,16 +1,13 @@
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from libs.uix.mdi.mdi_window import MDIWindow
-from kivy.properties import ObjectProperty
-from libs.kivy_utils import WidgetSide, TOP_WIDGET_SIDES, BOTTOM_WIDGET_SIDES 
 from typing import Tuple, Union, Optional, List
 from enum import Enum, auto
-from .interface import ILayoutMode
-from kivy.properties import OptionProperty
-from libs.properties import EnumProperty
-from kivy.clock import Clock
+from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import ObjectProperty
 from kivy.lang import Builder
-from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.mdi.mdi_window import MDIWindow
+from libs.kivy_utils import WidgetSide, TOP_WIDGET_SIDES, BOTTOM_WIDGET_SIDES
+from libs.uix.mdi.layout_mode import ILayoutMode
+from libs.properties import EnumProperty
+
 
 Builder.load_string("""
 #:set mdi_tiling_spacing "4dp"
@@ -49,14 +46,14 @@ class MDITilingBox(BoxLayout):
     def mdi_index(self, mdi: MDIWindow) -> int:
         return self.children.index(mdi)
 
-    def on_children(self, _, children):
+    def on_children(self, *_):
         self.layout_mode.dispatch("on_layout_changed", self.layout_mode.get_layout())
 
 
 class MDITilingBoxContainer(BoxLayout):
     layout_mode = ObjectProperty()
 
-    def on_children(self, _, children):
+    def on_children(self, *_):
         self.layout_mode.dispatch("on_layout_changed", self.layout_mode.get_layout())
 
 
@@ -82,7 +79,7 @@ class TilingLayoutMode(ILayoutMode):
 
     def get_layout(self):
         return [
-            [mdi for mdi in reversed(mdi_box.children)]
+            list(reversed(mdi_box.children))
             for mdi_box in reversed(self.container.children)
         ]
 
@@ -105,7 +102,7 @@ class TilingLayoutMode(ILayoutMode):
                 mdi_box.add_widget(mdi)
             self.container.add_widget(mdi_box)
 
-    def _can_start_resize(self, touch, mdi, side) -> bool:
+    def _can_start_resize(self, _touch, mdi, side) -> bool:
         return side != WidgetSide.VOID and not mdi.get_layout_state("locked", False)
 
     def _can_start_move(self, touch, mdi, side) -> bool:
@@ -413,8 +410,7 @@ class TilingLayoutMode(ILayoutMode):
         mdi_box_index = self.container.children.index(mdi_box)
         if mdi_box_index == 0:
             return self.container.children[1].children[-1]
-        else:
-            return self.container.children[mdi_box_index - 1].children[-1]
+        return self.container.children[mdi_box_index - 1].children[-1]
 
     def _set_focus(self, mdi: MDIWindow):
         self.mdi_container.set_focus(mdi)
@@ -424,7 +420,7 @@ class TilingLayoutMode(ILayoutMode):
         return mdi_focused.parent if mdi_focused else None
 
     def _transform_to_that_layout_mode(self, from_layout_mode: ILayoutMode):
-        from .floating import FloatingLayoutMode
+        from libs.uix.mdi.layout_mode.floating import FloatingLayoutMode
         if isinstance(from_layout_mode, FloatingLayoutMode):
             container = self.mdi_container
             focused = self._focused_mdi()

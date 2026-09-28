@@ -1,6 +1,5 @@
 from kivy.properties import ObjectProperty, StringProperty
 from ui.components.database_mdi_window import DatabaseMDIWindow
-from kivy.uix.boxlayout import BoxLayout
 
 
 class MDISettings(DatabaseMDIWindow):

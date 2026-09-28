@@ -1,5 +1,5 @@
 from typing import Callable, List, Tuple, NamedTuple
-from . import exit_code
+from libs.sub_proc import exit_code
 from libs import logger
 
 
@@ -19,13 +19,13 @@ def run_async_process(context: AsyncProcessContext):
 
 def _block_gui(block_gui: bool, process):
     if block_gui:
-        from . import _modal_block
+        from libs.sub_proc import _modal_block
         _modal_block.start(process)
 
 
 def _unblock_gui(block_gui: bool):
     if block_gui:
-        from . import _modal_block
+        from libs.sub_proc import _modal_block
         _modal_block.stop()
 
 
@@ -53,7 +53,7 @@ def _handle_success(module: str, process, process_queue) -> any:
     return result
 
 
-def _handle_failure(module: str, process, process_queue) -> any:
+def _handle_failure(module: str, process, process_queue) -> None:
     trace = process_queue.get_nowait()
     logger.error(f"[{module}]: failure {process}, trace={trace}")
     return None
@@ -61,7 +61,6 @@ def _handle_failure(module: str, process, process_queue) -> any:
 
 def _start_process(context: AsyncProcessContext) -> Tuple["Process", "Queue"]:
     import multiprocessing
-    import queue
     process_queue = multiprocessing.Queue()
 
     process = multiprocessing.Process(
@@ -75,7 +74,7 @@ def _start_process(context: AsyncProcessContext) -> Tuple["Process", "Queue"]:
 
 
 def open_file(callback: Callable, **kwargs):
-    from . import _open_file
+    from libs.sub_proc import _open_file
 
     run_async_process(
         AsyncProcessContext(
@@ -90,7 +89,7 @@ def open_file(callback: Callable, **kwargs):
 
 def open_dir(callback: Callable, **kwargs):
     raise NotImplementedError
-    from . import _open_dir
+    from libs.sub_proc import _open_dir
 
     run_async_process(
         AsyncProcessContext(
@@ -105,7 +104,7 @@ def open_dir(callback: Callable, **kwargs):
 
 def save_file(callback: Callable, **kwargs):
     raise NotImplementedError
-    from . import _save_file
+    from libs.sub_proc import _save_file
 
     run_async_process(
         AsyncProcessContext(

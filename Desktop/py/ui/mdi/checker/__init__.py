@@ -1,9 +1,8 @@
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty, AliasProperty
+from typing import Optional
+from kivy.properties import StringProperty, ObjectProperty, AliasProperty
 from ui.components.database_mdi_window import DatabaseMDIWindow
-from libs.serialize import *
-from typing import List, Optional
-from misc import constants
 from libs.properties import ClampedNumericProperty
+from misc import constants
 
 
 class MDIChecker(DatabaseMDIWindow):
@@ -38,7 +37,7 @@ class MDIChecker(DatabaseMDIWindow):
         self.add_widget(self.channels_ui)
         self.channels_ui.channel_sliders.scrollview.bind(
             scroll_element=self.setter("address_start")
-        ) 
+        )
 
     def set_address_start(self, scroll_element: int):
         self.channels_ui.channel_sliders.scroll_element = scroll_element

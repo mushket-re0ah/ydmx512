@@ -1,23 +1,22 @@
+from typing import List, Tuple, NamedTuple, Optional, Type
 from kivy.properties import ObjectProperty, ListProperty, NumericProperty, AliasProperty
-from libs.uix.layouts import ModalBoxLayout
 from kivy.clock import Clock
 from kivy.utils import boundary
-import ui.mdi.editor.automation.toolbar
-import ui.mdi.editor.automation.rows
+from kivy.core.text import Label as CoreLabel
+from kivy.lang import Builder
+from kivy.graphics import Color, Rectangle
+from libs.uix.layouts import ModalBoxLayout
 from libs.uix.layouts import MenuPanel
+from libs.beat_counter import BeatCounter
+from libs.kivy_utils import AutoUnbindBehavior
+from libs.uix import colorscheme as uix_cs
 from database.patch import RowPatch
 from database.playback import RowPlayback
 from database.playback.player import PlaybackPlayer
-from typing import List, Tuple, NamedTuple, Optional, Type
-from libs.beat_counter import BeatCounter
 from misc import constants
-from libs.kivy_utils import AutoUnbindBehavior
-from kivy.core.text import Label as CoreLabel
-from kivy.lang import Builder
-from libs.uix import colorscheme as uix_cs
-from misc import colorscheme as cs
-from kivy.graphics import *
 from ui.mdi.editor.automation.tools import EditorTool
+import ui.mdi.editor.automation.toolbar  # lazy kv import initialize
+import ui.mdi.editor.automation.rows  # lazy kv import initialize
 
 
 class AutomationXWidth(NamedTuple):
@@ -94,7 +93,6 @@ class Automation(AutoUnbindBehavior, MenuPanel):
 
             return None
         old_tool = self._editor_tool
-        new_tool = None
 
         old_requires = old_tool.requires_session if old_tool else False
         new_requires = tool_cls.requires_session if tool_cls else False
@@ -119,7 +117,7 @@ class Automation(AutoUnbindBehavior, MenuPanel):
         if not self._editor_tool:
             return False
         if not hasattr(self._editor_tool, action):
-            raise Exception(f"Инструмент {self._editor_tool} не имеет действия \"{action}\"")
+            raise RuntimeError(f"Инструмент {self._editor_tool} не имеет действия \"{action}\"")
         getattr(self._editor_tool, action)(*args, **kwargs)
         return True
 
@@ -161,18 +159,14 @@ class Automation(AutoUnbindBehavior, MenuPanel):
             self.unbind_from(self.binded_beat_counter)
             self.binded_beat_counter = None
 
-    def _on_player_start(self, player: PlaybackPlayer, beat_counter: BeatCounter):
+    def _on_player_start(self, _player: PlaybackPlayer, beat_counter: BeatCounter):
         self._bind_beat_counter(beat_counter)
-        from libs import logger
-        logger.debug("_on_player_start")
 
-    def _on_player_stop(self, player: PlaybackPlayer, beat_counter: BeatCounter):
+    def _on_player_stop(self, _player: PlaybackPlayer, _beat_counter: BeatCounter):
         self._unbind_beat_counter()
         self.player_frame = None
-        from libs import logger
-        logger.debug("_on_player_stop")
 
-    def _update_xwidth(self, *args):
+    def _update_xwidth(self, *_):
         self.property("xwidth").dispatch(self)
 
     cursor_frame_widget = ObjectProperty(allownone=True)
@@ -287,7 +281,7 @@ class Automation(AutoUnbindBehavior, MenuPanel):
 
     label_cache = {}
     LABEL_FONT_SIZE = NumericProperty("14sp")
-    def on_LABEL_FONT_SIZE(self, *args):
+    def on_LABEL_FONT_SIZE(self, *_):
         self.label_cache.clear()
         self.calc_header_beats_ev()
 

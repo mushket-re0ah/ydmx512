@@ -1,12 +1,9 @@
-from kivy.properties import ObjectProperty, NumericProperty, StringProperty
-from serial.tools.list_ports_common import ListPortInfo
-from libs.serial.device import SerialState, SerialDevice
-from .. import message
-import serial
-import time
 from enum import IntEnum
-from typing import Optional
+import serial
+from kivy.properties import NumericProperty
 from libs import logger
+from libs.serial.device import SerialDevice
+from libs.dmx512 import message
 
 
 class DMXResultCode(IntEnum):
@@ -27,7 +24,7 @@ class DMXSerialDevice(SerialDevice):
     universe = NumericProperty()
 
     def __init__(self, **kwargs):
-        from .. import dmx512
+        from libs.dmx512 import dmx512
         self._timeout = dmx512.SERIAL_TIMEOUT
         super().__init__(
             baudrate=dmx512.SERIAL_BAUDRATE,
@@ -39,8 +36,8 @@ class DMXSerialDevice(SerialDevice):
             **kwargs
         )
 
-    def on_universe(self, _, universe: int):
-        from .. import dmx512
+    def on_universe(self, _, _universe: int):
+        from libs.dmx512 import dmx512
         dmx512.trigger_sync_universe_device()
 
     def _create_serial_device(self) -> serial.Serial:
@@ -54,7 +51,7 @@ class DMXSerialDevice(SerialDevice):
         return message.create_terminate_connection_message()
 
     def _process_pending_input(self):
-        from .. import dmx512
+        from libs.dmx512 import dmx512
         if self.device.in_waiting > 0:
             raw = self.device.read(1)
             if not raw:
@@ -76,7 +73,7 @@ class DMXSerialDevice(SerialDevice):
                 self.device.reset_input_buffer()
 
     def _write(self, data: bytes):
-        from .. import dmx512
+        from libs.dmx512 import dmx512
         self.device.write(data)
         raw = self.device.read(1)
         if not raw:

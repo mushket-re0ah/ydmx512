@@ -1,8 +1,8 @@
 from kivy.properties import ObjectProperty
-from libs.uix.layouts import ModalBoxLayout
-import libs.uix.menu_components
-from database.patch import RowPatch
 from kivy.lang import Builder
+from libs.uix.layouts import ModalBoxLayout
+import libs.uix.menu_components  # lazy kv import initialize
+from database.patch import RowPatch
 
 
 Builder.load_file("ui/components/patch_ui/patch_context_menu.kv")

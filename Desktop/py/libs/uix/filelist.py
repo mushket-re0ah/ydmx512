@@ -1,11 +1,11 @@
+from pathlib import Path
 from kivy.properties import (
     ObjectProperty, ListProperty, BooleanProperty, NumericProperty
 )
 from kivy.clock import Clock
+from kivy.lang import Builder
 from libs.uix.scroll_layout import ScrollLayout
 from libs.uix.button import HoverButton
-from kivy.lang import Builder
-from pathlib import Path
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -87,7 +87,7 @@ class Filelist(ScrollLayout):
     def on_submit(self, path: Path):
         pass
 
-    def on_rootpath(self, instance, rootpath: Path):
+    def on_rootpath(self, _, rootpath: Path):
         self.path = rootpath
         self.prev_path = rootpath
 

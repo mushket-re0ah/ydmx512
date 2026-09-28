@@ -1,11 +1,12 @@
 from kivy.properties import NumericProperty
+from kivy.lang import Builder
 from libs.midi.notes import MIDI_NOTES
 from libs.uix.input.numeric_input import NumericInput
 from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
 from database import db
-from kivy.lang import Builder
+
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
 
@@ -30,24 +31,19 @@ class MidiInput(NumericInput):
         if text in ("", "-"):
             if self.allow_empty:
                 return None
-            else:
-                return self.default_value
+            return self.default_value
         midi_notes = db.misc.midi_notes
         if midi_notes == "NUMERIC":
-            value = float(text) if self.input_filter == "float" else int(
-                float(text))
+            value = float(text) if self.input_filter == "float" else int(float(text))
             return self._value_bounds(value)
-        else:
-            try:
-                value = float(text) if self.input_filter == "float" else int(
-                    float(text))
-                return self._value_bounds(value)
-            except ValueError:
-                notes = MIDI_NOTES[midi_notes]
-                if text in notes:
-                    return notes.index(text)
-                else:
-                    return self._value_bounds(self.value)
+        try:
+            value = float(text) if self.input_filter == "float" else int(float(text))
+            return self._value_bounds(value)
+        except ValueError:
+            notes = MIDI_NOTES[midi_notes]
+            if text in notes:
+                return notes.index(text)
+            return self._value_bounds(self.value)
 
     def _set_text_by_value(self):
         if self.value is None:

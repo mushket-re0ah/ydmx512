@@ -1,15 +1,14 @@
+from typing import Dict, Optional
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import (
     ObjectProperty, BooleanProperty, NumericProperty, AliasProperty
 )
-from kivy.clock import Clock
+from kivy.lang import Builder
 from libs.uix.button import HoverToggleButton
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from libs.properties import ContextualNumericProperty
 from libs.animation import StatefulColorProperty
 from libs.uix import colorscheme as uix_cs
-from kivy.lang import Builder
-from typing import Dict, Optional
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -61,7 +60,7 @@ class WorkspaceToggleButton(HoverToggleButton):
             "is_workspace_not_contain": uix_cs.WorkspaceToggleButton.color_if_not_contain,
         }
     )
-    def set_workspace_contain(self, *args):
+    def set_workspace_contain(self, *_):
         self.is_workspace_not_contain = self.workspace is None or not self.workspace.if_contain
 
     def on_workspace(self, _, workspace):

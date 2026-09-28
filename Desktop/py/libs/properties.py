@@ -1,9 +1,9 @@
+from weakref import ref, finalize
 from kivy.properties import (
     BoundedNumericProperty, OptionProperty, NumericProperty, ObjectProperty,
     AliasProperty
 )
 from kivy.utils import boundary
-from weakref import ref, finalize
 
 
 class ClampedNumericProperty(BoundedNumericProperty):
@@ -83,7 +83,7 @@ class ContextualNumericProperty(NumericProperty):
             unbinds.append((obj, dep))
         self._bound_objects[obj] = unbinds
 
-    def _on_dependency_changed(self, instance, value):
+    def _on_dependency_changed(self, instance, _):
         prop_name = self.name
         current = getattr(instance, prop_name)
         if current is None:
@@ -124,7 +124,7 @@ class DeepAliasProperty(AliasProperty):
         bind = kwargs.pop("bind", None)
         if not bind:
             raise ValueError(f"DeepAliasProperty: bind пуст, bind=[{bind}]")
-        super(DeepAliasProperty, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._all_prefixes = set()
         for path in bind:
             parts = path.split(".")
@@ -134,8 +134,9 @@ class DeepAliasProperty(AliasProperty):
             )
         self._subscriptions = []  # [(obj, attr, uid), ...]
         self._obj_ref = None
+        self._finalizer = None
 
-    def link_deps(self, obj, name):
+    def link_deps(self, obj, _):
         self._obj_ref = ref(obj)
         self._finalizer = finalize(obj, self._unsubscribe_all)
         self._rebind(obj, dispatch=False)
@@ -155,7 +156,7 @@ class DeepAliasProperty(AliasProperty):
                 break
 
             def make_callback(self_ref=ref(self), obj_ref=self._obj_ref):
-                def cb(*args, **kwargs):
+                def cb(*_l, **_k):
                     instance = obj_ref()
                     prop = self_ref()
                     if instance is not None and prop is not None:
@@ -181,29 +182,29 @@ class DeepAliasProperty(AliasProperty):
         self._subscriptions.clear()
 
 
-if __name__ == '__main__':
-    import unittest
-    from unittest.mock import Mock
-    from kivy.event import EventDispatcher
-    from kivy.properties import ObjectProperty, NumericProperty, AliasProperty
+# if __name__ == '__main__':
+#     import unittest
+#     from unittest.mock import Mock
+#     from kivy.event import EventDispatcher
+#     from kivy.properties import ObjectProperty, NumericProperty, AliasProperty
 
-    class B(EventDispatcher):
-        c = NumericProperty(0)
+#     class B(EventDispatcher):
+#         c = NumericProperty(0)
 
-    class A(EventDispatcher):
-        b = ObjectProperty(B())
+#     class A(EventDispatcher):
+#         b = ObjectProperty(B())
 
-    class MyWidget(EventDispatcher):
-        a = ObjectProperty(A())
-        deep_value = DeepAliasProperty(
-            lambda self: self.a.b.c if self.a and self.a.b else None,
-            bind=["a.b.c"],
-            cache=True
-        )
-    # Тест
-    w = MyWidget()
-    w.bind(deep_value=lambda _, v: print(f"deep_value changed to {v}"))
+#     class MyWidget(EventDispatcher):
+#         a = ObjectProperty(A())
+#         deep_value = DeepAliasProperty(
+#             lambda self: self.a.b.c if self.a and self.a.b else None,
+#             bind=["a.b.c"],
+#             cache=True
+#         )
+#     # Тест
+#     w = MyWidget()
+#     w.bind(deep_value=lambda _, v: print(f"deep_value changed to {v}"))
 
-    w.a.b.c = 42   # -> deep_value changed to 42
-    w.a.b.c = 20   # -> deep_value changed to 42
-    w.a.b = B()    # -> deep_value сбросится в 0
+#     w.a.b.c = 42   # -> deep_value changed to 42
+#     w.a.b.c = 20   # -> deep_value changed to 42
+#     w.a.b = B()    # -> deep_value сбросится в 0

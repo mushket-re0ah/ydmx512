@@ -1,13 +1,13 @@
-from kivy.properties import NumericProperty, ColorProperty
-from kivy.clock import Clock
-from libs.uix.button import ImageButton
-from database import db
 from collections import deque
 import time
+from kivy.properties import NumericProperty, ColorProperty
+from kivy.clock import Clock
+from kivy.graphics import Color, Line
+from database import db
 from misc import colorscheme as cs
 from misc import constants
 from libs.uix.label import RestrictedLabel
-from kivy.graphics import Color, Line
+from libs.uix.button import ImageButton
 
 
 class BeatLabel(RestrictedLabel):

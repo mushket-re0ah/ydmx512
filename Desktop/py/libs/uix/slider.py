@@ -1,21 +1,21 @@
-from kivy.properties import (NumericProperty, BooleanProperty, OptionProperty,
-                             ColorProperty, StringProperty, AliasProperty)
+from kivy.properties import (
+    NumericProperty, BooleanProperty, OptionProperty,
+    StringProperty, AliasProperty
+)
 from kivy.uix.widget import Widget
 from kivy.uix.boxlayout import BoxLayout
-from libs.animation import AnimationBehavior
-from libs.uix.behaviors.tooltip import TooltipBehavior
-from typing import Union
-from libs.uix.context_menu import (
-    ContextMenu, ContextMenuTemplates
-)
-from kivy.utils import boundary
+from kivy.lang import Builder
 from libs.mouse_manager import cursor_manager
 from libs.animation import StatefulColorProperty
 from libs.properties import ContextualNumericProperty
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from libs.uix.restricted_scrollview import RestrictedScrollView
 from libs.uix import colorscheme as uix_cs
-from kivy.lang import Builder
+from libs.animation import AnimationBehavior
+from libs.uix.behaviors.tooltip import TooltipBehavior
+from libs.uix.context_menu import (
+    ContextMenu, ContextMenuTemplates
+)
 
 
 Builder.load_string("""
@@ -193,9 +193,8 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
         if self.orientation == 'horizontal':
             x = self.x + self.padding + nval * (self.width - 2 * self.padding)
             return (x, self.y + self.height / 2)
-        else:
-            y = self.y + self.padding + nval * (self.height - 2 * self.padding)
-            return (self.x + self.width / 2, y)
+        y = self.y + self.padding + nval * (self.height - 2 * self.padding)
+        return (self.x + self.width / 2, y)
 
     value_pos = AliasProperty(get_value_pos,
                               bind=['pos', 'size', 'minimum', 'maximum',

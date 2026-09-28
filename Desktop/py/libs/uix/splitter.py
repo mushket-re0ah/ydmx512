@@ -1,7 +1,7 @@
 from kivy.uix.splitter import Splitter
 from kivy.properties import ObjectProperty
-from libs.uix.button import ImageButton
 from kivy.lang import Builder
+from libs.uix.button import ImageButton
 
 Builder.load_string("""
 <HoverSplitterStrip>:  # ImageButton

@@ -1,18 +1,20 @@
-from kivy.properties import ObjectProperty, StringProperty, DictProperty
-from kivy.lang import Builder
-from ui.components.database_mdi_window import DatabaseMDIWindow
-from ui.mdi.library.table import LibraryTable
-from database import db
-from database.fixture import RowFixture, FixtureChannelsGroup
-from database.brand import RowBrand
 from typing import Union, List, Optional
 from enum import Enum, auto
 from dataclasses import dataclass, field
-from misc import constants
-from libs.serialize import *
 from abc import ABC, abstractmethod
-import json
-from libs.kivy_json_orm.fields import *
+from kivy.properties import ObjectProperty, StringProperty, AliasProperty
+from kivy.lang import Builder
+from libs.serialize import SerializableMixin
+from libs.kivy_json_orm.fields import (
+    ListField, NumericField, RefField, StringField, ListNestedField, EnumField,
+    NestedField
+)
+from database import db
+from database.fixture import RowFixture, FixtureChannelsGroup
+from database.brand import RowBrand
+from misc import constants
+from ui.components.database_mdi_window import DatabaseMDIWindow
+from ui.mdi.library.table import LibraryTable
 
 
 class LibraryContexts(Enum):
@@ -57,22 +59,24 @@ class LibraryViewContext(SerializableMixin):
     def get_table_data_by_context(self, table_context: LibraryContextTables) -> LibraryTableContext:
         if table_context is LibraryContextTables.FIXTURE:
             return self.table_fixture
-        elif table_context is LibraryContextTables.FIXTURE_PARAMS:
+        if table_context is LibraryContextTables.FIXTURE_PARAMS:
             return self.table_fixture_params
-        elif table_context is LibraryContextTables.BRAND:
+        if table_context is LibraryContextTables.BRAND:
             return self.table_brand
+        raise ValueError()
 
 
 def _get_class_table_by_context(table_context: LibraryContextTables) -> LibraryTable:
     if table_context is LibraryContextTables.FIXTURE:
         from ui.mdi.library.table_fixture import LibraryTableFixture
         return LibraryTableFixture
-    elif table_context is LibraryContextTables.FIXTURE_PARAMS:
+    if table_context is LibraryContextTables.FIXTURE_PARAMS:
         from ui.mdi.library.table_fixture_params import LibraryTableFixtureParams
         return LibraryTableFixtureParams
-    elif table_context is LibraryContextTables.BRAND:
+    if table_context is LibraryContextTables.BRAND:
         from ui.mdi.library.table_brand import LibraryTableBrand
         return LibraryTableBrand
+    raise ValueError()
 
 
 class ContextState(ABC):
@@ -126,8 +130,7 @@ class EditorState(ContextState):
     def __get_fixture_editor_context(self, library: "MDILibrary") -> LibraryEditorContext:
         if self.row is None:
             return library.view_context.fixture_editor_create
-        else:
-            return library.view_context.fixture_editor_edit
+        return library.view_context.fixture_editor_edit
 
 
 class MDILibrary(DatabaseMDIWindow):
@@ -167,7 +170,7 @@ class MDILibrary(DatabaseMDIWindow):
         get_view_context,
         set_view_context,
     )
-    def on_view_context(self, _, view_context):
+    def on_view_context(self, _, _view_context):
         self._save_vc()
     def _save_vc(self):
         self.mdi_db_row.edit(view_context=self.view_context)
@@ -178,7 +181,7 @@ class MDILibrary(DatabaseMDIWindow):
 
     def change_context_now(self, context: LibraryContexts, row: RowFixture = None):
         new_state = self._state_factory(context, row)
-        
+
         if isinstance(self.context_state, new_state.__class__):
             return
 
@@ -214,7 +217,7 @@ class MDILibrary(DatabaseMDIWindow):
         self.__switch_table(context)
         self.property("view_context").dispatch(self)
 
-    def _save_table_context(self, *args):
+    def _save_table_context(self, *_):
         if self.table_now is not None:
             self.table_now.save_context()
 

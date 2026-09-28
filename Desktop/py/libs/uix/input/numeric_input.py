@@ -1,14 +1,15 @@
+from typing import Union, Optional
 from kivy.properties import (
     NumericProperty, BooleanProperty, AliasProperty
 )
+from kivy.utils import boundary
+from kivy.lang import Builder
 from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
-from typing import Union, Optional
-from kivy.utils import boundary
 from libs.uix.input import HoverInput
 from libs.uix.restricted_scrollview import RestrictedScrollView
-from kivy.lang import Builder
+
 Builder.load_string("""
 <NumericInput>:  # HoverInput
     input_filter: "int"
@@ -35,10 +36,10 @@ class NumericInput(HoverInput):
         self._set_text_by_value()
         self.default_value = self.value
 
-    def on_minimum(self, _, minimum: Union[int, float]):
+    def on_minimum(self, *_):
         self.property("value").dispatch(self)
 
-    def on_maximum(self, _, maximum: Union[int, float]):
+    def on_maximum(self, *_):
         self.property("value").dispatch(self)
 
     def on_text(self, _, text: str):
@@ -58,18 +59,15 @@ class NumericInput(HoverInput):
         super().on_focus(_, focus)
 
     def set_value(self, value: Union[int, float, None]):
-        # if value == self._value:
-        #   return
         if value is None:
             if self.allow_empty:
                 self._value = value
                 self._set_text_by_value()
                 self.property("value").dispatch(self)
                 return
-            else:
-                raise ValueError(
-                    "Поле ввода не поддерживает None. Если должно,"
-                    " установите allow_empty: True")
+            raise ValueError(
+                "Поле ввода не поддерживает None. Если должно,"
+                " установите allow_empty: True")
         value = self._value_bounds(value)
         if value != self._value:
             self._value = value
@@ -92,8 +90,7 @@ class NumericInput(HoverInput):
         if text in ("", "-"):
             if self.allow_empty:
                 return None
-            else:
-                return self.default_value
+            return self.default_value
         value = float(text) if self.input_filter == "float" else int(
             float(text))
         return self._value_bounds(value)
@@ -147,8 +144,7 @@ class NumericInput(HoverInput):
     def _get_y_offset(self, touch) -> float:
         if touch.ud["start_pos_y"] > touch.y:
             return touch.y - touch.ud["start_pos_y"] + self.THRESHOLD_Y
-        else:
-            return touch.y - touch.ud["start_pos_y"] - self.THRESHOLD_Y
+        return touch.y - touch.ud["start_pos_y"] - self.THRESHOLD_Y
 
     def _threshold_check(self, touch) -> bool:
         return abs(touch.y - touch.ud["start_pos_y"]) > self.THRESHOLD_Y
@@ -157,7 +153,7 @@ class NumericInput(HoverInput):
         if touch.button == "scrollup":
             self._inc_value(-self.step_mouse_scroll)
             return True
-        elif touch.button == "scrolldown":
+        if touch.button == "scrolldown":
             self._inc_value(self.step_mouse_scroll)
             return True
         return False
@@ -169,25 +165,11 @@ class NumericInput(HoverInput):
             frozenset({"down"}): self._do_arrows_scroll_down,
         }
 
-    # def keyboard_on_key_down(self, window, keycode, text, modifiers):
-    #     if self._do_arrows_scroll(keycode):
-    #         return
-    #     super().keyboard_on_key_down(window, keycode, text, modifiers)
-
     def _do_arrows_scroll_up(self):
         self._inc_value(self.step_mouse_scroll)
 
     def _do_arrows_scroll_down(self):
         self._inc_value(-self.step_mouse_scroll)
-
-    # def _do_arrows_scroll(self, keycode: str):
-    #     if keycode[1] == "up":
-    #         self._inc_value(self.step_mouse_scroll)
-    #         return True
-    #     elif keycode[1] == "down":
-    #         self._inc_value(-self.step_mouse_scroll)
-    #         return True
-    #     return False
 
     def _inc_value(self, step: Union[int, float]):
         cursor = self.cursor

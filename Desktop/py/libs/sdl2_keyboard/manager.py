@@ -1,8 +1,8 @@
-from kivy.core.window import Window
 from dataclasses import dataclass
 from typing import Optional, Dict, Callable, List
-from .scancodes import SDL_SCANCODE_TO_KEYCODE_MAP, scancode_is_modifier, key_is_valid
-from .patch import patch_window_sdl2_keyboard_input
+from kivy.core.window import Window
+from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP, scancode_is_modifier, key_is_valid
+from libs.sdl2_keyboard.patch import patch_window_sdl2_keyboard_input
 
 
 def normalize_hotkey(hotkey: frozenset) -> frozenset:
@@ -69,7 +69,7 @@ def init():
         Window.bind(on_key_down=_on_key_down, on_key_up=_on_key_up)
         _initialized = True
     else:
-        raise Exception("keyboard_manager already initialized")
+        raise RuntimeError("keyboard_manager already initialized")
 
 def check_shift() -> bool:
     return "SHIFT" in _modifiers
@@ -104,7 +104,7 @@ def _processing_contexts(hotkey: frozenset,
                 return True
     return stop_on_first and contexts
 
-def _on_key_down(window, _keycode, scancode, codepoint, _modifiers):
+def _on_key_down(window, _keycode, scancode, _codepoint, _modifiers):
     global _last_keyboard_text
     _last_keyboard_text = window.last_keyboard_text
 
@@ -137,7 +137,7 @@ def _processing_contexts_up(hotkey: frozenset,
                 return True
     return stop_on_first and contexts
 
-def _on_key_up(window, keycode, scancode):
+def _on_key_up(_window, _keycode, scancode):
     key = SDL_SCANCODE_TO_KEYCODE_MAP[scancode]
     _remove_modifier(scancode, key)
 

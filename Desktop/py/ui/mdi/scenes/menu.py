@@ -1,6 +1,6 @@
 from kivy.properties import ObjectProperty
-from libs.uix.layouts import MenuPanel
 from kivy.lang import Builder
+from libs.uix.layouts import MenuPanel
 from database import db
 
 

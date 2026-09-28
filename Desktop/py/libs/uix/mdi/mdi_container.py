@@ -1,14 +1,14 @@
-from kivy.properties import ObjectProperty, ListProperty, AliasProperty
-from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from typing import Optional, List, Type
+from kivy.properties import ObjectProperty, ListProperty, AliasProperty
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.lang import Builder
+from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from libs.kivy_utils import AutoUnbindBehavior
-from .mdi_window import MDIWindow
-from .layout_mode import (
+from libs.uix.mdi.mdi_window import MDIWindow
+from libs.uix.mdi.layout_mode import (
     ILayoutMode, TilingLayoutMode, FloatingLayoutMode
 )
-from kivy.uix.relativelayout import RelativeLayout
 from libs.uix.layouts import StencilRelativeLayout
-from kivy.lang import Builder
 
 Builder.load_string("""
 <MDIContainer>:  # StencilRelativeLayout
@@ -182,112 +182,112 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
             self.remove_widget(mdi)
 
 
-if __name__ == "__main__":
-    from kivy.app import App
-    from kivy.lang import Builder
-    from kivy.properties import ObjectProperty
-    from libs.uix.mdi.mdi_container import MDIContainer
-    from kivy.uix.boxlayout import BoxLayout
-    from libs.uix.mdi.layout_mode import (
-        ILayoutMode, TilingLayoutMode, FloatingLayoutMode
-    )
-    from libs.uix.button import HoverToggleButton
-    from libs import sdl2_keyboard
+# if __name__ == "__main__":
+#     from kivy.app import App
+#     from kivy.lang import Builder
+#     from kivy.properties import ObjectProperty
+#     from libs.uix.mdi.mdi_container import MDIContainer
+#     from kivy.uix.boxlayout import BoxLayout
+#     from libs.uix.mdi.layout_mode import (
+#         ILayoutMode, TilingLayoutMode, FloatingLayoutMode
+#     )
+#     from libs.uix.button import HoverToggleButton
+#     from libs import sdl2_keyboard
 
-    sdl2_keyboard.init()
-
-
-    class MDIHoverToggleButton(HoverToggleButton):
-        mdi = ObjectProperty()
-        mdi_container = ObjectProperty()
-
-        def on_kv_post(self, _):
-            super().on_kv_post(_)
-            self.mdi.bind(hidden=self._set_state_by_mdi)
-            self._set_state_by_mdi(self.mdi, self.mdi.hidden)
-
-        def _set_state_by_mdi(self, _, hidden: bool):
-            self.state = "normal" if hidden else "down"
-
-        def on_state(self, _, state: str):
-            if state == "down":
-                self.mdi_container.add_widget(self.mdi)
-            elif state == "normal":
-                self.mdi_container.remove_widget(self.mdi)
+#     sdl2_keyboard.init()
 
 
-    Builder.load_string("""
-    #:import FloatingLayoutMode libs.uix.mdi.layout_mode.FloatingLayoutMode
-    #:import TilingLayoutMode libs.uix.mdi.layout_mode.TilingLayoutMode
+#     class MDIHoverToggleButton(HoverToggleButton):
+#         mdi = ObjectProperty()
+#         mdi_container = ObjectProperty()
 
-    <MDIBox@BoxLayout>:
-        canvas:
-            Color:
-                rgba: (1, 0, 0, 1)
-            Rectangle:
-                size: self.size
-                pos: self.pos
+#         def on_kv_post(self, _):
+#             super().on_kv_post(_)
+#             self.mdi.bind(hidden=self._set_state_by_mdi)
+#             self._set_state_by_mdi(self.mdi, self.mdi.hidden)
 
-    <Root>:
-        orientation: "vertical"
-        ribbon: ribbon
-        mdi_container: mdi_container
-        BoxLayout:
-            id: ribbon
-            size_hint_y: 0.2
-            canvas:
-                Color:
-                    rgba: (0, 1, 0, 1)
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
-            MDIHoverToggleButton:
-                text: "1"
-                mdi: mdi_1.__self__
-                mdi_container: mdi_container
-            MDIHoverToggleButton:
-                text: "2"
-                mdi: mdi_2.__self__
-                mdi_container: mdi_container
-            MDIHoverToggleButton:
-                text: "3"
-                mdi: mdi_3.__self__
-                mdi_container: mdi_container
-            MDIHoverToggleButton:
-                text: "4"
-                mdi: mdi_4.__self__
-                mdi_container: mdi_container
-        MDIContainer:
-            id: mdi_container
-            layout_mode: TilingLayoutMode
-            MDIWindow:
-                id: mdi_1
-                title: "test#1"
-                hidden: True
-                MDIBox:
-            MDIWindow:
-                id: mdi_2
-                title: "test#2"
-                hidden: True
-                MDIBox:
-            MDIWindow:
-                id: mdi_3
-                title: "test#3"
-                hidden: True
-                MDIBox:
-            MDIWindow:
-                id: mdi_4
-                title: "test#4"
-                MDIBox:
-    """
-    )
+#         def _set_state_by_mdi(self, _, hidden: bool):
+#             self.state = "normal" if hidden else "down"
 
-    class Root(BoxLayout):
-        ribbon = ObjectProperty()
-        mdi_container = ObjectProperty()
+#         def on_state(self, _, state: str):
+#             if state == "down":
+#                 self.mdi_container.add_widget(self.mdi)
+#             elif state == "normal":
+#                 self.mdi_container.remove_widget(self.mdi)
 
-    class Test(App):
-        def build(self):
-            return Root()
 
-    Test().run()
+#     Builder.load_string("""
+#     #:import FloatingLayoutMode libs.uix.mdi.layout_mode.FloatingLayoutMode
+#     #:import TilingLayoutMode libs.uix.mdi.layout_mode.TilingLayoutMode
+
+#     <MDIBox@BoxLayout>:
+#         canvas:
+#             Color:
+#                 rgba: (1, 0, 0, 1)
+#             Rectangle:
+#                 size: self.size
+#                 pos: self.pos
+
+#     <Root>:
+#         orientation: "vertical"
+#         ribbon: ribbon
+#         mdi_container: mdi_container
+#         BoxLayout:
+#             id: ribbon
+#             size_hint_y: 0.2
+#             canvas:
+#                 Color:
+#                     rgba: (0, 1, 0, 1)
+#                 Rectangle:
+#                     size: self.size
+#                     pos: self.pos
+#             MDIHoverToggleButton:
+#                 text: "1"
+#                 mdi: mdi_1.__self__
+#                 mdi_container: mdi_container
+#             MDIHoverToggleButton:
+#                 text: "2"
+#                 mdi: mdi_2.__self__
+#                 mdi_container: mdi_container
+#             MDIHoverToggleButton:
+#                 text: "3"
+#                 mdi: mdi_3.__self__
+#                 mdi_container: mdi_container
+#             MDIHoverToggleButton:
+#                 text: "4"
+#                 mdi: mdi_4.__self__
+#                 mdi_container: mdi_container
+#         MDIContainer:
+#             id: mdi_container
+#             layout_mode: TilingLayoutMode
+#             MDIWindow:
+#                 id: mdi_1
+#                 title: "test#1"
+#                 hidden: True
+#                 MDIBox:
+#             MDIWindow:
+#                 id: mdi_2
+#                 title: "test#2"
+#                 hidden: True
+#                 MDIBox:
+#             MDIWindow:
+#                 id: mdi_3
+#                 title: "test#3"
+#                 hidden: True
+#                 MDIBox:
+#             MDIWindow:
+#                 id: mdi_4
+#                 title: "test#4"
+#                 MDIBox:
+#     """
+#     )
+
+#     class Root(BoxLayout):
+#         ribbon = ObjectProperty()
+#         mdi_container = ObjectProperty()
+
+#     class Test(App):
+#         def build(self):
+#             return Root()
+
+#     Test().run()

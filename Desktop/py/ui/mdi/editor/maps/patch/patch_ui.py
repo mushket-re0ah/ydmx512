@@ -1,21 +1,15 @@
-from kivy.properties import BooleanProperty, ObjectProperty, ColorProperty
+from kivy.properties import BooleanProperty, ObjectProperty
 from kivy.lang import Builder
-from kivy.clock import Clock
-from database.patch import RowPatch
-from libs.mouse_manager.hover import HoverBehavior
-from libs.animation import AnimationBehavior
 from libs.uix.button import ExpansiveToggleButtonBehavior
-from libs.kivy_utils import AutoUnbindBehavior
-from ui.mdi.patch_list.patch_ui import BasePatchUi
 from libs.uix.label import RestrictedLabel
 from libs.uix.button import HoverButton
-from misc import colorscheme as cs
 from libs.animation import StatefulColorProperty
-from libs import logger
-from ui.mdi.editor.automation.tools import InterpatchPhaseTool
 from database.playback.renderer.render_data import InterpatchSpec
-from kivy.uix.relativelayout import RelativeLayout
 from database.playback import RowPlayback
+from misc import colorscheme as cs
+from ui.mdi.patch_list.patch_ui import BasePatchUi
+from ui.mdi.editor.automation.tools import InterpatchPhaseTool
+
 Builder.load_file("ui/mdi/editor/maps/patch/patch_ui.kv")
 
 

@@ -1,9 +1,10 @@
+from typing import List, Optional, Set
 from kivy.properties import (
     ObjectProperty, NumericProperty, ListProperty, BooleanProperty, AliasProperty
 )
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
-from kivy.graphics import *
+from kivy.graphics import Color, SmoothLine, SmoothEllipse
 from kivy.utils import boundary
 from kivy.clock import Clock
 from libs.uix.layouts import StencilBoxLayout
@@ -11,17 +12,16 @@ from libs.uix.rotary_button import PanRotaryButton
 from libs.uix.button import OptionToggleButton, OptionToggleButtonContextMenu
 from libs.uix.input.numeric_input import NumericInput
 from libs.uix.layouts import WindowModalBoxLayout
+from libs.dmx512_render import DMXRenderDot
+from libs.properties import EnumProperty
 from database.playback import RowPlayback
 from database.playback.renderer import render_utils
 from database.patch import RowPatch
 from database.playback.renderer.render_data import PlaybackRenderRow
 from database import db
-from ui.mdi.editor.automation.tools import RowPhaseTool, DiscardAllTool, MoveDotsByNumericInputTool
 from database.phase_curve_type import RowPhaseCurveType
-from libs.dmx512_render import DMXRenderDot
-from typing import List, Optional, Set
 from misc import colorscheme as cs
-from libs.properties import EnumProperty
+from ui.mdi.editor.automation.tools import RowPhaseTool, DiscardAllTool, MoveDotsByNumericInputTool
 
 
 Builder.load_file("ui/mdi/editor/automation/toolbar/toolbar.kv")
@@ -103,7 +103,7 @@ class PhaseCurveTypeCreateMenuCanvas(Widget):
         if (x, y) not in self.dots:
             self.dots.append((x, y))
 
-    def on_dots(self, _, dots: list):
+    def on_dots(self, _, _dots: list):
         self.draw_ev()
 
 
@@ -197,10 +197,10 @@ class AutomationToolbar(StencilBoxLayout):
     def on_active_patch(self, _, active_patch: List[RowPatch]):
         self.fixture_selected_count = len(set(patch.fixture for patch in active_patch))
 
-    def on_clear_render_mode(self, *args):
+    def on_clear_render_mode(self, *_):
         self.automation.row_panel.dispatch_row_change()
 
-    def _on_render_changed(self, _, renderer):
+    def _on_render_changed(self, _, _renderer):
         self.update_dots_data()
 
     menu_preset_fixture = None
@@ -208,7 +208,7 @@ class AutomationToolbar(StencilBoxLayout):
         if self.menu_preset_fixture:
             return
         fixture_count = self.fixture_selected_count
-        if not(0 < fixture_count <= 1):
+        if fixture_count <= 0 or fixture_count > 1:
             return
         from ui.mdi.editor.automation.toolbar.menu_preset_fixture import MenuPresetFixture
         row_panel = self.automation.row_panel
@@ -266,7 +266,7 @@ class AutomationToolbar(StencilBoxLayout):
         return super().on_touch_up(touch)
 
     processing_sync_data = BooleanProperty(False)
-    def update_dots_data(self, *args):
+    def update_dots_data(self, *_):
         self.processing_sync_data = True
         dots = self.automation.row_panel.dots_selected
         if not dots:

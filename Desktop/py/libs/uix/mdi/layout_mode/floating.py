@@ -1,14 +1,11 @@
-from kivy.app import App
-from ..mdi_window import MDIWindow
+from enum import Enum
+from typing import Tuple, Optional, List
+from libs.uix.mdi.mdi_window import MDIWindow
 from libs.kivy_utils import (
     WidgetSide, LEFT_WIDGET_SIDES, RIGHT_WIDGET_SIDES, TOP_WIDGET_SIDES,
-    BOTTOM_WIDGET_SIDES, WIDGET_SIDE_CURSOR, get_cursor_zone
+    BOTTOM_WIDGET_SIDES
 )
-from typing import Tuple, Union, Optional, List
-from .interface import ILayoutMode
-from kivy.clock import Clock
-from enum import Enum, auto
-from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.mdi.layout_mode.interface import ILayoutMode
 
 
 class FlexMode(str, Enum):
@@ -26,7 +23,7 @@ class FloatingLayoutMode(ILayoutMode):
         self._save_lock = False
         super().__init__(mdi_container, from_layout_mode)
 
-    def _can_start_resize(self, touch, mdi, side) -> bool:
+    def _can_start_resize(self, _touch, _mdi, side) -> bool:
         return side != WidgetSide.VOID
 
     def _can_start_move(self, touch, mdi, side) -> bool:
@@ -39,7 +36,7 @@ class FloatingLayoutMode(ILayoutMode):
         self._mdi_bind(mdi)
         self.setup_title_buttons(mdi)
 
-    def _on_mdi_state(self, mdi, state: dict):
+    def _on_mdi_state(self, mdi, _state: dict):
         self.apply_mdi_expand(mdi, mdi.get_layout_state("expanded", False))
         flex = self._get_mdi_flex_state(mdi)
         if flex is None:
@@ -70,7 +67,7 @@ class FloatingLayoutMode(ILayoutMode):
         )
         self._on_mdi_state(mdi, mdi.state)
 
-    def _save_mdi_state(self, mdi, *args):
+    def _save_mdi_state(self, mdi, *_):
         expanded = mdi.get_layout_state("expanded", False)
         if expanded or self._save_lock:
             return
@@ -231,8 +228,7 @@ class FloatingLayoutMode(ILayoutMode):
 
         return flex_mode
 
-    def resize_mdi(self, side: WidgetSide, mdi: MDIWindow,
-                   mouse_pos: Tuple[float, float]):
+    def resize_mdi(self, side: WidgetSide, mdi: MDIWindow, mouse_pos: Tuple[float, float]):
         locked = mdi.get_layout_state("locked", False)
         expanded = mdi.get_layout_state("expanded", False)
         if locked or expanded:
@@ -320,7 +316,7 @@ class FloatingLayoutMode(ILayoutMode):
         )
 
     def _transform_to_that_layout_mode(self, from_layout_mode: ILayoutMode):
-        from .tiling import TilingLayoutMode
+        from libs.uix.mdi.layout_mode.tiling import TilingLayoutMode
         if isinstance(from_layout_mode, TilingLayoutMode):
             container = self.mdi_container
             for mdi in container.mdi_list_showed:

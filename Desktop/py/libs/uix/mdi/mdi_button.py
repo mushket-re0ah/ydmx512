@@ -1,6 +1,7 @@
-from libs.uix.button import ImageToggleButton, ImageButton
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
+from libs.uix.button import ImageToggleButton, ImageButton
+
 
 Builder.load_string("""
 #:import imgs_path misc.imgs_path
@@ -24,6 +25,7 @@ Builder.load_string("""
     -background_down: imgs_path.mdi_close_down
     on_release: root.close()
 """)
+
 
 class MDIStateToggleBehavior:
     mdi = ObjectProperty(allownone=False)

@@ -1,6 +1,6 @@
-from ui.components.database_mdi_window import DatabaseMDIWindow
 from kivy.properties import StringProperty, ObjectProperty
 from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP
+from ui.components.database_mdi_window import DatabaseMDIWindow
 
 
 class MDIDesktops(DatabaseMDIWindow):

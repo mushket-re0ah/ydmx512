@@ -1,9 +1,9 @@
+from typing import Tuple
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.properties import BooleanProperty, ObjectProperty
-from typing import Tuple, List
 from libs.kivy_utils import walk_by_parents
-from . import register_mouse_observer
+from libs.mouse_manager import register_mouse_observer
 
 
 class HoverBehavior:
@@ -19,7 +19,7 @@ class HoverBehavior:
             HoverBehavior._initialized = True
         super().__init__(*args, **kwargs)
 
-    def on_hover(self, instance, value):
+    def on_hover(self, _instance, value):
         if value:
             self.dispatch("on_enter")
         else:
@@ -92,7 +92,7 @@ class NestedHoverBehavior(HoverBehavior):
     def set_real_hover(self, _):
         self.real_hover = self.hover or self.nested_hover
 
-    def on_real_hover(self, instance, value):
+    def on_real_hover(self, _instance, value):
         if value:
             self.dispatch("on_real_hover_enter")
         else:

@@ -1,8 +1,7 @@
 from kivy.clock import Clock
 from kivy.animation import Animation
 from kivy.properties import ColorProperty
-from kivy.utils import get_color_from_hex, boundary
-from typing import Tuple
+from kivy.utils import boundary
 
 
 class ColorDiff:
@@ -102,7 +101,7 @@ class AnimationBehavior:
         self._set_colors()
 
     def _make_animation_binds(self):
-        for param, triggers in self._animation_triggers.items():
+        for triggers in self._animation_triggers.values():
             for state in triggers:
                 if isinstance(state, tuple):
                     for attr in state:
@@ -124,7 +123,7 @@ class AnimationBehavior:
         anim.bind(on_complete=self.on_animation_complete)
         self._animation = anim
 
-    def on_animation_complete(self, *args):
+    def on_animation_complete(self, *_):
         self._animation = None
 
     def _get_state(self, param) -> str:
@@ -150,8 +149,7 @@ class AnimationBehavior:
                 boundary(normal[2] + value.db, 0.0, 1.0),
                 boundary(normal[3] + value.da, 0.0, 1.0),
             )
-        else:
-            return value
+        return value
 
     def _get_colors(self) -> dict:
         result = {}

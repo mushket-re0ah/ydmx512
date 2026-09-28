@@ -1,14 +1,14 @@
 from threading import Thread
-from libs import logger
-from misc import constants
-from libs.utils import ThrottledCall
 import time
 from database import db
+from database.playback.player import master_player as playback_master_player
+from libs.utils import ThrottledCall
 from libs import beat_counter
 from libs.dmx512 import dmx512
 from libs.serial.observer import observer as serial_observer
 from libs.midi.observer import observer as midi_observer
-from database.playback.player import master_player as playback_master_player
+from libs import logger
+from misc import constants
 
 
 def init():

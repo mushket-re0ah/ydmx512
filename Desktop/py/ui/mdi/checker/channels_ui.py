@@ -6,12 +6,11 @@ from libs.uix.layouts import SectionPanel
 from libs.uix.scroll_layout import ScrollLayout
 from libs.uix.label import RestrictedLabel
 from libs.properties import ClampedNumericProperty
-from misc import constants
-from libs.dmx512.universe import DMX512Universe
 from libs.dmx512 import dmx512
-from misc import colorscheme as cs
+import libs.uix.slider  # lazy kv import initialize
 from database import db
-import libs.uix.slider
+from misc import colorscheme as cs
+from misc import constants
 
 
 Builder.load_file("ui/mdi/checker/channels_ui.kv")
@@ -19,6 +18,9 @@ Builder.load_file("ui/mdi/checker/channels_ui.kv")
 
 class CheckerSlider(BoxLayout):
     checker = ObjectProperty()
+
+    numeric = ObjectProperty()
+    slider = ObjectProperty()
 
     address = ClampedNumericProperty(1, 1, constants.DMX_ADDRESS_COUNT)
     value = ClampedNumericProperty(0, 0, 255)
@@ -30,7 +32,7 @@ class CheckerSlider(BoxLayout):
         prop = self.numeric.property("border_color")
         prop.set_normal(self.numeric, cs.CheckerSlider.border_color_normal)
 
-    def on_address(self, _, address: int):
+    def on_address(self, _, _address: int):
         self.update()
 
     def on_value(self, _, value: int):
@@ -44,7 +46,7 @@ class CheckerSlider(BoxLayout):
         self.value = dmx512.get_value(universe, address)
         address_info = db.patch.get_address_info(universe, address)
         if address_info is not None:
-            patch, fixture_param = address_info[0]
+            _patch, fixture_param = address_info[0]
             self.fixture_param_color = fixture_param.color
         else:
             self.fixture_param_color = cs.CheckerSlider.fixture_param_default
@@ -70,7 +72,7 @@ class CheckerChannelsUiList(ScrollLayout):
         self.on_universe_now(self.checker, self.checker.universe_now)
         self._trigger_update_faders()
 
-    def on_universe_now(self, checker, universe):
+    def on_universe_now(self, _checker, universe):
         if self._previous_universe is not None:
             dmx512.unregister_on_write_matrix(self._previous_universe, self._trigger_update_faders)
         dmx512.register_on_write_matrix(universe, self._trigger_update_faders)

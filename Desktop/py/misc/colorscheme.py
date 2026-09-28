@@ -1,6 +1,5 @@
-from kivy.utils import get_color_from_hex as _kivy_get_color_from_hex
 from collections import namedtuple
-from libs.animation import ColorDiff
+from kivy.utils import get_color_from_hex as _kivy_get_color_from_hex
 
 
 # kivy method is
@@ -16,8 +15,6 @@ from libs.animation import ColorDiff
 #     if len(value) == 3:
 #         value.append(1.0)
 #     return value
-
-
 def _h(s):
     return tuple(_kivy_get_color_from_hex(s))
 

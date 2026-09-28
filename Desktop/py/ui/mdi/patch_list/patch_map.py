@@ -1,5 +1,5 @@
-from libs.uix.map_layout import WorkspaceMapLayout
 from kivy.lang import Builder
+from libs.uix.map_layout import WorkspaceMapLayout
 
 
 Builder.load_string("""

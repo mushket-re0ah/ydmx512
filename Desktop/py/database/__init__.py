@@ -3,9 +3,11 @@ from misc import constants
 from misc import backup
 
 
+db = None
+SCENE_TABLES_ORDER = ("patch", "playback", "desktop_uix")
 def create_database():
+    global db
     db = Database(constants.DATABASE_PATH, None, None, lambda: backup.do_backup(None))
-    globals()["db"] = db
     from database.misc import TableMisc
     db.register("misc", TableMisc())
     from database.brand import TableBrand
@@ -15,7 +17,6 @@ def create_database():
     from database.fixture import TableFixture
     db.register("fixture", TableFixture())
     from database.scene import TableScene
-    SCENE_TABLES_ORDER = ("patch", "playback", "desktop_uix")
     db.register("scene", TableScene(SCENE_TABLES_ORDER))
     from database.patch import TablePatch
     db.register("patch", TablePatch())

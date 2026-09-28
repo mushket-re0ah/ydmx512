@@ -1,14 +1,12 @@
+from typing import Optional, Tuple, Union
+import time
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty, NumericProperty
-from kivy.clock import Clock
-from typing import Union
-from .serial.device import DMXSerialDevice, SerialState
-from .lan.device import LanDevice
-from . import message
-from typing import List, Optional, Tuple
-import time
+from libs.dmx512.serial.device import DMXSerialDevice
+from libs.serial.device import SerialState
+from libs.dmx512.lan.device import LanDevice
+from libs.dmx512 import message
 from libs.utils import ThrottledCall
-from libs import logger
 
 
 class DMX512Universe(EventDispatcher):
@@ -20,7 +18,7 @@ class DMX512Universe(EventDispatcher):
     default_matrix: bytearray = None
 
     def __init__(self, **kwargs):
-        from . import dmx512
+        from libs.dmx512 import dmx512
         self.register_event_type("on_write_matrix")
         self.matrix = bytearray([0] * dmx512.DMX_ADDRESS_COUNT)
         self.default_matrix = bytearray([0] * dmx512.DMX_ADDRESS_COUNT)
@@ -45,12 +43,12 @@ class DMX512Universe(EventDispatcher):
         self.default_matrix[address] = value
 
     def clear_matrix(self):
-        from . import dmx512
+        from libs.dmx512 import dmx512
         for address in range(1, dmx512.DMX_ADDRESS_COUNT + 1):
             self.set_value(address, self.default_matrix[address - 1])
 
     def clear_default_matrix(self):
-        from . import dmx512
+        from libs.dmx512 import dmx512
         for address in range(1, dmx512.DMX_ADDRESS_COUNT + 1):
             self.default_matrix[address - 1] = 0
 
@@ -95,7 +93,7 @@ class DMX512Universe(EventDispatcher):
                 self.device.write(msg)
 
     def _create_dmx_message(self) -> Optional[bytes]:
-        from . import dmx512
+        from libs.dmx512 import dmx512
         address_list = []
         value_list = []
         if (time.monotonic() - self.last_key_frame_time) > dmx512.DMX_KEY_FRAME_TIME:

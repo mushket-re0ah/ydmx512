@@ -1,3 +1,6 @@
+from dataclasses import dataclass, field
+from typing import Optional
+from kivy.lang import Builder
 from kivy.properties import (
     ObjectProperty, NumericProperty, ListProperty, BooleanProperty
 )
@@ -5,16 +8,13 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics import Rectangle
 from kivy.core.text import Label as CoreLabel
-from libs.uix.button import HoverButton
-from libs.uix.recycle_spinner import RecycleSpinner
-from libs.uix.label import RestrictedLabel
 from kivy.uix.widget import Widget
 from kivy.metrics import dp
 from libs.uix.layouts import ModalBoxLayout
 from libs.sdl2_keyboard import hotkey_to_str
-from dataclasses import dataclass, field
-from typing import Optional
-from kivy.lang import Builder
+from libs.uix.button import HoverButton
+from libs.uix.recycle_spinner import RecycleSpinner
+from libs.uix.label import RestrictedLabel
 from libs.utils import merge_kwargs
 
 Builder.load_string("""
@@ -119,7 +119,7 @@ class ContextMenuButton(ContextMenuBehavior, HoverButton):
         self.hotkey_label.refresh()
         self.hotkey_texture = self.hotkey_label.texture
 
-    def _update_canvas(self, *args):
+    def _update_canvas(self, *_):
         self.canvas.after.clear()
 
         with self.canvas.after:
@@ -147,14 +147,14 @@ class SubMenu(ContextMenuBehavior, RestrictedLabel):
             self.open_submenu, 1.0)
         self.items = items
 
-    def on_mouse_pos(self, window, mouse_pos: tuple):
+    def on_mouse_pos(self, _, mouse_pos: tuple):
         if self.collide_point(*mouse_pos):
             self._open_submenu_trigger()
         elif self._open_submenu_trigger.is_triggered:
             self._open_submenu_trigger.cancel()
 
     def open_submenu(self, _):
-        self.menu = ContextMenu(self.items)
+        self.menu = ContextMenu(items=self.items)
         self.menu.open(self, pos=(self.right, self.top))
 
 

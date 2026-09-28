@@ -1,41 +1,38 @@
+from typing import Optional, Dict, List
+from pathlib import Path
 from kivy.utils import platform
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.graphics import Rectangle, Color
-from typing import Optional, Dict, List
-from pathlib import Path
-from . import register_mouse_observer
+from libs.mouse_manager import register_mouse_observer
 
-"""
-    +------------+-----------+------------+-----------+---------------+
-    |            | Windows   | MacOS      | Linux X11 | Linux Wayland |
-    +============+===========+============+===========+===============+
-    | arrow      | arrow     | arrow      | arrow     | arrow         |
-    +------------+-----------+------------+-----------+---------------+
-    | ibeam      | ibeam     | ibeam      | ibeam     | ibeam         |
-    +------------+-----------+------------+-----------+---------------+
-    | wait       | wait      | arrow      | wait      | wait          |
-    +------------+-----------+------------+-----------+---------------+
-    | crosshair  | crosshair | crosshair  | crosshair | hand          |
-    +------------+-----------+------------+-----------+---------------+
-    | wait_arrow | arrow     | arrow      | wait      | wait          |
-    +------------+-----------+------------+-----------+---------------+
-    | size_nwse  | size_nwse | size_all   | size_all  | hand          |
-    +------------+-----------+------------+-----------+---------------+
-    | size_nesw  | size_nesw | size_all   | size_all  | hand          |
-    +------------+-----------+------------+-----------+---------------+
-    | size_we    | size_we   | size_we    | size_we   | hand          |
-    +------------+-----------+------------+-----------+---------------+
-    | size_ns    | size_ns   | size_ns    | size_ns   | hand          |
-    +------------+-----------+------------+-----------+---------------+
-    | size_all   | size_all  | size_all   | size_all  | hand          |
-    +------------+-----------+------------+-----------+---------------+
-    | no         | no        | no         | no        | ibeam         |
-    +------------+-----------+------------+-----------+---------------+
-    | hand       | hand      | hand       | hand      | hand          |
-    +------------+-----------+------------+-----------+---------------+
-"""
-
+# +------------+-----------+------------+-----------+---------------+
+# |            | Windows   | MacOS      | Linux X11 | Linux Wayland |
+# +============+===========+============+===========+===============+
+# | arrow      | arrow     | arrow      | arrow     | arrow         |
+# +------------+-----------+------------+-----------+---------------+
+# | ibeam      | ibeam     | ibeam      | ibeam     | ibeam         |
+# +------------+-----------+------------+-----------+---------------+
+# | wait       | wait      | arrow      | wait      | wait          |
+# +------------+-----------+------------+-----------+---------------+
+# | crosshair  | crosshair | crosshair  | crosshair | hand          |
+# +------------+-----------+------------+-----------+---------------+
+# | wait_arrow | arrow     | arrow      | wait      | wait          |
+# +------------+-----------+------------+-----------+---------------+
+# | size_nwse  | size_nwse | size_all   | size_all  | hand          |
+# +------------+-----------+------------+-----------+---------------+
+# | size_nesw  | size_nesw | size_all   | size_all  | hand          |
+# +------------+-----------+------------+-----------+---------------+
+# | size_we    | size_we   | size_we    | size_we   | hand          |
+# +------------+-----------+------------+-----------+---------------+
+# | size_ns    | size_ns   | size_ns    | size_ns   | hand          |
+# +------------+-----------+------------+-----------+---------------+
+# | size_all   | size_all  | size_all   | size_all  | hand          |
+# +------------+-----------+------------+-----------+---------------+
+# | no         | no        | no         | no        | ibeam         |
+# +------------+-----------+------------+-----------+---------------+
+# | hand       | hand      | hand       | hand      | hand          |
+# +------------+-----------+------------+-----------+---------------+
 _system_cursor = {
     "arrow": {
         "win": "arrow",
@@ -158,7 +155,7 @@ def init(use_system_cursor_getter=None):
         register_mouse_observer(set_cursor_pos)
         _initialized = True
     else:
-        raise Exception("cursor_manager already initialized")
+        raise RuntimeError("cursor_manager already initialized")
 
 _software_cursor_color = Color(1, 1, 1, 1)
 _software_cursor_rect = Rectangle(size=[32, 32])

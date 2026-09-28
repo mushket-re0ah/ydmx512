@@ -1,17 +1,17 @@
+import shutil
+from pathlib import Path
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from libs.uix.layouts import StencilBoxLayout
 from libs.uix.scroll_layout import ScrollLayout
+from libs import sub_proc
+from libs import logger
+from database.brand import RowBrand
+from database import db
 from database.fixture_param import RowFixtureParam
 from database.fixture import RowFixture, FixtureChannelsGroup
 from misc import constants
-from libs import sub_proc
-from pathlib import Path
-import shutil
-from database.brand import RowBrand
-from database import db
-from libs import logger
 
 
 Builder.load_file("ui/mdi/library/fixture_editor.kv")
@@ -286,7 +286,7 @@ class LibraryFixtureEditor(StencilBoxLayout):
         # а если image (1).png существует, то image (2).png и т.д.
         stem = filepath.stem
         suffix = filepath.suffix
-        
+
         counter = 1
         while True:
             new_stem = f"{stem} ({counter})"

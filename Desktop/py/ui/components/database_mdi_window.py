@@ -1,4 +1,4 @@
-from kivy.properties import ObjectProperty, AliasProperty, StringProperty
+from kivy.properties import ObjectProperty
 from libs.uix.mdi.mdi_window import MDIWindow
 from database import db
 
@@ -19,7 +19,7 @@ class DatabaseMDIWindow(MDIWindow):
             **kwargs
         )
 
-    def on_state(self, _, state: dict):
+    def on_state(self, _, _state: dict):
         self.mdi_db_row.edit(layout_state=self.state.get("layout_state"))
 
     def _save_vc(self):

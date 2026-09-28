@@ -1,11 +1,11 @@
 from kivy.properties import ObjectProperty
+from kivy.lang import Builder
 from presets import fixture_preset_manager
 from presets.fixture_presets import (
     FixturePresetData, FixturePresetPhaseData, FixturePresetRowData
 )
 from ui.components.file_preset_manager import FilePresetModal, MenuPresetManager
 from ui.mdi.editor.automation.tools import LoadFixturePresetTool
-from kivy.lang import Builder
 
 
 Builder.load_file("ui/mdi/editor/automation/toolbar/menu_preset_fixture.kv")

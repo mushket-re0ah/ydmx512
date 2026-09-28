@@ -1,10 +1,10 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import StringProperty, ColorProperty, NumericProperty, ObjectProperty
-from libs.uix import colorscheme as uix_cs
 from kivy.uix.stencilview import StencilView
-from libs.uix.behaviors.modal import ModalBehavior
 from kivy.lang import Builder
+from libs.uix import colorscheme as uix_cs
+from libs.uix.behaviors.modal import ModalBehavior
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme

@@ -1,12 +1,11 @@
+from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty
 from libs.uix.layouts import ModalBoxLayout
 from libs.uix.button import HoverButton
-from libs.uix.rotary_button import RotaryButton
+from database import db
 from ui.mdi.desktops.desktop_rotary import DesktopRotaryUix
 from ui.mdi.desktops.desktop_slider_2d import DesktopSlider2D
 from ui.mdi.desktops.desktop_map_section import widget_to_desktop_uix_type
-from database import db
-from kivy.lang import Builder
 
 
 Builder.load_file("ui/mdi/desktops/map_context_menu.kv")

@@ -1,13 +1,12 @@
+from typing import List
 from kivy.event import EventDispatcher
 from kivy.properties import (
     BooleanProperty, ListProperty, ObjectProperty, AliasProperty,
     NumericProperty, DictProperty
 )
-from database.patch import RowPatch
-from typing import List, Optional
-from database.playback import PlaybackRenderRow
 from kivy.clock import Clock
 from libs.kivy_utils import AutoUnbindBehavior
+from database.playback import PlaybackRenderRow
 
 
 class RowParamData(AutoUnbindBehavior, EventDispatcher):
@@ -53,7 +52,7 @@ class RowParamData(AutoUnbindBehavior, EventDispatcher):
         self.interpatch_spec = self.master_render_row.interpatch_spec
         self.set_phase_interpatch_x_by_spec()
 
-    def dispatch_on_data_changed(self, *args):
+    def dispatch_on_data_changed(self, *_):
         self.dispatch("on_data_changed")
 
     def on_data_changed(self):

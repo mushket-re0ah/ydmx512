@@ -24,7 +24,7 @@ Builder.load_string("""
 class SubProcModalBlock(BoxLayout):
     process = ObjectProperty()
 
-    def on_window_focus(self, window, focus: bool):
+    def on_window_focus(self, _window, focus: bool):
         if focus:
             _set_focus_on_process_window(self.process)
 
@@ -55,7 +55,6 @@ def stop():
     _modal_block_widget = None
 
 
-_set_focus_on_process_window = None
 if platform == "win":
     import ctypes
     from ctypes import wintypes
@@ -72,7 +71,7 @@ if platform == "win":
 
     def _get_main_hwnd(pid):
         main_hwnd = None
-        
+
         @EnumWindowsProc
         def callback(hwnd, l_param):
             nonlocal main_hwnd
@@ -113,11 +112,11 @@ if platform == "win":
             win32gui.SetActiveWindow(hwnd)
 
 elif platform == "linux":
-    def _set_focus_on_process_window(process):
+    def _set_focus_on_process_window(_process):
         pass
 elif platform == "macosx":
-    def _set_focus_on_process_window(process):
+    def _set_focus_on_process_window(_process):
         pass
 else:
-    def _set_focus_on_process_window(process):
+    def _set_focus_on_process_window(_process):
         pass

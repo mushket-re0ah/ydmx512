@@ -1,24 +1,16 @@
-from database.patch import RowPatch
-from typing import Optional, Tuple, List, Dict, Set, Iterable
-from kivy.event import EventDispatcher
-from kivy.properties import (
-    BooleanProperty, ObjectProperty, ListProperty,
-    NumericProperty, AliasProperty, DictProperty
-)
-from kivy.utils import boundary
-from libs.serialize import SerializableMixin
 import bisect
-from database.phase_curve_type import RowPhaseCurveType
+from typing import Optional, List, Iterable
+from kivy.properties import ObjectProperty, NumericProperty, AliasProperty
+from kivy.utils import boundary
+from database import db
+from libs.kivy_json_orm.fields import (
+    ListField, RefField, DictField, ObjectField, BooleanField,
+    ClampedNumericField
+)
+from libs.serialize import SerializableMixin
 from libs.dmx512_render import (
     DMXRenderDot, InterpolationType, XYGrid, apply_cycle_shift, RenderPipeline
 )
-from database import db
-from database.fixture_param import RowFixtureParam
-from database.fixture import RowFixture
-from collections import defaultdict
-from enum import Enum
-from libs.kivy_json_orm.fields import *
-from libs.properties import ClampedNumericProperty, EnumProperty
 
 
 class RenderDots(list):
@@ -148,7 +140,7 @@ class PlaybackRenderRow(SerializableMixin):
     fixture_index = NumericProperty()
     patch = ObjectProperty()
     renderer = ObjectProperty()
-    playback = AliasProperty(lambda self: self.renderer.playback) 
+    playback = AliasProperty(lambda self: self.renderer.playback)
     fixture = AliasProperty(lambda self: self.patch.fixture)
     fixture_param = AliasProperty(
         lambda self: self.fixture.param_list_unpacked[self.fixture_index]
@@ -171,7 +163,7 @@ class PlaybackRenderRow(SerializableMixin):
 
     dots = AliasProperty(get_dots, set_dots)
 
-    def on__dots(self, _, new_dots):
+    def on__dots(self, *_):
         self.invalidate_render()
 
     _render: Optional[bytes] = ObjectProperty(None, allownone=True)
@@ -181,7 +173,7 @@ class PlaybackRenderRow(SerializableMixin):
         super().__init__(**kwargs)
         self.render_pipeline = RenderPipeline()
 
-    def on_active(self, _, active: bool):
+    def on_active(self, *_):
         self.invalidate_render()
         self.renderer.set_patch_addresses()
 

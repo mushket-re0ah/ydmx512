@@ -3,17 +3,17 @@ from kivy.properties import NumericProperty, AliasProperty
 from libs.properties import ClampedNumericProperty
 
 
-_initialized = False
-def init(TEMP_MINIMUM: int, TEMP_MAXIMUM: int, BEATS_COUNT_MINIMIUM: int, BEATS_COUNT_MAXIMUM: int, FRAMES_IN_BEAT: int):
-    global _initialized
-    if _initialized:
+BeatCounter = None
+loop = None
+def init(TEMP_MINIMUM: int, TEMP_MAXIMUM: int, BEATS_COUNT_MINIMUM: int, BEATS_COUNT_MAXIMUM: int, FRAMES_IN_BEAT: int):
+    global BeatCounter
+    if BeatCounter is not None:
         raise Exception("beat_counter module already initialized")
-    _initialized = True
     FRAMES_IN_HALFBEAT = FRAMES_IN_BEAT // 2
 
     class BeatCounter(EventDispatcher):
         temp = ClampedNumericProperty(120, TEMP_MINIMUM, TEMP_MAXIMUM)
-        beats_count = ClampedNumericProperty(4, BEATS_COUNT_MINIMIUM, BEATS_COUNT_MAXIMUM)
+        beats_count = ClampedNumericProperty(4, BEATS_COUNT_MINIMUM, BEATS_COUNT_MAXIMUM)
         _beat_now = NumericProperty(0)
         _frame_now = NumericProperty(0)
 

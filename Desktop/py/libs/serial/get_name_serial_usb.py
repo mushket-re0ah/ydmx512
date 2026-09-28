@@ -91,7 +91,7 @@ if platform == "win":
                                         12+MAXIMUM_USB_STRING_LENGTH,
                                         None)
         except pywintypes.error as e:
-             return 'ERROR: no String Descriptor for index {}'.format(str_idx)
+            return 'ERROR: no String Descriptor for index {}'.format(str_idx)
         if len(buf) > 16:
             return buf[14:].decode('utf-16le')
         return ''

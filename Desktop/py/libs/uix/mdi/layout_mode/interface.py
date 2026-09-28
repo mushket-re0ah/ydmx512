@@ -1,12 +1,12 @@
+from typing import Optional, List, Tuple
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from libs.uix.mdi.mdi_window import MDIWindow
 from libs.kivy_utils import WidgetSide, AutoUnbindBehavior, WIDGET_SIDE_CURSOR, get_cursor_zone
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.mouse_manager import cursor_manager
-from typing import Optional, List, Tuple
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
-from ..mdi_button import MDIButtonLock, MDIButtonExpand, MDIButtonClose
+from libs.uix.mdi.mdi_button import MDIButtonLock, MDIButtonExpand, MDIButtonClose
 
 
 class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
@@ -36,14 +36,14 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         if from_layout_mode:
             self._transform_to_that_layout_mode(from_layout_mode)
 
-    def sync_mdi_list_showed(self, mdi_list_showed: List[MDIWindow]):
+    def sync_mdi_list_showed(self, _mdi_list_showed: List[MDIWindow]):
         self.dispatch("on_layout_changed", self.get_layout())
 
     def on_layout_changed(self, layout):
         pass
 
     def get_layout(self):
-        return [mdi for mdi in reversed(self.mdi_container.mdi_list_showed)]
+        return list(reversed(self.mdi_container.mdi_list_showed))
 
     def load_layout(self, layout):
         self.mdi_container.clear_widgets()
@@ -205,7 +205,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         return (mdi.title_bar_label.collide_point(*touch.pos) or
                 self._widget_side_now != WidgetSide.VOID)
 
-    def _on_double_tap(self, touch, mdi: MDIWindow) -> bool:
+    def _on_double_tap(self, _touch, _mdi: MDIWindow) -> bool:
         return True
 
     def _on_title_right_click(self, touch, mdi: MDIWindow) -> bool:
@@ -264,7 +264,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         cursor_manager.set_force(True)
         return True
 
-    def _start_move(self, touch, mdi: MDIWindow, side) -> bool:
+    def _start_move(self, touch, mdi: MDIWindow, _side) -> bool:
         self._moving = True
         self._start_mouse_pos = touch.pos
         self._start_mdi_pos = mdi.pos[:]
@@ -274,26 +274,26 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         cursor_manager.set_force(True)
         return True
 
-    def _can_start_resize(self, touch, mdi, side) -> bool:
+    def _can_start_resize(self, _touch, _mdi, _side) -> bool:
         return False
 
-    def _can_start_move(self, touch, mdi, side) -> bool:
+    def _can_start_move(self, _touch, _mdi, _side) -> bool:
         return False
 
-    def _apply_resize(self, dt):
+    def _apply_resize(self, _):
         mdi = self._focused_mdi()
         if mdi and self._resize_side is not None:
             self.resize_mdi(self._resize_side, mdi, self._last_mouse_pos)
 
-    def _apply_move(self, dt):
+    def _apply_move(self, _):
         mdi = self._focused_mdi()
         if mdi and self._moving:
             self.move_mdi(mdi, self._start_mdi_pos, self._start_mouse_pos, self._last_mouse_pos)
 
-    def on_start_resize(self, mdi): pass
-    def on_stop_resize(self, mdi): pass
-    def on_start_move(self, mdi): pass
-    def on_stop_move(self, mdi): pass
+    def on_start_resize(self, mdi): return
+    def on_stop_resize(self, mdi): return
+    def on_start_move(self, mdi): return
+    def on_stop_move(self, mdi): return
 
     def show_mdi(self, mdi):
         state = mdi.state.get("layout_state", {})
@@ -302,12 +302,12 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             mdi.clear_layout_state()
             mdi.set_layout_state(layout=self.layout_state_key)
 
-    def hide_mdi(self, mdi): pass
-    def move_mdi(self, mdi, start_mdi_pos, start_mouse_pos, now_mouse_pos): pass
-    def resize_mdi(self, side, mdi_now, mouse_pos): pass
-    def on_mdi_focus(self, mdi): pass
+    def hide_mdi(self, mdi): return
+    def move_mdi(self, mdi, start_mdi_pos, start_mouse_pos, now_mouse_pos): return
+    def resize_mdi(self, side, mdi_now, mouse_pos): return
+    def on_mdi_focus(self, mdi): return
 
-    def _transform_to_that_layout_mode(self, from_layout_mode):
+    def _transform_to_that_layout_mode(self, _from_layout_mode):
         self.mdi_container.clear_widgets()
 
     def _focused_mdi(self) -> Optional[MDIWindow]:

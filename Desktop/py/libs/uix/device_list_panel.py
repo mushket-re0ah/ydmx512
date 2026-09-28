@@ -1,8 +1,8 @@
 from kivy.properties import ObjectProperty, StringProperty, ColorProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
-from libs.uix.layouts import SectionPanel
 from kivy.lang import Builder
+from libs.uix.layouts import SectionPanel
 
 Builder.load_string(
 """

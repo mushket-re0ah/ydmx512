@@ -1,8 +1,8 @@
+from kivy.utils import get_hex_from_color
 from libs.uix.input import HEXAInput
 from libs.uix.database_table import ColumnConfigTemplates
-from ui.mdi.library.table import LibraryTable
-from kivy.utils import get_hex_from_color
 from database import db
+from ui.mdi.library.table import LibraryTable
 
 
 _columns_config = [
@@ -13,8 +13,8 @@ _columns_config = [
         header_text="Тип",
         value_getter=lambda db_row: "Динамический" if db_row.is_dynamic else "Статический",
         sync_setter_widget=lambda widget, config, db_row, value: setattr(
-            widget, 
-            config.data_attribute, 
+            widget,
+            config.data_attribute,
             "Динамический" if db_row.is_dynamic else "Статический",
         ),
         sync_setter_row=lambda db_row, config, widget, value: db_row.edit(is_dynamic=value == "Динамический"),

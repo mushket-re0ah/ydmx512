@@ -1,6 +1,6 @@
-from . import render_interpolation
-from .misc import XYGrid, DMXRenderDot, InterpolationType
 from typing import Optional, List
+from libs.dmx512_render import render_interpolation
+from libs.dmx512_render.misc import XYGrid, DMXRenderDot, InterpolationType
 from libs import logger
 
 
@@ -93,7 +93,7 @@ class RenderPipeline:
                 spline_dots_x = [dot_x, next_dot_x]
                 spline_dots_y = [dot_y, next_dot_y]
                 next_dot_i = i - 1
-                while (i < len(dots)):
+                while i < len(dots):
                     next_dot_i = i
                     spline_dots_x.append(dots[i][0])
                     spline_dots_y.append(dots[i][1])

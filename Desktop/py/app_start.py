@@ -1,7 +1,9 @@
-from libs import logger
-from libs.sub_proc import exit_code
 from typing import Optional
 import sys
+import os
+from libs import logger
+from libs.sub_proc import exit_code
+from misc import constants
 
 
 def import_cython_files() -> int:
@@ -14,13 +16,13 @@ def import_cython_files() -> int:
             from misc.build_cython import do_cythonize
             try:
                 do_cythonize()
-            except Exception as e:
+            except Exception:
                 logger.error(exc_info=True)
                 return exit_code.EXIT_FAILURE
             logger.info("cythonized successful")
             import libs.dmx512_render.render_interpolation
             import libs.uix.color_selector.colorpicker_utils
-        except Exception as e:
+        except Exception:
             logger.error(exc_info=True)
             return exit_code.EXIT_FAILURE
     return exit_code.EXIT_SUCCESS
@@ -30,7 +32,7 @@ def init_config_kivy() -> int:
     try:
         from misc import config_kivy
         config_kivy.init()
-    except Exception as e:
+    except Exception:
         logger.error(exc_info=True)
         return exit_code.EXIT_FAILURE
     return exit_code.EXIT_SUCCESS
@@ -43,7 +45,7 @@ def init_database() -> int:
     except SystemExit as e:
         logger.error(exc_info=True)
         return e.code
-    except Exception as e:
+    except Exception:
         logger.error(exc_info=True)
         return exit_code.EXIT_FAILURE
     return exit_code.EXIT_SUCCESS
@@ -53,13 +55,12 @@ def create_app() -> Optional["DesktopApp"]:
     try:
         from app import DesktopApp
         return DesktopApp()
-    except Exception as e:
+    except Exception:
         logger.error(exc_info=True)
         return None
 
 
 def kivy_execute() -> int:
-    from libs.sub_proc import exit_code
     logger.info("==== Запуск kivy приложения... ====")
 
     if constants.PROFILING_CPU:
@@ -110,7 +111,7 @@ def kivy_execute() -> int:
     except SystemExit as e:  # ловим sys.exit
         exit_status = e.code
         raise
-    except Exception as e:
+    except Exception:
         logger.error(exc_info=True)
         exit_status = exit_code.EXIT_FAILURE
     finally:
@@ -126,9 +127,6 @@ def kivy_execute() -> int:
 
 
 def backup_menu_execute():
-    from libs.sub_proc import exit_code
-    from libs import logger
-    import sys
     exit_status = exit_code.EXIT_SUCCESS
     logger.info("==== Запуск backup menu приложения... ====")
 
@@ -151,62 +149,40 @@ def backup_menu_execute():
     return exit_status
 
 
-if __name__ == "__main__":
-    import faulthandler
-    import signal
+def main():
+    try:
+        import faulthandler
+        import signal
 
-    faulthandler.register(
-        signal.SIGUSR1,
-        all_threads=True,
-        chain=False,
-    )
+        faulthandler.register(
+            signal.SIGUSR1,
+            all_threads=True,
+            chain=False,
+        )
+    except:
+        pass
 
-    from libs.sub_proc import exit_code
-    from libs import logger
-    from misc import constants
     logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES, constants.SESSION_LOG_ENV_KEY)
-    import os
-    from misc import constants
     exec_backup_menu = os.environ.get(constants.BACKUP_MENU_ENV_KEY)
     exec_backup_menu = exec_backup_menu == constants.BACKUP_MENU_ENV_KEY_TRUE
 
+    exit_status = exit_code.EXIT_SUCCESS
     if exec_backup_menu:
         try:
             exit_status = backup_menu_execute()
-        except Exception as e:
+        except Exception:
             exit_status = exit_code.EXIT_FAILURE
             logger.error(exc_info=True)
         logger.info("==== Завершение backup menu приложения... ====")
-        sys.exit(exit_status)
     else:
         try:
             exit_status = kivy_execute()
-        except Exception as e:
+        except Exception:
             exit_status = exit_code.EXIT_FAILURE
             logger.error(exc_info=True)
         logger.info("==== Завершение kivy приложения... ====")
 
-        # import sys
-        # import threading
-        # import traceback
+    sys.exit(exit_status)
 
-
-        # logger.info("=== THREADS BEFORE EXIT ===")
-
-        # frames = sys._current_frames()
-
-        # for thread in threading.enumerate():
-        #     logger.info(
-        #         f"thread={thread.name!r}, "
-        #         f"ident={thread.ident}, "
-        #         f"native_id={thread.native_id}, "
-        #         f"daemon={thread.daemon}, "
-        #         f"alive={thread.is_alive()}"
-        #     )
-
-        #     frame = frames.get(thread.ident)
-        #     if frame:
-        #         logger.info(
-        #             "".join(traceback.format_stack(frame))
-        #         )
-        sys.exit(exit_status)
+if __name__ == "__main__":
+    main()

@@ -1,14 +1,10 @@
-from libs.uix.input import HoverInput
-from libs.uix.behaviors.recycle_dropdown import RecycleDropdownBehavior
-from kivy.properties import (
-    ObjectProperty, StringProperty, BooleanProperty, NumericProperty
-)
-from libs.uix.recycle_spinner import SpinnerHoverButton
-from libs.uix.recycle_dropdown import RecycleDropdown
-from kivy.uix.widget import Widget
-from libs.uix.behaviors.modal import ModalBehavior
+from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.behaviors import FocusBehavior
 from kivy.clock import Clock
+from libs.uix.input import HoverInput
+from libs.uix.behaviors.recycle_dropdown import RecycleDropdownBehavior
+from libs.uix.recycle_spinner import SpinnerHoverButton
+from libs.uix.recycle_dropdown import RecycleDropdown
 
 
 class SnippetDropdown(RecycleDropdown):
@@ -42,5 +38,5 @@ class Snippet(RecycleDropdownBehavior, HoverInput):
         if self.opened and not self.focus:
             self.opened = False
 
-    def on_text(self, _, text: str):
+    def on_text(self, _, _text: str):
         self._update_filtered_values()

@@ -1,8 +1,8 @@
+from typing import Optional
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty, NumericProperty
 from kivy.core.window import Window
 from kivy.animation import Animation
-from typing import Optional
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.kivy_utils import AutoUnbindBehavior
 
@@ -15,7 +15,6 @@ class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
     is_blocked_keyboard = True
 
     __events__ = ("on_open", "on_dismiss")
-
     def __init__(self, **kwargs):
         self._trigger_reposition = Clock.create_trigger(self._reposition, -1)
         self.bind(size=self._trigger_reposition, pos=self._trigger_reposition)
@@ -66,8 +65,7 @@ class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
         y = max(0, min(y, win.height - self.height))
         return x, y
 
-    def _reposition(self, *largs):
-        win = Window
+    def _reposition(self, *_):
         if self.pos_fix is not None:
             wx, wy = self.pos_fix
             wy -= self.height

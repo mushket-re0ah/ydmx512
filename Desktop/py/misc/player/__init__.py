@@ -1,13 +1,13 @@
 from kivy.properties import ObjectProperty
 from libs.beat_counter import BeatCounter
-from misc.player.status import PlayerStatus
-from misc.player.render_utils import SoftEffectsRenderer
 from libs.properties import EnumProperty, BindableObjectProperty
 from libs.serialize import SerializableMixin
 from libs.kivy_utils import AutoUnbindBehavior
-from misc import constants
 from libs.kivy_json_orm.fields import *
 from libs.midi import midi
+from misc.player.status import PlayerStatus
+from misc.player.render_utils import SoftEffectsRenderer
+from misc import constants
 
 
 class BasePlayer(SerializableMixin, AutoUnbindBehavior):
@@ -43,7 +43,7 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
         if self.parent_row:
             self.parent_row._table.save()
 
-    def on_remove(self, instance):
+    def on_remove(self, _):
         self.unbind_all()
 
     def on_midi_note_on(self, _, channel: int, intensive: int):
@@ -85,7 +85,7 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
             self._remove_beat_counter()
             self.soft_renderer.reset(status)
 
-    def on_soft_play(self, _, soft_play):
+    def on_soft_play(self, _, _soft_play):
         self.soft_renderer.reset(PlayerStatus.STOP)
 
     beat_counter = BindableObjectProperty(

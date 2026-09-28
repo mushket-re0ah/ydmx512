@@ -24,7 +24,7 @@ class MidiDevice(EventDispatcher):
         self.connection = None
 
     def check_messages(self):
-        from . import midi
+        from libs.midi import midi
         if self.connection:
             msg = self.connection.get_message()
             if msg:

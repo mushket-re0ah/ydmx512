@@ -1,22 +1,19 @@
-from kivy.app import App
-from kivy.lang import Builder
-from kivy.core.window import Window
-from kivy.uix.boxlayout import BoxLayout
 from pathlib import Path
 import shutil
+import sys
+from kivy.app import App
+from kivy.lang import Builder
+from kivy.uix.boxlayout import BoxLayout
 from kivy.core.text import Label as CoreLabel
-from kivy.properties import ObjectProperty, ListProperty, StringProperty
-from kivy.graphics import Rectangle, Color
-from typing import List
+from kivy.properties import StringProperty, ObjectProperty
 from libs import logger
-from misc import constants
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
-import libs.uix.filelist
-import libs.uix.recycle_restricted_scrollview
-import sys
+import libs.uix.filelist  # lazy kv import initialize
+import libs.uix.recycle_restricted_scrollview  # lazy kv import initialize
 from libs.sub_proc import exit_code
+from misc import constants
 
 
 Builder.load_string(
@@ -51,6 +48,7 @@ Builder.load_string(
 
 class Root(BoxLayout):
     error_msg = StringProperty("")
+    filelist = ObjectProperty()
 
     def on_kv_post(self, _):
         if constants.DATABASE_BACKUPS_PATH.is_dir():
@@ -59,9 +57,8 @@ class Root(BoxLayout):
         else:
             self.error_msg = "Отсутствует директория с резервными копиями"
 
-    def on_filelist_submit(self, filelist, path: Path):
+    def on_filelist_submit(self, _, path: Path):
         database_dir = constants.DATABASE_PATH
-        backup_dir = constants.DATABASE_BACKUPS_PATH
         if database_dir.is_dir():
             logger.info("Удаление текущей версии БД")
             shutil.rmtree(database_dir)
@@ -107,4 +104,4 @@ class BackupApp(KeyboardBehavior, App):
         """
                 Отключение меню настроек на F1
         """
-        pass
+        return

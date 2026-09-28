@@ -1,14 +1,14 @@
+from typing import Optional
 from kivy.properties import ObjectProperty, AliasProperty
 from kivy.clock import Clock
-from typing import Tuple
-from misc import constants
 from libs.dmx512 import dmx512
+from libs.beat_counter import BeatCounter
 from database.fixture_param import RowFixtureParam
 from database import db
 from misc.player.status import PlayerStatus
 from misc.player import BasePlayer
 from misc.player import render_utils
-from libs.beat_counter import BeatCounter
+from misc import constants
 
 
 class DesktopUixPlayer(BasePlayer):
@@ -53,11 +53,11 @@ class DesktopUixPlayer(BasePlayer):
         if self.soft_play and (self.is_release or self.is_attack):
             self.set_value_delay(self.start_value_1, self.start_value_2)
 
-    def on_start(self, beat_counter):
+    def on_start(self, _):
         self.start_value_1 = self.desktop_uix.value_1
         self.start_value_2 = self.desktop_uix.value_2
 
-    def on_stop(self, beat_counter):
+    def on_stop(self, _):
         if self.soft_play and self.is_release:
             self.set_value_delay(self.start_value_1, self.start_value_2)
 
@@ -76,7 +76,7 @@ class DesktopUixPlayer(BasePlayer):
 
         is_attack = self.status == PlayerStatus.ATTACK
         total_frames = self.FRAME_COUNT
-        vals = []
+        vals = [None, None]
 
         for i in (1, 2):
             val = self.soft_renderer.get_soft_value(
@@ -84,16 +84,17 @@ class DesktopUixPlayer(BasePlayer):
                 getattr(duix, f"value_{i}"),
                 getattr(duix, f"value_{i}_minimum")
             )
-            if val is None:
-                return
-            vals.append(self.apply_modifiers(val, getattr(duix, f"fixture_param_{i}")))
+            if val is not None:
+                vals[i - 1] = self.apply_modifiers(val, getattr(duix, f"fixture_param_{i}"))
 
         self.set_value_delay(*vals)
 
-    def set_value_delay(self, value_1: int, value_2: int):
+    def set_value_delay(self, value_1: Optional[int], value_2: Optional[int]):
         def set_value(_):
-            self.desktop_uix.value_1 = value_1
-            self.desktop_uix.value_2 = value_2
+            if value_1 is not None:
+                self.desktop_uix.value_1 = value_1
+            if value_2 is not None:
+                self.desktop_uix.value_2 = value_2
         Clock.schedule_once(set_value, -1)
 
     def set_force_delay(self, universe: int, address: int, value: int):
@@ -133,12 +134,10 @@ class DesktopUixPlayer(BasePlayer):
     force_full_addr_1 = AliasProperty(
         lambda self: self._force_full_addr_1,
         set_force_full_addr_1,
-        cache=True
     )
     force_full_addr_2 = AliasProperty(
         lambda self: self._force_full_addr_2,
         set_force_full_addr_2,
-        cache=True
     )
 
     def update_force_value(self, _):

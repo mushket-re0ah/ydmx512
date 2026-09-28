@@ -61,7 +61,7 @@ class RecycleDropdownBehavior(AutoUnbindBehavior):
         if self._dropdown:
             self._dropdown.update_values()
 
-    def on_opened(self, instance, value):
+    def on_opened(self, _, value):
         if value:
             self._dropdown.open(self)
         else:
@@ -82,7 +82,7 @@ class RecycleDropdownBehavior(AutoUnbindBehavior):
         if touch.button == "scrollup":
             self._do_scroll(1)
             return True
-        elif touch.button == "scrolldown":
+        if touch.button == "scrolldown":
             self._do_scroll(-1)
             return True
         return False
@@ -115,7 +115,7 @@ class RecycleDropdownBehavior(AutoUnbindBehavior):
                      on_dismiss=self._close_dropdown)
         Clock.schedule_once(self.scroll_to_selected, 0)
 
-    def scroll_to_selected(self, *args):
+    def scroll_to_selected(self, *_):
         sv = self._dropdown.scrollview
         values = self.filter_values_getter(self)
         if self.selected in values:
@@ -125,13 +125,13 @@ class RecycleDropdownBehavior(AutoUnbindBehavior):
         self.__build_dropdown()
         self.opened = True
 
-    def _close_dropdown(self, *largs):
+    def _close_dropdown(self, *_):
         if self._dropdown:
             self.unbind_from(self._dropdown)
         self.opened = False
         self._dropdown = None
 
-    def _on_dropdown_select(self, instance, data, *largs):
+    def _on_dropdown_select(self, _instance, data, *_):
         self.selected = data
         self.dispatch("on_select", data)
         self._trigger_set_host_value()

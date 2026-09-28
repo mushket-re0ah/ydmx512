@@ -1,9 +1,9 @@
 from misc import constants
 from database import db
+from database.fixture_param import RowFixtureParam
 from libs.serialize import SerializableMixin
 from libs.dmx512_render import InterpolationType
-from database.fixture_param import RowFixtureParam
-from libs.kivy_json_orm.fields import *
+from libs.kivy_json_orm.fields import StringField, ListField
 from libs.asset_manager import FileAssetManager
 
 

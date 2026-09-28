@@ -1,7 +1,8 @@
-from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP
 from typing import Optional
-from libs.uix.input import HoverInput
 from kivy.lang import Builder
+from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP
+from libs.uix.input import HoverInput
+
 Builder.load_string("""
 <HotkeyInput>:  # HoverInput
 """
