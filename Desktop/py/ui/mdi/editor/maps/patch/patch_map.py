@@ -61,7 +61,7 @@ class PatchEditorMap(MenuPanel):
     def on_add_patch(self, _, patch: RowPatch):
         workspace = self.workspace_manager.create_workspace(patch.workspace)
         workspace.add_widget(EditorPatchUi(
-                patch_map=workspace,
+                map_layout=workspace,
                 patch_map_editor=self,
                 patch=patch
             )
@@ -102,7 +102,7 @@ class PatchEditorMap(MenuPanel):
             for patch in patch_list:
                 patch_ui = EditorPatchUi(
                     create_animation=False,
-                    patch_map=workspace,
+                    map_layout=workspace,
                     patch_map_editor=self,
                     patch=patch
                 )

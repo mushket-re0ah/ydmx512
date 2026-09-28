@@ -50,7 +50,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
     def on_add_patch(self, _, patch: RowPatch):
         workspace = self.workspace_manager.create_workspace(patch.workspace)
         workspace.add_widget(PatchUi(
-                patch_map=workspace,
+                map_layout=workspace,
                 patch=patch
             )
         )
@@ -113,7 +113,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
             for patch in patch_list:
                 workspace.add_widget(PatchUi(
                         create_animation=False,
-                        patch_map=workspace,
+                        map_layout=workspace,
                         patch=patch
                     )
                 )

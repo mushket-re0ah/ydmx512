@@ -4,14 +4,17 @@ from typing import Tuple
 from kivy.lang import Builder
 from libs.uix.map_layout import MapLayout
 from misc import colorscheme as cs
+from misc import constants
+from math import floor, ceil
 
 
 Builder.load_string("""
 <EditorMapLayout>:
     selectable: False
-    max_grid_size: [constants.MAP_LAYOUT_MAX_SIZE, constants.MAP_LAYOUT_MAX_SIZE]
-    grid_padding: [2, 2, 2, 2]
-    grid_spacing: [4, 4]
+    cell_size: constants.MAP_LAYOUT_CELL_SIZE
+    max_grid_size: constants.MAP_LAYOUT_MAX_GRID_SIZE
+    grid_padding: constants.MAP_LAYOUT_GRID_PADDING
+    grid_spacing: constants.MAP_LAYOUT_GRID_SPACING
     canvas.before:
         Color:
             rgba: root.outbound_background_color
@@ -31,10 +34,7 @@ class EditorMapLayout(MapLayout):
     _offset = ReferenceListProperty(_offset_x, _offset_y)
 
     def cell_to_pixel(self, cell_x: int, cell_y: int) -> Tuple[float, float]:
-        return super().cell_to_pixel(
-            cell_x - self._offset_x,
-            cell_y - self._offset_y,
-        )
+        return super().cell_to_pixel(cell_x - self._offset_x, cell_y - self._offset_y)
 
     def pixel_to_cell(self, x, y, ignore_spaces=False, allow_outbound=False):
         result = super().pixel_to_cell(x, y, ignore_spaces, allow_outbound)
@@ -51,7 +51,7 @@ class EditorMapLayout(MapLayout):
         if not widgets:
             self._offset = (0, 0)
             self._grid_size = (0, 0)
-            self.max_grid_size = (0, 0)
+            # self.max_grid_size = (0, 0)
             self.wrap_layout.size = (
                 max(self.scrollview.width, padding_w),
                 max(self.scrollview.height, padding_h),
@@ -70,7 +70,7 @@ class EditorMapLayout(MapLayout):
 
         columns = max_x - min_x
         rows = max_y - min_y
-        self.max_grid_size = (columns, rows)
+        # self.max_grid_size = (columns, rows)
         self._grid_size = (columns, rows)
 
         grid_w, grid_h = self.grid_size_to_pixel(columns, rows)
@@ -80,6 +80,53 @@ class EditorMapLayout(MapLayout):
         if new_offset != old_offset:
             for w in widgets:
                 w._trigger_update_geometry()
+
+    def _draw_grid(self, _):
+        if not self.layout:
+            return
+
+        if not self.grid_show:
+            self._grid_render_size = (0, 0)
+            return
+
+        step_x = self._step_x
+        step_y = self._step_y
+
+        if step_x <= 0 or step_y <= 0:
+            self._grid_render_size = (0, 0)
+            return
+
+        # Пиксельная позиция viewport внутри content.
+        scrollable_width = max(0, self.layout.width - self.scrollview.width)
+        scrollable_height = max(0, self.layout.height - self.scrollview.height)
+
+        max_grid_w, max_grid_h = self.grid_size_to_pixel(self._columns, self._rows)
+
+        visible_x0 = self.scrollview.scroll_x * scrollable_width
+        visible_x1 = min(max_grid_w, visible_x0 + self.scrollview.width)
+
+        visible_y0 = (1.0 - self.scrollview.scroll_y) * scrollable_height
+        visible_y1 = min(max_grid_h, visible_y0 + self.scrollview.height)
+
+        rect_left = floor(visible_x0 / step_x) * step_x
+        rect_bottom = floor(visible_y0 / step_y) * step_y
+
+        render_size = (
+            max(0, ceil((visible_x1 - rect_left) / step_x)) * step_x,
+            max(0, ceil((visible_y1 - rect_bottom) / step_y)) * step_y,
+        )
+
+        texture = self._get_grid_texture()
+        if render_size[0] > 0 and render_size[1] > 0:
+            texture.uvsize = (
+                render_size[0] / step_x,
+                render_size[1] / step_y,
+            )
+
+        self._grid_texture = texture
+        self._grid_render_pos = (rect_left, rect_bottom)
+        self._grid_render_size = render_size
+        self.property("_grid_texture").dispatch(self)
 
 
 class WorkspaceEditorMapLayout(EditorMapLayout, WorkspaceBehavior):

@@ -52,9 +52,12 @@ MidiDevices = _cs(
     fg=_h("#99FFFFFF"),
 )
 
+BaseDatabaseGridItem = _cs(
+    bg_delete=_h("#FF0000FF"),
+)
+
 PatchUi = _cs(
     bg=_h("#252E32FF"),
-    bg_delete=_h("#FF0000FF"),
     addr_info_normal=_h("#EEEEEEFF"),
     addr_info_addr_conflict=_h("#FF0000FF"),
 )
@@ -75,7 +78,6 @@ PlaybackUi = _cs(
     bg_attack_normal=_h("#FFB200FF"),
     bg_release_normal=_h("#FF3333FF"),
     bg_edit_normal=_h("#FFFFFFFF"),
-    bg_delete=_h("#FF0000FF"),
 )
 
 EditorPlaybackUi = _cs(
