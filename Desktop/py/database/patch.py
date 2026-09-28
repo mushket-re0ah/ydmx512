@@ -80,7 +80,7 @@ class RowPatch(SceneRowMixin, DatabaseRow):
 
     def on_remove(self):
         self._table.check_address_conflict(self.universe)
-        self._table.update_address_info(universe)
+        self._table.update_address_info(self.universe)
 
     def on_workspace(self, _, workspace: int):
         self._table.dispatch("on_workspace_any_patch", self, workspace)

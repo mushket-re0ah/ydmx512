@@ -113,7 +113,10 @@ class CheckerOverlay(BoxLayout):
     def on_kv_post(self, _):
         super().on_kv_post(_)
         self.__create_address_titles()
-        self.checker.bind(hidden=self._trigger_update_patch_overlay)
+        self.checker.bind(
+            hidden=self._trigger_update_patch_overlay,
+            universe_now=self._trigger_update_patch_overlay
+        )
         db.patch.bind(address_info=self._trigger_update_patch_overlay)
         self.channel_sliders.scrollview.bind(
             scroll_element=self._trigger_update_patch_overlay
