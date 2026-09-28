@@ -1,12 +1,11 @@
-from ui.components.database_mdi_window import DatabaseMDIWindow
+from typing import Optional
+from dataclasses import dataclass, field
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from database.fixture import RowFixture
 from database.patch import RowPatch
 from database import db
-from typing import Optional
-from dataclasses import dataclass, field
-from libs.serialize import *
 from libs.kivy_json_orm.fields import table_ref_serializer, table_ref_deserializer
+from ui.components.database_mdi_window import DatabaseMDIWindow
 
 
 class MDIPatchList(DatabaseMDIWindow):
@@ -52,7 +51,7 @@ class MDIPatchList(DatabaseMDIWindow):
         }
         if start_address:
             kwargs["start_address"] = start_address
-        for i in range(count):
+        for _ in range(count):
             db.patch.add_row(**kwargs)
             if start_address:
                 kwargs["start_address"] += len(fixture.param_list_unpacked) + 1

@@ -2,9 +2,9 @@ from kivy.properties import (
     ObjectProperty, NumericProperty, BooleanProperty
 )
 from kivy.core.window import Window
+from kivy.lang import Builder
 from libs.uix.scroll_layout import ScrollLayout
 from libs.uix.behaviors.modal import ModalBehavior
-from kivy.lang import Builder
 
 Builder.load_string("""
 <RecycleDropdown>:  # ScrollLayout
@@ -63,11 +63,11 @@ class RecycleDropdown(ModalBehavior, ScrollLayout):
         return value
     value_to_host = ObjectProperty(_default_value_to_host)
 
-    def open(self, widget):
+    def open(self, widget=None, pos=None):
         self.update_values()
         super().open(widget)
 
-    def on_values(self, *args):
+    def on_values(self, *_):
         self.update_values()
 
     def on_cls_height(self, _, value: float):
@@ -81,7 +81,7 @@ class RecycleDropdown(ModalBehavior, ScrollLayout):
     def on_select(self, data: any):
         pass
 
-    def _reposition(self, *args):
+    def _reposition(self, *_):
         win = Window
         widget = self.attach_to
         if not widget or not widget.get_parent_window():
@@ -123,4 +123,4 @@ class RecycleDropdown(ModalBehavior, ScrollLayout):
         if place_below:
             self.top = wy
         else:
-            self.top = win.height if False else wtop + self.height
+            self.top = wtop + self.height

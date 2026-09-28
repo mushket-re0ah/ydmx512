@@ -1,11 +1,11 @@
+from typing import Union
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, AliasProperty, BooleanProperty
-from typing import Union
+from kivy.lang import Builder
 from libs.uix.behaviors.tooltip import TooltipBehavior
 from libs.uix import colorscheme as uix_cs
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
 from libs.mouse_manager import cursor_manager
-from kivy.lang import Builder
 from libs.animation import StatefulColorProperty, AnimationBehavior
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from libs.properties import ContextualNumericProperty
@@ -180,7 +180,7 @@ class PanRotaryButton(RotaryButton):
         super().on_kv_post(_)
         self._update_color()
 
-    def on_angle(self, _, angle: float):
+    def on_angle(self, _, _angle: float):
         self._update_color()
 
     def _update_color(self):

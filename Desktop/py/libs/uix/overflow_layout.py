@@ -1,12 +1,12 @@
+from typing import List
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, ListProperty
 from kivy.clock import Clock
+from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from libs.uix.layouts import ModalBoxLayout
 from libs.mouse_manager.hover import NestedHoverBehavior
-from typing import List
-from kivy.lang import Builder
 
 
 Builder.load_string("""
@@ -27,7 +27,7 @@ class OverflowLayoutModal(ModalBoxLayout):
         super().open(*args, **kwargs)
         self.bind_to(Window, mouse_pos=self.check_mouse_pos)
 
-    def on_dismiss(self, *args):
+    def on_dismiss(self, *_):
         self.clear_widgets()
         self.unbind_from(Window)
 

@@ -1,5 +1,5 @@
-from kivy.utils import get_color_from_hex as _kivy_get_color_from_hex
 from collections import namedtuple
+from kivy.utils import get_color_from_hex as _kivy_get_color_from_hex
 from libs.animation import ColorDiff
 
 
@@ -31,7 +31,7 @@ HoverSlider = _cs(
     background_color_hover=_h("#2C3223FF"),
     background_color_disabled=_h("#1C2225FF"),
     background_color_focused=_h("#33392AFF"),
-    
+
     value_track_color_normal=_h("#00FFFF99"),
     value_track_color_hover=_h("#00FFFFFF"),
     value_track_color_disabled=_h("#009999FF"),
@@ -47,7 +47,7 @@ Slider2D = _cs(
     dot_color_hover=_h("#00DD89FF"),
     dot_color_disabled=_h("#00AAAAFF"),
     dot_color_focused=_h("#FFFFFFFF"),
-    
+
     line_color_normal=_h("#00DDDDFF"),
     line_color_hover=_h("#00DD89FF"),
     line_color_disabled=_h("#00AAAAFF"),
@@ -79,12 +79,12 @@ RotaryButton = _cs(
     texture_color_hover_diff=ColorDiff(0, 0, -0x32, 0x00),  # FFFFCD
     texture_color_disabled_diff=ColorDiff(-0x55, -0x55, -0x55, 0x00),  # AAAAAA
     texture_color_focused_diff=ColorDiff(-0x32, -0x32, -0x66, 0x00),  # CDCD99
-    
+
     rotary_active_color_normal=_h("#AFFF80FF"),
     rotary_active_color_hover_diff=ColorDiff(-0x10, -0x10, -0x30, 0x00),  # 9FEF50FF
     rotary_active_color_disabled_diff=ColorDiff(-0x30, -0x20, -0x30, 0x00),  # 7FDF50FF
     rotary_active_color_focused_diff=ColorDiff(0x10, 0x00, 0x10, 0x00),  # BFFF90FF
-    
+
     rotary_passive_color_normal=_h("#2C3235FF"),
     rotary_passive_color_hover_diff=ColorDiff(0x00, 0x00, 0x00, 0x00),  # 2C3235FF
     rotary_passive_color_disabled_diff=ColorDiff(-0x10, -0x10, 0x0F, 0x00),  # 1C2244FF
@@ -106,12 +106,12 @@ HoverInput = _cs(
     background_color_hover=_h("#2C3227FF"),
     background_color_disabled=_h("#1C2225FF"),
     background_color_focused=_h("#1C2225FF"),
-    
+
     border_color_normal=_h("#00000000"),
     border_color_hover=_h("#BCC1C4FF"),
     border_color_disabled=_h("#000000FF"),
     border_color_focused=_h("#BCC1C4FF"),
-    
+
     foreground_color_normal=_h("#99FFFFFF"),
     foreground_color_hover=_h("#99FFFFFF"),
     foreground_color_disabled=_h("#99FFFFFF"),

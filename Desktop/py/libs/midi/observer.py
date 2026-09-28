@@ -1,8 +1,8 @@
-from kivy.event import EventDispatcher
-from kivy.properties import ListProperty
-from .device import MidiDevice
 from typing import List
 import rtmidi
+from kivy.event import EventDispatcher
+from kivy.properties import ListProperty
+from libs.midi.device import MidiDevice
 from libs import logger
 
 

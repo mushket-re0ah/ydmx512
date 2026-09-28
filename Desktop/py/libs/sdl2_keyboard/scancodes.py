@@ -645,19 +645,18 @@ _MODIFIER_KEYS = {
 def key_is_modifier(key: str) -> bool:
     return key.upper() in _MODIFIER_KEYS
 
-
-_VALIDED_KEYS = {key for key in SDL_SCANCODE_TO_KEYCODE_MAP.values()}
+_VALIDED_KEYS = set(SDL_SCANCODE_TO_KEYCODE_MAP.values())
 def key_is_valid(key: str) -> bool:
     return key.upper() in _VALIDED_KEYS
 
 
 def scancode_is_ctrl(scancode: int) -> bool:
-    return scancode == SDL_SCANCODE_LCTRL or scancode == SDL_SCANCODE_RCTRL
+    return scancode in (SDL_SCANCODE_LCTRL, SDL_SCANCODE_RCTRL)
 
 
 def scancode_is_shift(scancode: int) -> bool:
-    return scancode == SDL_SCANCODE_LSHIFT or scancode == SDL_SCANCODE_RSHIFT
+    return scancode in (SDL_SCANCODE_LSHIFT, SDL_SCANCODE_RSHIFT)
 
 
 def scancode_is_alt(scancode: int) -> bool:
-    return scancode == SDL_SCANCODE_LALT or scancode == SDL_SCANCODE_RALT
+    return scancode in (SDL_SCANCODE_LALT, SDL_SCANCODE_RALT)

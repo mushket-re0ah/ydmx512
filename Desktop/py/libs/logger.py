@@ -4,7 +4,6 @@
 логгирования.
 """
 from datetime import datetime
-from misc import constants
 from pathlib import Path
 import logging
 import os
@@ -15,7 +14,6 @@ DIR = None
 MAX_LOG_FILES = None
 FILEPATH = None
 LOG = None
-
 
 def init(logs_dir: Path, max_log_files=10, session_env_key: str=None):
     if not isinstance(session_env_key, str):
@@ -64,8 +62,6 @@ def init(logs_dir: Path, max_log_files=10, session_env_key: str=None):
 
 
 def clean_old_logs():
-    global DIR
-    global MAX_LOG_FILES
     log_files = sorted(DIR.glob("*.log"),
                        key=lambda f: f.stat().st_mtime)
     if len(log_files) > MAX_LOG_FILES:
@@ -82,25 +78,20 @@ def set_level(level: int):
 
 
 def debug(*args):
-    global LOG
     LOG.debug(", ".join([str(i) for i in args]))
 
 
 def info(*args):
-    global LOG
     LOG.info(", ".join([str(i) for i in args]))
 
 
 def warning(*args, exc_info=None):
-    global LOG
     LOG.warning(", ".join([str(i) for i in args]), exc_info=exc_info)
 
 
 def error(*args, exc_info=None):
-    global LOG
     LOG.error(", ".join([str(i) for i in args]), exc_info=exc_info)
 
 
 def critical(*args, exc_info=None):
-    global LOG
     LOG.critical(", ".join([str(i) for i in args]), exc_info=exc_info)

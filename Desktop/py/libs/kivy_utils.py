@@ -1,28 +1,28 @@
+from enum import Enum, auto
+from typing import Tuple, Iterable, Optional, Iterator
 from kivy.core.window import Window
 from kivy.event import EventDispatcher
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
-from enum import Enum, auto
-from typing import Tuple, Iterable, Optional
 from libs import logger
 
 
-def _values_differ(prop, old, new):
+def _values_differ(obj, prop, old, new):
     comparator = getattr(prop, "comparator", None)
     if comparator is not None:
         try:
             return not comparator(old, new)
         except Exception as e:
-            logger.warn(
-                'Property: Value comparison failed for {} with "{}". Consider setting '
-                'force_dispatch to True to avoid this.'.format(self, e))
+            logger.warning(
+                f'Property: Value comparison failed for {obj} with "{e}". Consider setting '
+                'force_dispatch to True to avoid this.')
             return True
     try:
         return not bool(old == new)
     except Exception:
-        logger.warn(
-            'Property: Value comparison failed for {} with "{}". Consider setting '
-            'force_dispatch to True to avoid this.'.format(self, e))
+        logger.warning(
+            f'Property: Value comparison failed for {obj} with "{e}". Consider setting '
+            'force_dispatch to True to avoid this.')
         return True
 
 
@@ -52,7 +52,7 @@ def atomic_setattrs(obj: EventDispatcher, dispatch=True, **kwargs):
         current = getattr(obj, key)
         setattr(obj, key, value)
         new = getattr(obj, key)
-        value_changed = _values_differ(prop, current, new)
+        value_changed = _values_differ(obj, prop, current, new)
         if value_changed or getattr(prop, 'force_dispatch', False):
             changed.append(key)
 
@@ -160,7 +160,7 @@ class ViewContextSaverMixin:
         else:
             self._bind_static(obj, prop, path, default, serialize, deserialize)
 
-    def _apply_value(self, obj, prop, key, default, serialize, deserialize):
+    def _apply_value(self, obj, prop, key, default, _, deserialize):
         """Восстанавливает значение из _saved_vc или устанавливает default."""
         if key in self._saved_vc:
             val = self._saved_vc[key]
@@ -200,7 +200,7 @@ class ViewContextSaverMixin:
         )
 
         # Отслеживаем изменение переменной (восстановление значения при переключении)
-        def on_var_change(instance, new_var):
+        def on_var_change(_, new_var):
             new_key = path.replace(f'@{var}', f'_{new_var}')
             self._apply_value(obj, prop, new_key, default, serialize, deserialize)
         self.bind(**{var: on_var_change})
@@ -225,12 +225,10 @@ class ViewContextSaverMixin:
             self.set_view_context(self._saved_vc)
 
 
-def walk_by_parents(widget: Widget) -> Widget:
+def walk_by_parents(widget: Widget) -> Iterator[Widget]:
     parent = widget.parent
-    while parent is not Window:
+    while parent is not Window and parent is not None:
         yield parent
-        if parent is None:
-            return None
         parent = parent.parent
 
 

@@ -1,3 +1,4 @@
+from typing import Tuple
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.boxlayout import BoxLayout
@@ -5,8 +6,7 @@ from kivy.properties import (
     NumericProperty, ListProperty, ObjectProperty, ReferenceListProperty,
 )
 from kivy.graphics.texture import Texture
-from .colorpicker_utils import get_color_data
-from typing import Tuple
+from libs.uix.color_selector.colorpicker_utils import get_color_data
 from kivy.lang import Builder
 
 Builder.load_string("""
@@ -156,7 +156,7 @@ class ColorSelectorSquare(Widget):
         # Создаем массив цветов
         width = self.texture.width
         height = self.texture.height
-        
+
         # data = get_color_data(width, height, self.lightness)
         data = get_color_data(
             width, height, self.lightness

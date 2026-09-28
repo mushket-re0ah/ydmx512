@@ -1,32 +1,27 @@
-from kivy.properties import (
-    StringProperty, NumericProperty, ReferenceListProperty, ColorProperty,
-    BooleanProperty, AliasProperty, ObjectProperty
-)
-from kivy.clock import Clock
-from kivy.utils import boundary
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from database.scene import RowScene, TableScene, SceneTableMixin, SceneRowMixin
-from database.patch import RowPatch
-from database.fixture_param import RowFixtureParam
+from typing import Optional
 from enum import Enum, auto
-from misc import constants
-from typing import Optional, Tuple
+from kivy.properties import AliasProperty
+from kivy.clock import Clock
+from database.scene import SceneTableMixin, SceneRowMixin
+from database.fixture_param import RowFixtureParam
 from database.desktop_uix.player import DesktopUixPlayer
-from libs.serialize import *
-from libs.properties import ClampedNumericProperty, EnumProperty
-from libs.kivy_json_orm.fields import *
+from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
+from libs.kivy_json_orm.fields import (
+    StringField, EnumField, ListField, NumericField, ColorField, BooleanField,
+    BindableObjectRefField, ClampedNumericField, ContextualNumericField,
+    NestedField
+)
 from misc.player.status import PlayerStatus
-from misc.player.render_utils import SoftEffectsRenderer
 
 
 class DesktopUixType(Enum):
-    rotary_button = auto()
-    slider2d = auto()
+    ROTARY_BUTTON = auto()
+    SLIDER_2D = auto()
 
 
 class RowDesktopUix(SceneRowMixin, DatabaseRow):
     title = StringField("")
-    uix_type = EnumField(DesktopUixType, DesktopUixType.rotary_button)
+    uix_type = EnumField(DesktopUixType, DesktopUixType.ROTARY_BUTTON)
     grid_pos = ListField([None, None])
     workspace = NumericField(0)
     color = ColorField((1, 1, 1, 1))
@@ -93,7 +88,7 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         lambda self: self._active, set_active
     )
 
-    def update_force_by_patch(self, *args):
+    def update_force_by_patch(self, *_):
         self.property("fixture_param_1_index").dispatch(self)
         self.property("fixture_param_2_index").dispatch(self)
         self.player.trigger_update_force_value()
@@ -102,8 +97,7 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         fparam_index = getattr(self, f"fixture_param_{n}_index")
         if self.patch and fparam_index is not None:
             return self.patch.param_list_unpacked[fparam_index]
-        else:
-            return None
+        return None
     fixture_param_1 = AliasProperty(
         lambda self: self.get_fixture_param(1),
         bind=["patch", "fixture_param_1_index"],
@@ -146,7 +140,7 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
     )
 
     value_2_allow = AliasProperty(
-        lambda self: self.fixture_param_2_index is not None and self.uix_type is DesktopUixType.slider2d,
+        lambda self: self.fixture_param_2_index is not None and self.uix_type is DesktopUixType.SLIDER_2D,
         bind=["fixture_param_2_index"]
     )
 

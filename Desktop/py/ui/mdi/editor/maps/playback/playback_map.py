@@ -1,16 +1,15 @@
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from libs.uix.layouts import MenuPanel
-from database import db
-from database.playback import RowPlayback
-from database.scene import RowScene
-from ui.mdi.editor.maps.playback.playback_ui import EditorPlaybackUi
-from operator import attrgetter
 from libs.uix.context_menu import (
     ContextMenu, ContextMenuTemplates
 )
-from ui.mdi.editor.maps.map_layout import EditorMapLayout
+from database import db
+from database.playback import RowPlayback
+from database.scene import RowScene
 from misc import constants
+from ui.mdi.editor.maps.playback.playback_ui import EditorPlaybackUi
+from ui.mdi.editor.maps.map_layout import EditorMapLayout
 
 
 Builder.load_file("ui/mdi/editor/maps/playback/playback_map.kv")
@@ -45,7 +44,7 @@ class PlaybackEditorMap(EditorMapLayout):
         if playback_ui is not None:
             playback_ui._self_destroy()
 
-    def on_scene_change(self, table, old_scene: RowScene, new_scene: RowScene):
+    def on_scene_change(self, _table, _old_scene: RowScene, _new_scene: RowScene):
         self.__init_map()
 
     def __init_map(self):
@@ -69,4 +68,3 @@ class PlaybackEditorMap(EditorMapLayout):
             ),
             ]
         )
-

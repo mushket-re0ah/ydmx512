@@ -1,16 +1,11 @@
-from kivy.uix.relativelayout import RelativeLayout
-from kivy.lang.builder import Builder
-from kivy.properties import (
-    ObjectProperty, ColorProperty, NumericProperty, StringProperty,
-    AliasProperty
-)
-from kivy.animation import Animation
-from libs.uix.map_layout import MapGridItemBehavior, MapLayout
-from libs.uix.button import ImageButton
-from database.playback import RowPlayback, PlaybackPlayer
 from typing import Tuple
-from misc import colorscheme as cs
+from kivy.lang.builder import Builder
+from kivy.properties import ObjectProperty, StringProperty, AliasProperty
+from kivy.animation import Animation
+from libs.uix.button import ImageButton
 from libs.animation import StatefulColorProperty
+from database.playback import RowPlayback, PlaybackPlayer
+from misc import colorscheme as cs
 from misc.player.status import PlayerStatus
 from ui.components.base_database_grid_item import BaseDatabaseGridItem
 
@@ -70,9 +65,10 @@ class BasePlaybackUi(BaseDatabaseGridItem):
         self.on_player_status(playback.player, playback.player.status)
 
     def on_player_status(self, _, status: PlayerStatus):
-        self.animation = Animation(bg=status.value.bg, duration=0.2).start(self)
+        self.animation = Animation(bg=status.value.bg, duration=0.2)
+        self.animation.start(self)
 
-    def _open_context_menu(self, pos: Tuple[float, float]):
+    def _open_context_menu(self, _pos: Tuple[float, float]):
         from ui.components.playback_ui.playback_context_menu import PlaybackContextMenu
         PlaybackContextMenu(
             playback_list=[self.playback]

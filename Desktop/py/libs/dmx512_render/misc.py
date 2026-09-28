@@ -1,7 +1,6 @@
-from typing import Optional, Tuple, Union, List
+from typing import Tuple, Union, List
 from enum import Enum, auto
-from dataclasses import dataclass, field
-import itertools
+from dataclasses import dataclass
 
 
 class XYGrid:
@@ -38,8 +37,7 @@ class XYGrid:
     def _boundary(self, value: Union[int, float], maximum: Union[int, float], allow_negative: bool) -> Union[int, float]:
         if allow_negative:
             return min(max(value, -maximum), maximum)
-        else:
-            return min(max(value, 0), maximum)
+        return min(max(value, 0), maximum)
 
 
 class InterpolationType(int, Enum):
@@ -50,8 +48,7 @@ class InterpolationType(int, Enum):
     def get_next_type(interp) -> "InterpolationType":
         if interp is InterpolationType.LINEAR:
             return InterpolationType.SPLINE
-        else:
-            return InterpolationType.LINEAR
+        return InterpolationType.LINEAR
 
 
 @dataclass(frozen=False)

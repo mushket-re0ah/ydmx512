@@ -1,11 +1,11 @@
-from kivy.uix.widget import Widget
 from typing import Optional, Callable, Dict
+from dataclasses import dataclass, field
+from operator import attrgetter
+from kivy.uix.widget import Widget
 from libs.kivy_json_orm.table_implementation import DatabaseRow
 from libs.uix.recycle_spinner import RecycleSpinner
 from libs.uix.input import HoverInput, HEXAInput, NumericInput
 from libs.uix.button import HoverButton, HoverToggleButton
-from dataclasses import dataclass, field
-from operator import attrgetter
 from libs.utils import merge_kwargs
 
 
@@ -44,10 +44,10 @@ class ColumnConfig:
     def default_value_setter(self, widget: Widget, db_row: DatabaseRow) -> str:
         setattr(widget, self.value_attribute, self.value_getter(db_row))
 
-    def default_sync_setter_widget(self, widget: Widget, _, db_row: DatabaseRow, value: any) -> Callable:
+    def default_sync_setter_widget(self, widget: Widget, _, db_row: DatabaseRow, _value: any) -> Callable:
         setattr(widget, self.value_attribute, self.value_getter(db_row))
 
-    def default_sync_setter_row(self, db_row: DatabaseRow, _, widget: Widget, value: any) -> Callable:
+    def default_sync_setter_row(self, db_row: DatabaseRow, _, widget: Widget, _value: any) -> Callable:
         db_row.edit(**{self.data_attribute: getattr(widget, self.value_attribute)})
 
     def default_sorting_rule(self, db_row: DatabaseRow) -> any:

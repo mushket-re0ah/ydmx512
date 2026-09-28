@@ -1,12 +1,12 @@
-from .label import RestrictedLabel
-from .input.hover_input import HoverInput
-from .input.numeric_input import NumericInput
-from .input.hotkey_input import HotkeyInput
-from .input.midi_input import MidiInput
-from .button import HoverToggleButton
-from .button import ColorToggleButton
-from .recycle_spinner import RecycleSpinner
 from kivy.lang import Builder
+from libs.uix.label import RestrictedLabel
+from libs.uix.input.hover_input import HoverInput
+from libs.uix.input.numeric_input import NumericInput
+from libs.uix.input.hotkey_input import HotkeyInput
+from libs.uix.input.midi_input import MidiInput
+from libs.uix.button import HoverToggleButton
+from libs.uix.button import ColorToggleButton
+from libs.uix.recycle_spinner import RecycleSpinner
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme

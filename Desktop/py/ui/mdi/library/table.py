@@ -26,7 +26,7 @@ class LibraryTable(DatabaseTableUi):
     def activate_menu_toggle(self):
         self.library.menu.toggle_brands.trigger_action(0)
 
-    def save_context(self, *args):
+    def save_context(self, *_):
         self.context.selected_rows = self.selected_rows
         self.context.size_hint_x = [i.size_hint_x for i in self.columns_config]
         self.context.scroll_y = self.scroll_layout.scrollview.scroll_y

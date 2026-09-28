@@ -1,8 +1,8 @@
-from kivy.properties import BooleanProperty, ObjectProperty, NumericProperty
+from kivy.properties import BooleanProperty, NumericProperty
 from kivy.clock import Clock
-from ui.components.playback_ui import BasePlaybackUi
-from kivy.graphics import *
+from kivy.graphics import Color, SmoothEllipse
 from misc import colorscheme as cs
+from ui.components.playback_ui import BasePlaybackUi
 
 
 class EditorPlaybackUi(BasePlaybackUi):

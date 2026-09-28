@@ -1,11 +1,6 @@
-from kivy.properties import ObjectProperty, StringProperty
 from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
+from libs.kivy_json_orm.fields import ClampedNumericField, StringField, ListField
 from misc import constants
-from enum import Enum, auto
-from typing import Optional, Tuple, Dict
-from libs.serialize import *
-from libs.properties import ClampedNumericProperty, EnumProperty
-from libs.kivy_json_orm.fields import *
 
 
 class RowMDIManager(DatabaseRow):

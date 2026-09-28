@@ -1,15 +1,15 @@
-from misc import constants
-from kivy.clock import Clock
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from kivy.properties import StringProperty, NumericProperty, ObjectProperty, AliasProperty
 import time
-from libs.midi import midi
-from libs.kivy_json_orm.fields import table_ref_serializer
-from libs.properties import ClampedNumericProperty
-from libs.beat_counter import BeatCounter
-from libs.kivy_json_orm.fields import *
-from libs.kivy_utils import detach_event_dispatcher
 from pathlib import Path
+from kivy.clock import Clock
+from kivy.properties import AliasProperty
+from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
+from libs.midi import midi
+from libs.beat_counter import BeatCounter
+from libs.kivy_json_orm.fields import (
+    StringField, NumericField, ClampedNumericField, RefField
+)
+from libs.kivy_utils import detach_event_dispatcher
+from misc import constants
 
 
 class RowScene(DatabaseRow):
@@ -23,8 +23,6 @@ class RowScene(DatabaseRow):
 
     def on_temp(self, _, temp: int):
         if self._table.scene_now is self:
-            from libs import logger
-            logger.debug(temp)
             self._table.scene_now_temp = temp
 
     def on_dimmer(self, _, dimmer: int):

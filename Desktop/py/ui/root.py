@@ -1,27 +1,27 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty
 
-import ui.components
 from ui.main_ribbon import MainRibbon
 from ui.components.database_workspace_mdi_container_manager import DatabaseWorkspaceMDIContainerManager
-import libs.uix.layouts
-import libs.uix.label
-import libs.uix.button
-import libs.uix.splitter
-import libs.uix.input
-import libs.uix.rotary_button
-import libs.uix.restricted_scrollview
-import libs.uix.recycle_restricted_scrollview
-import libs.uix.recycle_dropdown
-import libs.uix.recycle_spinner
-import libs.uix.scroll_layout
-import libs.uix.workspace_manager
-import libs.uix.context_menu
-import libs.uix.snippet
-import libs.uix.database_table
-import libs.uix.mdi.mdi_window
-import libs.uix.filelist
-import libs.uix.map_layout
+# pseudo lazy...
+import libs.uix.layouts  # lazy kv import initialize
+import libs.uix.label  # lazy kv import initialize
+import libs.uix.button  # lazy kv import initialize
+import libs.uix.splitter  # lazy kv import initialize
+import libs.uix.input  # lazy kv import initialize
+import libs.uix.rotary_button  # lazy kv import initialize
+import libs.uix.restricted_scrollview  # lazy kv import initialize
+import libs.uix.recycle_restricted_scrollview  # lazy kv import initialize
+import libs.uix.recycle_dropdown  # lazy kv import initialize
+import libs.uix.recycle_spinner  # lazy kv import initialize
+import libs.uix.scroll_layout  # lazy kv import initialize
+import libs.uix.workspace_manager  # lazy kv import initialize
+import libs.uix.context_menu  # lazy kv import initialize
+import libs.uix.snippet  # lazy kv import initialize
+import libs.uix.database_table  # lazy kv import initialize
+import libs.uix.mdi.mdi_window  # lazy kv import initialize
+import libs.uix.filelist  # lazy kv import initialize
+import libs.uix.map_layout  # lazy kv import initialize
 
 
 class Root(BoxLayout):

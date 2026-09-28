@@ -1,7 +1,6 @@
-from kivy.clock import Clock
 from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
 from libs.serialize import serializable_or_raw_serializer
-from libs.kivy_json_orm.fields import StringField, BooleanField, DictField, ObjectField
+from libs.kivy_json_orm.fields import StringField, DictField, ObjectField
 
 
 class RowMDIWindow(DatabaseRow):

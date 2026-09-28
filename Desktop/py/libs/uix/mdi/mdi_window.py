@@ -1,16 +1,16 @@
+from typing import Optional
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import (
     BooleanProperty, ObjectProperty, NumericProperty, StringProperty,
     ReferenceListProperty, DictProperty, AliasProperty
 )
+from kivy.lang import Builder
 from libs.kivy_utils import ViewContextSaverMixin
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.animation import AnimationBehavior
-from typing import Optional, Tuple
-from misc import colorscheme as cs
 from libs.kivy_utils import AutoUnbindBehavior
 from libs.animation import StatefulColorProperty
-from kivy.lang import Builder
+from misc import colorscheme as cs
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -93,12 +93,10 @@ class MDIWindow(ViewContextSaverMixin, KeyboardBehavior, AutoUnbindBehavior, Ani
         self.load_view_context(view_context)
 
     def on_window_minimum_width(self, _, value):
-        if self.width < value:
-            self.width = value
+        self.width = max(self.width, value)
 
     def on_window_minimum_height(self, _, value):
-        if self.height < value:
-            self.height = value
+        self.height = max(self.height, value)
 
     def on_kv_post(self, _):
         super().on_kv_post(_)

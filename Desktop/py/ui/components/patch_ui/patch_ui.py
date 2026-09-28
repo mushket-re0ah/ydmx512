@@ -1,13 +1,10 @@
-from kivy.uix.relativelayout import RelativeLayout
+from typing import Tuple
 from kivy.lang.builder import Builder
-from kivy.properties import ObjectProperty, ColorProperty, NumericProperty, AliasProperty
-from kivy.animation import Animation
-from libs.uix.map_layout import MapGridItemBehavior, MapLayout
+from kivy.properties import ObjectProperty, AliasProperty
 from libs.uix.button import HoverToggleButton
 from database.patch import RowPatch
-from typing import Tuple
-from misc import colorscheme as cs
 from ui.components.base_database_grid_item import BaseDatabaseGridItem
+from misc import colorscheme as cs
 
 
 Builder.load_file("ui/components/patch_ui/patch_ui.kv")
@@ -54,7 +51,7 @@ class BasePatchUi(BaseDatabaseGridItem):
             self.add_widget(self.button_pan)
             self.add_widget(self.button_tilt)
 
-    def _open_context_menu(self, pos: Tuple[float, float]):
+    def _open_context_menu(self, _pos: Tuple[float, float]):
         from ui.components.patch_ui.patch_context_menu import PatchContextMenu
         PatchContextMenu(
             patch=self.patch

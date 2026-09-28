@@ -1,61 +1,58 @@
+from typing import Any, Callable, Dict, Type, TypeVar
 from kivy.utils import get_hex_from_color
-from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
-from kivy.properties import Property, AliasProperty
 from kivy.event import EventDispatcher
 from libs.kivy_utils import atomic_setattrs
-from libs import logger
 
 
-T = TypeVar("T")
+_SerializableType = TypeVar("SerializableType", bound="SerializableMixin")
 
 
 def serializable_or_raw_serializer():
-    def serialize(self, value):
+    def serialize(_self, value):
         if isinstance(value, SerializableMixin):
             return value.serialize()
         return value
     return serialize
 
 def rounded_tuple_serializer(decimals, allow_none=False):
-    def serialize(self, value):
+    def serialize(_self, value):
         if allow_none:
             return tuple(None if v is None else round(v, decimals) for v in value)
         return tuple(round(v, decimals) for v in value)
     return serialize
 
 def hex_color_serializer():
-    def serialize(self, color):
+    def serialize(_self, color):
         return get_hex_from_color(color)
     return serialize
 
 def enum_serializer():
-    def serialize(self, value):
+    def serialize(_self, value):
         return value.value if value else None
     return serialize
 
 def enum_deserializer(enum_cls):
-    def deserialize(self, value):
+    def deserialize(_self, value):
         return enum_cls(value)
     return deserialize
 
 def nested_serializer():
-    def serialize(self, value):
+    def serialize(_self, value):
         return value.serialize() if value is not None else None
     return serialize
 
-def nested_deserializer(cls: Type[T]) -> Callable[[dict], T]:
-    def deserialize(self, value):
+def nested_deserializer(cls: Type[_SerializableType]) -> Callable[[dict], _SerializableType]:
+    def deserialize(_self, value):
         return cls.from_data(value) if value is not None else None
     return deserialize
 
 def list_of_serializable_serializer():
-    def serialize(self, value):
+    def serialize(_self, value):
         return [item.serialize() for item in value]
     return serialize
 
-def list_of_serializable_deserializer(item_cls: Type[T]):
-    def deserialize(self, value):
+def list_of_serializable_deserializer(item_cls: Type[_SerializableType]):
+    def deserialize(_self, value):
         return [item_cls.from_data(item) for item in value]
     return deserialize
 
@@ -91,9 +88,6 @@ class SerializableMixinProperty:
             self.deserialize = lambda self, v: v
 
 
-T = TypeVar("T", bound="SerializableMixin")
-
-
 class SerializationError(Exception):
     pass
 
@@ -103,10 +97,10 @@ class DeserializationError(Exception):
 
 
 class SerializableMeta(type):
-    def __new__(cls, name, bases, namespace):
-        new_cls = super().__new__(cls, name, bases, namespace)
-        new_cls.serialize = cls._create_serialize_method(new_cls)
-        new_cls.deserialize = cls._create_deserialize_method(new_cls)
+    def __new__(mcs, name, bases, namespace):
+        new_cls = super().__new__(mcs, name, bases, namespace)
+        new_cls.serialize = mcs._create_serialize_method(new_cls)
+        new_cls.deserialize = mcs._create_deserialize_method(new_cls)
         new_cls._get_serialization_keys(new_cls)
         return new_cls
 
@@ -186,13 +180,13 @@ class SerializableMixin(EventDispatcher, metaclass=SerializableMeta):
         super().__init__(**kwargs)
 
     @classmethod
-    def from_data(cls, data: Dict[str, Any]) -> T:
+    def from_data(cls, data: Dict[str, Any]) -> _SerializableType:
         return cls().deserialize(data)
 
-    def get_copy(self: T) -> T:
+    def get_copy(self: _SerializableType) -> _SerializableType:
         return self.__class__.from_data(self.serialize())
 
-    def set_default(self: T):
+    def set_default(self: _SerializableType):
         default = self.__class__()
         for key in self.serialization_keys:
             setattr(self, key, getattr(default, key))

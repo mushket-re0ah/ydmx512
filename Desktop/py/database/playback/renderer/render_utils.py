@@ -1,13 +1,7 @@
-from kivy.utils import boundary
-from database.patch import RowPatch
-from libs.dmx512_render import render_interpolation
-from database.fixture_param import RowFixtureParam
-from typing import List, Dict, Set
-from enum import Enum, auto
-from dataclasses import dataclass, field
+from typing import List, Dict
 from collections import defaultdict
-import itertools
-from libs.dmx512_render import DMXRenderDot, InterpolationType
+from database.patch import RowPatch
+from libs.dmx512_render import DMXRenderDot
 
 
 def get_rows_to_dots_all(

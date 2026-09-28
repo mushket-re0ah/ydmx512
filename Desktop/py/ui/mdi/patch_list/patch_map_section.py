@@ -1,15 +1,14 @@
+from collections import defaultdict
+from typing import List, Optional
 from kivy.properties import ObjectProperty, AliasProperty
 from kivy.lang import Builder
 from libs.uix.layouts import SectionPanel
 from libs.uix.workspace_manager import WorkspaceBehavior
-from ui.mdi.patch_list.patch_ui import PatchUi
+from libs.kivy_utils import AutoUnbindBehavior
 from database.scene import RowScene
-from collections import defaultdict
 from database import db
 from database.patch import RowPatch
-from typing import List, Optional
-from libs.kivy_utils import AutoUnbindBehavior
-from libs import logger
+from ui.mdi.patch_list.patch_ui import PatchUi
 
 
 Builder.load_file("ui/mdi/patch_list/patch_map_section.kv")
@@ -37,7 +36,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
             self.workspace_manager.workspace_now
         )
 
-    def _dispatch_selected(self, _, selected: List[PatchUi]):
+    def _dispatch_selected(self, _, _selected: List[PatchUi]):
         self.property("selected").dispatch(self)
 
     def on_workspace_opened(self, _, workspace_index: int, workspace: WorkspaceBehavior):
@@ -70,7 +69,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
         patch_ui.parent.remove_widget(patch_ui)
         workspace.add_widget(patch_ui)
 
-    def on_scene_change(self, table, old_scene: RowScene, new_scene: RowScene):
+    def on_scene_change(self, _table, _old_scene: RowScene, _new_scene: RowScene):
         self.__init_workspace_manager()
 
     def add_address_to_selected(self, value: int):

@@ -1,12 +1,10 @@
-from kivy.clock import Clock
 from ui.components.playback_ui import BasePlaybackUi
 from misc.player.status import PlayerStatus
 
 
 class PlaybackUiProcessing(BasePlaybackUi):
     def __init__(self, **kwargs):
-        self.trigger_save_pos = Clock.create_trigger(self._save_pos, 0)
-        self.bind(grid_pos=self.trigger_save_pos)
+        self.bind(grid_pos=self._save_pos)
         super().__init__(selectable=True, **kwargs)
 
     def on_release_play_button(self):

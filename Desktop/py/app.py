@@ -1,12 +1,13 @@
+import sys
+from typing import Optional
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.metrics import Metrics
 from kivy.core.window import Window
 from kivy.core.text import Label as CoreLabel
 from kivy.clock import Clock
-from kivy.properties import ObjectProperty, ListProperty, StringProperty
+from kivy.properties import ObjectProperty
 from libs import logger
-from misc import constants
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.serial.observer import observer as serial_observer
@@ -15,9 +16,8 @@ from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
 from database import db
 import presets
 from misc import event_thread
+from misc import constants
 from ui.root import Root
-from typing import Optional, List
-import sys
 
 
 class DesktopApp(KeyboardBehavior, App):
@@ -49,7 +49,8 @@ class DesktopApp(KeyboardBehavior, App):
         serial_observer.device_cls = DMXSerialDevice
 
         cursor_manager.init(lambda: db.misc.use_system_cursor)
-        _cur = lambda name: (constants.CURSOR_PATH / name).as_posix()
+        def _cur(name: str) -> str:
+            return (constants.CURSOR_PATH / name).as_posix()
         cursor_manager.register_software_cursor(
             arrow=_cur("arrow.png"),
             ibeam=_cur("ibeam.png"),
@@ -79,12 +80,12 @@ class DesktopApp(KeyboardBehavior, App):
             yappi.stop()
             threads = yappi.get_thread_stats()
             for thread in threads:
-                print(
-                    "Function stats for (%s) (%d)" % (thread.name, thread.id)
+                logger.info(
+                    f"Function stats for ({thread.name}) ({thread.id})"
                 )  # it is the Thread.__class__.__name__
                 for stat in yappi.get_func_stats(ctx_id=thread.id):
-                    print(f"{stat.module}.{stat.name}:" +
-                          f"{stat.lineno} {stat.ncall} {stat.ttot}")
+                    logger.info(f"{stat.module}.{stat.name}:" +
+                                f"{stat.lineno} {stat.ncall} {stat.ttot}")
         if constants.PROFILING_RAM:
             from pympler import muppy, summary
 
@@ -110,10 +111,10 @@ class DesktopApp(KeyboardBehavior, App):
                     left=self._window_position_trigger,
                     top=self._window_position_trigger)
 
-    def _on_window_size(self, dt):
+    def _on_window_size(self, _):
         db.misc.edit(window_size=Window.size)
 
-    def _on_window_position(self, dt):
+    def _on_window_position(self, _):
         db.misc.edit(window_position=(Window.left, Window.top))
 
     def __init_metrics(self):
@@ -143,15 +144,15 @@ class DesktopApp(KeyboardBehavior, App):
             Window.fullscreen = "auto"
             db.misc.edit(fullscreen=True)
 
-    def _on_window_maximize(self, window):
+    def _on_window_maximize(self, _):
         db.misc.edit(maximize=True)
         self._save_maximize = True
 
-    def _on_window_minimize(self, window):
+    def _on_window_minimize(self, _):
         self._if_window_minimize = True
         self._save_maximize = db.misc.maximize
 
-    def _on_window_restore(self, window):
+    def _on_window_restore(self, _):
         if self._if_window_minimize:
             db.misc.edit(maximize=self._save_maximize)
         else:
@@ -168,4 +169,4 @@ class DesktopApp(KeyboardBehavior, App):
         """
                 Отключение меню настроек на F1
         """
-        pass
+        return

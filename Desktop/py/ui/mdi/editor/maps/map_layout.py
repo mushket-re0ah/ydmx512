@@ -1,11 +1,10 @@
-from kivy.properties import NumericProperty, ColorProperty, ReferenceListProperty
-from libs.uix.workspace_manager import WorkspaceBehavior
 from typing import Tuple
+from math import floor, ceil
+from kivy.properties import NumericProperty, ColorProperty, ReferenceListProperty
 from kivy.lang import Builder
+from libs.uix.workspace_manager import WorkspaceBehavior
 from libs.uix.map_layout import MapLayout
 from misc import colorscheme as cs
-from misc import constants
-from math import floor, ceil
 
 
 Builder.load_string("""

@@ -1,4 +1,3 @@
-from libs.uix.label import RestrictedLabel
 from kivy.uix.widget import Widget
 from kivy.event import EventDispatcher
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
@@ -6,15 +5,16 @@ from kivy.properties import (
     ColorProperty, StringProperty, BooleanProperty, NumericProperty,
     ReferenceListProperty, AliasProperty, OptionProperty, ObjectProperty
 )
+from kivy.lang import Builder
+from libs.uix.label import RestrictedLabel
 from libs.mouse_manager.hover import HoverBehavior
 from libs.animation import AnimationBehavior
 from libs.uix.behaviors.tooltip import TooltipBehavior
 from libs.uix import colorscheme as uix_cs
-from misc import imgs_path
 from libs.mouse_manager import cursor_manager
 from libs.uix.layouts import ModalBoxLayout
-from kivy.lang import Builder
 from libs.animation import StatefulColorProperty
+from misc import imgs_path
 
 
 Builder.load_string("""
@@ -172,7 +172,7 @@ class ExpansiveButtonBehavior(ButtonBehavior):
         if pressed:
             self.pressed = True
             self.is_down = True
-            return pressed
+        return pressed
 
     def on_touch_up(self, touch):
         self.is_down = False
@@ -289,10 +289,10 @@ class OptionToggleButton(_ButtonBase, ExpansiveToggleButtonBehavior, RestrictedL
             if touch.button == "scrollup":
                 self.state = self.get_state_step(-1)
                 return True
-            elif touch.button == "scrolldown":
+            if touch.button == "scrolldown":
                 self.state = self.get_state_step(1)
                 return True
-            elif touch.button == "middle":
+            if touch.button == "middle":
                 self._open_state_menu()
                 return True
 
@@ -349,7 +349,7 @@ class OptionToggleButton(_ButtonBase, ExpansiveToggleButtonBehavior, RestrictedL
         modal.open(self)
         modal.scrollview.data = self._make_state_menu_data(modal)
 
-    def _make_state_menu_data(self, modal) -> list:
+    def _make_state_menu_data(self, _modal) -> list:
         return {}
 
 
@@ -402,14 +402,12 @@ class ArrowBehavior(EventDispatcher):
             center_x = right - (self.arrow_width / 2)
             if self.reverse_arrow:
                 return [left, y, center_x, top, right, y]
-            else:
-                return [left, top, right, top, center_x, y]
-        else:
-            center_y = self.center_y
-            if self.reverse_arrow:
-                return [left, center_y, right, top, right, y]
-            else:
-                return [right, center_y, left, top, left, y]
+            return [left, top, right, top, center_x, y]
+        center_y = self.center_y
+        if self.reverse_arrow:
+            return [left, center_y, right, top, right, y]
+        return [right, center_y, left, top, left, y]
+
     arrow_points = AliasProperty(
         _get_arrow_points,
         bind=[

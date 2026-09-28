@@ -12,7 +12,7 @@ def register_mouse_observer(callback):
         Clock.schedule_interval(_callbacks_trigger, 0)
         _initialized = True
     if callback in _callback_list:
-        raise Exception(f"register_mouse_observer: callback({callback}) already in _callback_list")
+        raise ValueError(f"register_mouse_observer: callback({callback}) already in _callback_list")
     _callback_list.append(callback)
 
 

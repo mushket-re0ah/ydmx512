@@ -1,3 +1,6 @@
+from typing import Tuple, Optional, Dict, Set, Iterator
+from math import ceil, floor
+from weakref import WeakKeyDictionary
 from kivy.properties import (
     ObjectProperty, NumericProperty, BooleanProperty,
     ListProperty, ColorProperty, ReferenceListProperty,
@@ -5,21 +8,17 @@ from kivy.properties import (
 )
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from kivy.lang import Builder
+from kivy.graphics.texture import Texture
 from libs.uix.workspace_manager import WorkspaceBehavior
 from libs.uix.scroll_layout import ScrollLayout
 from libs.mouse_manager.hover import NestedHoverBehavior
 from libs.animation import AnimationBehavior
-from typing import Tuple, Optional, Dict, Set, Iterator
 from libs.animation import StatefulColorProperty
-from kivy.lang import Builder
-from math import ceil, floor
-from kivy.graphics.texture import Texture
-from libs.kivy_utils import AutoUnbindBehavior, walk_by_children
+from libs.kivy_utils import AutoUnbindBehavior
 from libs.sdl2_keyboard import manager as keyboard_manager
 from libs.uix import colorscheme as uix_cs
-from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
-from weakref import WeakKeyDictionary
-from libs import logger
+from libs.uix.context_menu import ContextMenu
 
 
 Builder.load_string("""
@@ -154,6 +153,7 @@ class _MapLayoutSelector(_GridGeometryItemBehavior, Widget):
 class MapLayout(ScrollLayout, AutoUnbindBehavior):
     scrollview = ObjectProperty()
     layout = ObjectProperty()
+    wrap_layout = ObjectProperty()
 
     cell_width = NumericProperty("16dp")
     cell_height = NumericProperty("16dp")
@@ -1032,133 +1032,133 @@ class WorkspaceMapLayout(MapLayout, WorkspaceBehavior):
     pass
 
 
-class DesignScaledContainer:
-    """Mixin для MapGridItemBehavior, чтобы виджеты умели подгонять размер
-    детей под произвольный размер клетки и spacing, и в том числе если
-    проектировались под один grid_size, то чтобы можно было задать другой.
-    Да, зачастую это повлечет искажение соотношения изначальной геометрии, но...
-    НЕ ЗАДАВАЙТЕ ЗНАЧЕНИЯ В DP И SP ДЛЯ ДЕТЕЙ!
-    ЗНАЧЕНИЯ В KV - БЕЗРАЗМЕРНЫЕ ЧИСЛА!
-    """
-    design_grid_size = VariableListProperty([0, 0], length=2)  # MUST BE OVERRIDE
-    _design_cell_width = 16
-    _design_cell_height = 16
-    _design = None  # {widget: (pos, size)}
-    _design_pixel_width = None
-    _design_pixel_height = None
+# class DesignScaledContainer:
+#     """Mixin для MapGridItemBehavior, чтобы виджеты умели подгонять размер
+#     детей под произвольный размер клетки и spacing, и в том числе если
+#     проектировались под один grid_size, то чтобы можно было задать другой.
+#     Да, зачастую это повлечет искажение соотношения изначальной геометрии, но...
+#     НЕ ЗАДАВАЙТЕ ЗНАЧЕНИЯ В DP И SP ДЛЯ ДЕТЕЙ!
+#     ЗНАЧЕНИЯ В KV - БЕЗРАЗМЕРНЫЕ ЧИСЛА!
+#     """
+#     design_grid_size = VariableListProperty([0, 0], length=2)  # MUST BE OVERRIDE
+#     _design_cell_width = 16
+#     _design_cell_height = 16
+#     _design = None  # {widget: (pos, size)}
+#     _design_pixel_width = None
+#     _design_pixel_height = None
 
-    @staticmethod
-    def _walk(widget):
-        for child in widget.children:
-            yield child
-            yield from DesignScaledContainer._walk(child)
+#     @staticmethod
+#     def _walk(widget):
+#         for child in widget.children:
+#             yield child
+#             yield from DesignScaledContainer._walk(child)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
-        self._capture_design()
-        self.bind(size=self._apply_design)
-        self._apply_design()
+#     def on_kv_post(self, _):
+#         super().on_kv_post(_)
+#         self._capture_design()
+#         self.bind(size=self._apply_design)
+#         self._apply_design()
 
-    def _capture_design(self):
-        # Пиксельный размер, под который рисовался дизайн в kv.
-        self._design_pixel_width = self.design_grid_size[0] * self._design_cell_width
-        self._design_pixel_height = self.design_grid_size[1] * self._design_cell_height
+#     def _capture_design(self):
+#         # Пиксельный размер, под который рисовался дизайн в kv.
+#         self._design_pixel_width = self.design_grid_size[0] * self._design_cell_width
+#         self._design_pixel_height = self.design_grid_size[1] * self._design_cell_height
 
-        design = WeakKeyDictionary()
-        for child in self._walk(self):
-            font_size = None
-            if hasattr(child, "font_size"):
-                font_size = child.font_size
-            design[child] = (tuple(child.pos), tuple(child.size), font_size)
-        self._design = design
+#         design = WeakKeyDictionary()
+#         for child in self._walk(self):
+#             font_size = None
+#             if hasattr(child, "font_size"):
+#                 font_size = child.font_size
+#             design[child] = (tuple(child.pos), tuple(child.size), font_size)
+#         self._design = design
 
-    def _apply_design(self, *_):
-        if not self._design or not self.map_layout:
-            return
+#     def _apply_design(self, *_):
+#         if not self._design or not self.map_layout:
+#             return
 
-        sx = self.width  / self._design_pixel_width
-        sy = self.height / self._design_pixel_height
-        s_min = min(sx, sy)
-        for widget, (pos, size, font_size) in list(self._design.items()):
-            x, y = pos
-            w, h = size
-            # не надо писать dp/sp строки, т.к. metrics учтены в self.width/height
-            widget.pos  = (x * sx, y * sy)
-            widget.size = (w * sx, h * sy)
-            if font_size:
-                widget.font_size = font_size * s_min
-
-
-if __name__ == "__main__":
-    from kivy.app import App
-    from kivy.lang import Builder
-    from kivy.properties import ObjectProperty
-    from kivy.uix.boxlayout import BoxLayout
-    from libs import sdl2_keyboard
-    from libs.uix.map_layout import *
-    from libs.mouse_manager import cursor_manager
+#         sx = self.width  / self._design_pixel_width
+#         sy = self.height / self._design_pixel_height
+#         s_min = min(sx, sy)
+#         for widget, (pos, size, font_size) in list(self._design.items()):
+#             x, y = pos
+#             w, h = size
+#             # не надо писать dp/sp строки, т.к. metrics учтены в self.width/height
+#             widget.pos  = (x * sx, y * sy)
+#             widget.size = (w * sx, h * sy)
+#             if font_size:
+#                 widget.font_size = font_size * s_min
 
 
-    class TestGridWidget(MapGridItemBehavior, BoxLayout):
-        pass
+# if __name__ == "__main__":
+#     from kivy.app import App
+#     from kivy.lang import Builder
+#     from kivy.properties import ObjectProperty
+#     from kivy.uix.boxlayout import BoxLayout
+#     from libs import sdl2_keyboard
+#     from libs.uix.map_layout import *
+#     from libs.mouse_manager import cursor_manager
 
 
-    Builder.load_string("""
-    <TestGridWidget>:
-        size_hint: (None, None)
-        canvas:
-            Color:
-                rgba: (1, 0, 0, 1)
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-    <Root>:
-        map_layout: map_layout
-        w1: w1
-        w2: w2
-        padding: (40, 40, 40, 40)
-        MapLayout:
-            id: map_layout
-            grid_padding: [8, 8, 8, 8]
-            grid_spacing_size: [4, 4]
-            cell_size: [16, 16]
-            # grid_inversion_y: True
-            max_grid_size: [24, 24]
-            selectable: True
-            TestGridWidget:
-                id: w1
-                grid_size: [3, 3]
-                grid_pos: [0, 0]
-                selectable: True
-            TestGridWidget:
-                id: w2
-                grid_size: [3, 3]
-                grid_pos: [0, 3]
-                selectable: True
-            TestGridWidget:
-                id: w3
-                grid_size: [3, 3]
-                grid_pos: [3, 0]
-                selectable: True
-    """
-    )
+#     class TestGridWidget(MapGridItemBehavior, BoxLayout):
+#         pass
 
 
-    class Root(BoxLayout):
-        w1 = ObjectProperty()
-        map_layout = ObjectProperty()
+#     Builder.load_string("""
+#     <TestGridWidget>:
+#         size_hint: (None, None)
+#         canvas:
+#             Color:
+#                 rgba: (1, 0, 0, 1)
+#             Rectangle:
+#                 size: self.size
+#                 pos: self.pos
 
-        def on_kv_post(self, _):
-            # self.map_layout.move_grid_item(self.w1, 2, 2)
-            # self.map_layout.remove_widget(self.w2)
-            pass
+#     <Root>:
+#         map_layout: map_layout
+#         w1: w1
+#         w2: w2
+#         padding: (40, 40, 40, 40)
+#         MapLayout:
+#             id: map_layout
+#             grid_padding: [8, 8, 8, 8]
+#             grid_spacing_size: [4, 4]
+#             cell_size: [16, 16]
+#             # grid_inversion_y: True
+#             max_grid_size: [24, 24]
+#             selectable: True
+#             TestGridWidget:
+#                 id: w1
+#                 grid_size: [3, 3]
+#                 grid_pos: [0, 0]
+#                 selectable: True
+#             TestGridWidget:
+#                 id: w2
+#                 grid_size: [3, 3]
+#                 grid_pos: [0, 3]
+#                 selectable: True
+#             TestGridWidget:
+#                 id: w3
+#                 grid_size: [3, 3]
+#                 grid_pos: [3, 0]
+#                 selectable: True
+#     """
+#     )
 
-    class Test(App):
-        def build(self):
-            return Root()
 
-        sdl2_keyboard.init()
-        cursor_manager.init()
-        from libs.mouse_manager.hover import HoverBehavior
-        Test().run()
+#     class Root(BoxLayout):
+#         w1 = ObjectProperty()
+#         map_layout = ObjectProperty()
+
+#         def on_kv_post(self, _):
+#             # self.map_layout.move_grid_item(self.w1, 2, 2)
+#             # self.map_layout.remove_widget(self.w2)
+#             pass
+
+#     class Test(App):
+#         def build(self):
+#             return Root()
+
+#         sdl2_keyboard.init()
+#         cursor_manager.init()
+#         from libs.mouse_manager.hover import HoverBehavior
+#         Test().run()

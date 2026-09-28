@@ -1,9 +1,9 @@
-from libs.sub_proc import run_async_process, AsyncProcessContext
-from misc import constants
 from typing import List, Callable
 from pathlib import Path
-from libs.sub_proc import exit_code
 import sys
+from libs.sub_proc import run_async_process, AsyncProcessContext
+from libs.sub_proc import exit_code
+from misc import constants
 
 
 def do_backup(callback: Callable):
@@ -28,7 +28,7 @@ def _start(queue: "multiprocessing.Queue", backup_max_count: int):
         _create_backup()
         _clean_old_backups(backup_max_count)
         sys.exit(exit_code.EXIT_SUCCESS)
-    except Exception as e:
+    except Exception:
         import traceback
         queue.put(traceback.format_exc())
         sys.exit(exit_code.EXIT_FAILURE)

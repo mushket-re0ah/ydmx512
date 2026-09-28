@@ -1,40 +1,35 @@
-from kivy.app import App
+from typing import Tuple, Optional, Set, Dict
+from collections import defaultdict
 from kivy.properties import (
     ObjectProperty, NumericProperty, BooleanProperty, ListProperty,
-    AliasProperty, ColorProperty, VariableListProperty
+    AliasProperty, VariableListProperty
 )
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
-from kivy.graphics import *
+from kivy.graphics import Color, SmoothLine, SmoothEllipse
 from kivy.uix.widget import Widget
-from misc import colorscheme as cs
-from libs.dmx512_render import DMXRenderDot, InterpolationType
-from database.playback import RowPlayback
-from database.patch import RowPatch
 from kivy.lang import Builder
+from libs.dmx512_render import DMXRenderDot, InterpolationType
 from libs.uix.button import HoverToggleButton
-from typing import NamedTuple, List, Tuple, Optional, Set, Dict
 from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
-from collections import defaultdict
 from libs.mouse_manager.hover import HoverBehavior
 from libs.animation import AnimationBehavior
-from ui.mdi.editor.automation.rows.row_data import RowParamData, RowsDataManager
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from libs.dmx512.misc import FullAddress
 from libs.kivy_utils import AutoUnbindBehavior
 from libs.animation import StatefulColorProperty
 from libs.uix.layouts import ModalBoxLayout
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import manager as keyboard_manager
-from enum import Enum, auto
-from database.playback import PlaybackRenderRow
-from typing import Tuple, Set, List
-from kivy.utils import boundary
+from database.patch import RowPatch
+from misc import colorscheme as cs
 from ui.mdi.editor.automation.tools import (
     AddDotTool, SetDotTypeTool, RemoveDotTool, MoveDotsTool, SelectAreaTool,
     InterpatchPhaseTool, SetRowActiveTool
 )
-from libs import logger
+from ui.mdi.editor.automation.rows.row_data import RowParamData
+
+
 Builder.load_file("ui/mdi/editor/automation/rows/row_param.kv")
 
 
@@ -204,17 +199,15 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
     def _get_patch_render_line_width(self, patch: RowPatch) -> int:
         if patch is self.data_row.master_patch:
             return self.RENDER_MASTER_LINE_WIDTH
-        else:
-            return self.RENDER_SLAVE_LINE_WIDTH
+        return self.RENDER_SLAVE_LINE_WIDTH
 
     def _get_patch_render(self, patch: RowPatch, index: int, frame: int) -> Optional[int]:
         if self.automation.toolbar.clear_render_mode:
             return self.playback.player.get_patch_render(patch, index, frame)
-        else:
-            render = self.playback.renderer.get_patch_render(patch, index)
-            if frame >= len(render):
-                return None
-            return render[frame] if render else None
+        render = self.playback.renderer.get_patch_render(patch, index)
+        if frame >= len(render):
+            return None
+        return render[frame] if render else None
 
     def draw_render_lines(self):
         if not self.playback or not self.row_param or not self.row_param.render_rows or not self.data_row.active:
@@ -348,7 +341,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             if touch.button == "left":
                 dots = self.row_param.master_render_row.dots
                 if self.dots_under_cursor:
-                    x, y = self.to_frame_coords(*touch.pos)
+                    x, _ = self.to_frame_coords(*touch.pos)
                     self.row_panel.select_dots_by_x(x, self.data_row)
                     if not keyboard_manager.check_ctrl():
                         if touch.is_double_tap:
@@ -360,7 +353,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
                     self.automation.set_tool(AddDotTool)
                 else:
                     self.automation.set_tool(SelectAreaTool)
-            elif touch.button == "right":
+            if touch.button == "right":
                 if self.dots_under_cursor:
                     self.automation.set_tool(RemoveDotTool)
             self.automation.tool_action("on_touch_down", touch, self)
@@ -403,7 +396,7 @@ class FixtureParamToggle(HoverToggleButton):
     render_rows = ObjectProperty()
     row_panel = ObjectProperty()
 
-    def _do_press(self, *args):
+    def _do_press(self, *_):
         return
 
     def on_touch_down(self, touch):
@@ -424,7 +417,7 @@ class FixtureParamToggle(HoverToggleButton):
 class RowParamActiveToggle(HoverToggleButton):
     row_param = ObjectProperty()
 
-    def _do_press(self, *args):
+    def _do_press(self, *_):
         return
 
     def set_row_active(self):
@@ -457,6 +450,7 @@ class RowParamAddressToggle(HoverToggleButton):
 class AddressListBoxContextMenu(ModalBoxLayout):
     row_param = ObjectProperty()
     address_list = ObjectProperty()
+    box = ObjectProperty()
 
     def on_kv_post(self, _):
         for fulladdress in self.address_list:
@@ -513,6 +507,7 @@ class RowParam(RecycleDataViewBehavior, AutoUnbindBehavior, BoxLayout):
     scrollview_address_list_box = ObjectProperty()
     tact_box = ObjectProperty()
     phase_interpatch_input_x = ObjectProperty()
+    checkbox_phase = ObjectProperty()
 
     data_row = ObjectProperty(rebind=True)
 
@@ -543,7 +538,7 @@ class RowParam(RecycleDataViewBehavior, AutoUnbindBehavior, BoxLayout):
             for fulladdress in address_list
         ]
 
-    def update(self, *args):
+    def update(self, *_):
         self.tact_box.draw_ev()
         self.property("data_row").dispatch(self.data_row)
 

@@ -3,10 +3,10 @@ import threading
 import time
 import sys
 import os
-from libs.sub_proc import exit_code
-from misc import constants
-from libs import logger
 from pathlib import Path
+from misc import constants
+from libs.sub_proc import exit_code
+from libs import logger
 
 # Определяем директорию, где находится скрипт или исполняемый файл
 if getattr(sys, "frozen", False):
@@ -28,31 +28,31 @@ def print_output(pipe):
                 sys.stdout.flush()
 
 
-def run_kivy_app(exec_backup_menu: bool):
+def run_kivy_app(do_exec_backup_menu: bool):
     env = os.environ.copy()
-    if exec_backup_menu:
+    if do_exec_backup_menu:
         env[constants.BACKUP_MENU_ENV_KEY] = constants.BACKUP_MENU_ENV_KEY_TRUE
     else:
         env[constants.BACKUP_MENU_ENV_KEY] = constants.BACKUP_MENU_ENV_KEY_FALSE
-    process = subprocess.Popen([sys.executable, "-u", APP_FILENAME],
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               bufsize=1,
-                               universal_newlines=True,
-                               encoding="utf-8",
-                               env=env)
-    output_thread = threading.Thread(target=print_output, args=(process.stdout,))
-    # output_thread.daemon = True
-    output_thread.start()
+    with subprocess.Popen(
+        [sys.executable, "-u", APP_FILENAME],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        bufsize=1,
+        universal_newlines=True,
+        encoding="utf-8",
+        env=env) as process:
+        output_thread = threading.Thread(target=print_output, args=(process.stdout,))
+        # output_thread.daemon = True
+        output_thread.start()
 
-    process.wait()
-    output_thread.join()
-    process.stdout.close()
-    return process.returncode
+        process.wait()
+        output_thread.join()
+        # process.stdout.close()
+        return process.returncode
 
 
 if __name__ == "__main__":
-    from misc import constants
     logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES, constants.SESSION_LOG_ENV_KEY)
     logger.info("Лаунчер запущен")
     exec_backup_menu = False
@@ -67,10 +67,10 @@ if __name__ == "__main__":
                 sys.exit(exit_code.EXIT_FAILURE)
             exec_backup_menu = False
             if kivy_exit_code == exit_code.EXIT_SUCCESS:
-                logger.info(f"Процесс kivy успешно завершен")
+                logger.info("Процесс kivy успешно завершен")
                 sys.exit(exit_code.EXIT_SUCCESS)
             elif kivy_exit_code == exit_code.EXIT_RESTART:
-                logger.info(f"Перезапуск kivy")
+                logger.info("Перезапуск kivy")
             else:
                 logger.info(f"Крах Kivy (exit code: {kivy_exit_code})")
                 exec_backup_menu = True

@@ -1,17 +1,17 @@
+import time
+from typing import Optional
 from kivy.properties import BooleanProperty, ObjectProperty, AliasProperty
 from kivy.clock import Clock
-from typing import Optional
-from misc import constants
 from libs.dmx512 import dmx512
 from libs.beat_counter import BeatCounter
+from libs.kivy_json_orm.fields import ClampedNumericField, BooleanField
 from database.patch import RowPatch
+from database.playback.player.effects_renderer import PlayerEffectsRenderer
+from database.playback.player.master_player import master_player
 from misc.player import BasePlayer
 from misc.player.status import PlayerStatus
 from misc.player.render_utils import SoftEffectsRenderer
-from database.playback.player.effects_renderer import PlayerEffectsRenderer
-from database.playback.player.master_player import master_player
-from libs.kivy_json_orm.fields import *
-import time
+from misc import constants
 
 
 class PlaybackPlayer(BasePlayer):
@@ -29,10 +29,14 @@ class PlaybackPlayer(BasePlayer):
     _bounce_direction = 1
     play = BooleanProperty(False)
 
-    def on_parent_row(self, _, row):
+    def __init__(self, *args, **kwargs):
         self.time_start = None
-        super().on_parent_row(_, row)
-        self.playback = row
+        self.effects_renderer = None
+        super().__init__(*args, **kwargs)
+
+    def on_parent_row(self, _, parent_row):
+        super().on_parent_row(_, parent_row)
+        self.playback = parent_row
         self.effects_renderer = PlayerEffectsRenderer(self)
         self.bind_to(dmx512, on_blackout=self.on_blackout)
         self.bind_to(self.playback.database.scene, scene_now_beats_count=self._update_real_beats_count)
@@ -41,7 +45,7 @@ class PlaybackPlayer(BasePlayer):
         self.stop()
         super().on_remove(instance)
 
-    def _update_real_beats_count(self, *args):
+    def _update_real_beats_count(self, *_):
         self.property("is_link_global_temp").dispatch(self)
 
     _save_intensive = None
@@ -66,18 +70,16 @@ class PlaybackPlayer(BasePlayer):
             if self.status in (PlayerStatus.WORK, PlayerStatus.ATTACK):
                 self.stop()
 
-    def _on_bounce(self, player, bounce):
+    def _on_bounce(self, _, bounce):
         if not bounce:
             self._bounce_direction = 1
 
     def _create_beat_counter(self):
         if self.is_link_global_temp:
-
             return self.playback.database.scene.scene_now_bc
-        else:
-            bc = BeatCounter(temp=self.temp, beats_count=self.real_beats_count)
-            bc.link()
-            return bc
+        bc = BeatCounter(temp=self.temp, beats_count=self.real_beats_count)
+        bc.link()
+        return bc
 
     def _remove_beat_counter(self):
         if self.beat_counter and self.beat_counter is not self.playback.database.scene.scene_now_bc:
@@ -102,15 +104,14 @@ class PlaybackPlayer(BasePlayer):
             if self.status is PlayerStatus.STOP:
                 return 1
             return bc.beats_count if bc else self.real_beats_count
-        else:
-            return bc.beat_now + 1 if bc else 1
+        return bc.beat_now + 1 if bc else 1
     beat_now = AliasProperty(get_beat_now)
 
-    def on_start(self, beat_counter: BeatCounter):
+    def on_start(self, _: BeatCounter):
         self.play = True
         self.time_start = time.time()
 
-    def on_stop(self, beat_counter: BeatCounter):
+    def on_stop(self, _: BeatCounter):
         self.play = False
 
     def on_status(self, _, status: PlayerStatus):

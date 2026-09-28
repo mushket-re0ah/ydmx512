@@ -1,13 +1,13 @@
-from kivy.properties import ObjectProperty, AliasProperty
+from typing import Tuple
+from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from libs.uix.layouts import SectionPanel
+from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.map_layout import MapLayout
 from database.scene import RowScene
-from typing import List, Tuple
 from database import db
 from database.playback import RowPlayback
 from ui.mdi.processing.playback_ui import PlaybackUiProcessing
-from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
-from libs.uix.map_layout import MapLayout
 
 
 Builder.load_file("ui/mdi/processing/processing_map.kv")
@@ -58,7 +58,7 @@ class PlaybackMap(MapLayout):
         if playback_ui is not None:
             playback_ui._self_destroy()
 
-    def on_scene_change(self, table, old_scene: RowScene, new_scene: RowScene):
+    def on_scene_change(self, _table, _old_scene: RowScene, _new_scene: RowScene):
         self.__init_map()
 
     def __init_map(self):
@@ -71,27 +71,27 @@ class PlaybackMap(MapLayout):
                 )
             )
 
-    def start_all(self, *args):
+    def start_all(self, *_):
         for ui in self.grid_items:
             ui.playback.player.start()
 
-    def stop_all(self, *args):
+    def stop_all(self, *_):
         for ui in self.grid_items:
             ui.playback.player.stop()
 
-    def start_selected(self, *args):
+    def start_selected(self, *_):
         for ui in self.selected:
             ui.playback.player.start()
 
-    def stop_selected(self, *args):
+    def stop_selected(self, *_):
         for ui in self.selected:
             ui.playback.player.stop()
 
-    def delete_selected(self, *args):
+    def delete_selected(self, *_):
         for ui in self.selected:
             db.playback.remove_row(ui.playback)
 
-    def edit_selected(self, *args):
+    def edit_selected(self, *_):
         from ui.components.playback_ui.playback_context_menu import PlaybackContextMenu
         PlaybackContextMenu(
             playback_list=[ui.playback for ui in self.selected]

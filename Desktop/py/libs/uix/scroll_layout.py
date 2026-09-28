@@ -1,9 +1,9 @@
+from typing import Tuple
 from kivy.clock import Clock
 from kivy.properties import (
     ObjectProperty, NumericProperty, AliasProperty, BooleanProperty
 )
 from kivy.uix.boxlayout import BoxLayout
-from typing import Tuple
 from kivy.lang import Builder
 from kivy.metrics import dp
 
@@ -177,11 +177,10 @@ class ScrollBar(BoxLayout):
         if self._start_pos:
             self.__do_scroll_by_cursor(touch)
             return True
-        elif self._scroll_by_cursor_layout:
+        if self._scroll_by_cursor_layout:
             self.__do_scroll_by_cursor_layout(touch)
             return True
-        else:
-            return super().on_touch_move(touch)
+        return super().on_touch_move(touch)
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -197,7 +196,7 @@ class ScrollBar(BoxLayout):
             if touch.button == "scrollup":
                 self._processing_scrollup()
                 return True
-            elif touch.button == "scrolldown":
+            if touch.button == "scrolldown":
                 self._processing_scrolldown()
                 return True
         return False
@@ -259,7 +258,7 @@ class ScrollBar(BoxLayout):
         setattr(self.cursor, self._size_hint_attr, size_hint)
         setattr(self.cursor, self._pos_attr, pos)
 
-    def __inc_scroll(self, value: float):
+    def __inc_scroll(self, _value: float):
         if self.orientation == "vertical":
             self.__set_scroll(self._btn_scroll_start - self._btn_scroll_diff)
         else:
@@ -391,7 +390,7 @@ class ScrollLayout(BoxLayout):
         else:
             self.scrollview.add_widget(widget)
 
-    def on_scrollview_bar(self, *args):
+    def on_scrollview_bar(self, *_):
         sv = self.scrollview
         if not sv:
             return

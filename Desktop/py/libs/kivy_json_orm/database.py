@@ -1,9 +1,9 @@
+from pathlib import Path
+from typing import Dict, Optional, Union
 from kivy.event import EventDispatcher
-from kivy.properties import StringProperty, NumericProperty, ObjectProperty
+from kivy.properties import NumericProperty
 from libs.utils import ThrottledCall
 from libs.kivy_json_orm.table_implementation import BaseTable
-from pathlib import Path
-from typing import Dict, Optional, Callable, Union
 
 
 class Database(EventDispatcher):
@@ -59,11 +59,11 @@ class Database(EventDispatcher):
     def __getattr__(self, name):
         try:
             return self.tables[name]
-        except KeyError:
-            raise AttributeError(name)
+        except KeyError as exc:
+            raise AttributeError(name) from exc
 
     def __getitem__(self, name):
         try:
             return self.tables[name]
-        except KeyError:
-            raise KeyError(name)
+        except KeyError as exc:
+            raise KeyError(name) from exc

@@ -1,8 +1,5 @@
 from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from kivy.properties import (
-    StringProperty, ListProperty
-)
-from libs.kivy_json_orm.fields import *
+from libs.kivy_json_orm.fields import StringField, ListField
 
 
 class RowPhaseCurveType(DatabaseRow):

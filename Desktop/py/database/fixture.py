@@ -1,14 +1,15 @@
-from kivy.properties import StringProperty, ObjectProperty, ListProperty, AliasProperty
-from database.brand import RowBrand
+from collections import defaultdict
+from typing import NamedTuple, List, Tuple, Dict
+from kivy.properties import AliasProperty
+from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
+from libs.serialize import SerializableMixin
+from libs.kivy_json_orm.fields import (
+    StringField, RefField, NumericField, ListRefField, BooleanField,
+    ClampedNumericField, ListNestedField
+)
 from database.fixture_param import RowFixtureParam
 from database import db
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from typing import NamedTuple, List, Tuple, Dict
 from misc import constants
-from collections import defaultdict
-from libs.serialize import *
-from libs.properties import ClampedNumericProperty
-from libs.kivy_json_orm.fields import *
 
 
 class FixtureParamMapKey(NamedTuple):

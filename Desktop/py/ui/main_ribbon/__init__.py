@@ -1,11 +1,8 @@
+from typing import List, Optional
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from libs.uix.mdi.mdi_window import MDIWindow
-from libs.uix.button import ImageToggleButton, HoverToggleButton
-from libs.uix.overflow_layout import OverflowLayout
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty
 from kivy.clock import Clock
-from typing import List, Optional
 import ui.main_ribbon.scene_temp
 import ui.main_ribbon.serial_devices
 import ui.main_ribbon.midi_devices
@@ -18,9 +15,12 @@ from ui.mdi.monitor import MDIMonitor
 from ui.mdi.scenes import MDIScenes
 from ui.mdi.desktops import MDIDesktops
 from ui.mdi.settings import MDISettings
-from misc import imgs_path
 from libs.sdl2_keyboard import KeyboardBehavior, KeyboardInputContext
+from libs.uix.mdi.mdi_window import MDIWindow
+from libs.uix.button import ImageToggleButton, HoverToggleButton
+from libs.uix.overflow_layout import OverflowLayout
 from database import db
+from misc import imgs_path
 
 
 class MDIToggleButton(ImageToggleButton):

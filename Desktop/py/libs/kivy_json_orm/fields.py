@@ -1,26 +1,30 @@
+from typing import Callable, Union
+from collections import defaultdict
 from kivy.properties import (
     NumericProperty, ObjectProperty, StringProperty, BooleanProperty, ListProperty,
     OptionProperty, DictProperty, ColorProperty, VariableListProperty
 )
-from libs.serialize import *
+from libs.serialize import (
+    SerializableMixinProperty, list_of_serializable_serializer,
+    list_of_serializable_deserializer, enum_serializer, enum_deserializer,
+    hex_color_serializer, nested_serializer, _SerializableType
+)
 from libs.properties import ClampedNumericProperty, EnumProperty, ContextualNumericProperty, BindableObjectProperty
-from typing import Callable, Union
 
 
 def _resolve_table(table_source: Union[str, Callable], obj=None):
     if isinstance(table_source, str):
         return obj.database.get(table_source)
-    else:
-        return table_source()
+    return table_source()
 
 def table_ref_serializer(id_attr: str = "_id"):
-    def serialize(self, value):
+    def serialize(_self, value):
         if value is None:
             return None
         return getattr(value, id_attr)
     return serialize
 
-def table_ref_deserializer(table_source: Union[str, Callable], id_attr: str = "_id", fallback_fn: Callable = None):
+def table_ref_deserializer(table_source: Union[str, Callable], _id_attr: str = "_id", fallback_fn: Callable = None):
     def deserialize(self, id_value):
         if id_value is None:
             return (fallback_fn(self.database) if isinstance(table_source, str) else fallback_fn()) if fallback_fn else None
@@ -34,11 +38,11 @@ def table_ref_deserializer(table_source: Union[str, Callable], id_attr: str = "_
     return deserialize
 
 def list_of_refs_serializer(id_attr="_id"):
-    def serialize(self, value):
+    def serialize(_self, value):
         return [getattr(item, id_attr) for item in value]
     return serialize
 
-def list_of_refs_deserializer(table_source: Union[str, Callable], id_attr="_id", fallback_fn=None):
+def list_of_refs_deserializer(table_source: Union[str, Callable], _id_attr="_id", fallback_fn=None):
     def deserialize(self, value):
         table = _resolve_table(table_source, self)
         result = []
@@ -52,11 +56,11 @@ def list_of_refs_deserializer(table_source: Union[str, Callable], id_attr="_id",
     return deserialize
 
 def dict_of_refs_set_serializer(id_attr="_id"):
-    def serialize(self, value):
+    def serialize(_self, value):
         return {k: [getattr(obj, id_attr) for obj in v] for k, v in value.items()}
     return serialize
 
-def dict_of_refs_set_deserializer(table_source: Union[str, Callable], id_attr="_id", fallback_fn=None):
+def dict_of_refs_set_deserializer(table_source: Union[str, Callable], _id_attr="_id", fallback_fn=None):
     def deserialize(self, value):
         table = _resolve_table(table_source, self)
         data = defaultdict(set)
@@ -154,7 +158,7 @@ class RefField(FieldMixin, ObjectProperty):
         super().__init__(*args, **kwargs)
 
 
-def _nested_deserializer(prop) -> Callable[[dict], T]:
+def _nested_deserializer(prop) -> Callable[[dict], _SerializableType]:
     def deserialize(self, value):
         if value is None:
             return None

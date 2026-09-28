@@ -1,13 +1,13 @@
 from kivy.properties import ObjectProperty, NumericProperty, AliasProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
+from kivy.lang import Builder
 from libs.uix.layouts import ModalBoxLayout
+from libs.dmx512 import dmx512
+from libs.uix import slider  # lazy kv import initialize
+import libs.uix.menu_components  # lazy kv import initialize
 from database.patch import RowPatch
 from database.fixture_param import RowFixtureParam
-from kivy.lang import Builder
-from libs.dmx512 import dmx512
-from libs.uix import slider
-import libs.uix.menu_components
 
 
 Builder.load_file("ui/components/patch_ui/patch_controller.kv")

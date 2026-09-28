@@ -1,5 +1,9 @@
+fixture_preset_manager = None
+param_preset_manager = None
 def init():
+    global fixture_preset_manager
+    global param_preset_manager
     from presets.fixture_presets import FixturePresetsManager
-    globals()["fixture_preset_manager"] = FixturePresetsManager()
+    fixture_preset_manager = FixturePresetsManager()
     from presets.param_presets import ParamPresetsManager
-    globals()["param_preset_manager"] = ParamPresetsManager()
+    param_preset_manager = ParamPresetsManager()

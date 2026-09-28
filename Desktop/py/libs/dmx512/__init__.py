@@ -1,10 +1,10 @@
+from typing import Callable, Optional, Tuple
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty, NumericProperty
 from kivy.clock import Clock
-from .universe import DMX512Universe
+from libs.dmx512.universe import DMX512Universe
 from libs.serial.observer import observer as serial_observer
-from .serial.device import DMXSerialDevice
-from typing import Callable, Optional, Tuple
+from libs.dmx512.serial.device import DMXSerialDevice
 from libs.utils import ThrottledCall
 
 
@@ -13,25 +13,25 @@ class DMX512Dispatcher(EventDispatcher):
 
     trigger_sync_universe_device = None
     def __init__(self,
-            DMX_UNIVERSE_COUNT,
-            SERIAL_TIMEOUT,
-            SERIAL_BAUDRATE,
-            SERIAL_TRY_CONNECTION_TIME,
-            DMX_HELLO_MSG,
-            DMX_MESSAGE_BYTEORDER,
-            DMX_LIGHT_FPS,
-            DMX_ADDRESS_COUNT,
-            DMX_KEY_FRAME_TIME,
+            dmx_universe_count,
+            serial_timeout,
+            serial_baudrate,
+            serial_try_connection_time,
+            dmx_hello_msg,
+            dmx_message_byteorder,
+            dmx_light_fps,
+            dmx_address_count,
+            dmx_key_frame_time,
             **kwargs):
-        self.DMX_UNIVERSE_COUNT = DMX_UNIVERSE_COUNT
-        self.SERIAL_TIMEOUT = SERIAL_TIMEOUT
-        self.SERIAL_BAUDRATE = SERIAL_BAUDRATE
-        self.SERIAL_TRY_CONNECTION_TIME = SERIAL_TRY_CONNECTION_TIME
-        self.DMX_HELLO_MSG = DMX_HELLO_MSG
-        self.DMX_MESSAGE_BYTEORDER = DMX_MESSAGE_BYTEORDER
-        self.DMX_LIGHT_FPS = DMX_LIGHT_FPS
-        self.DMX_ADDRESS_COUNT = DMX_ADDRESS_COUNT
-        self.DMX_KEY_FRAME_TIME = DMX_KEY_FRAME_TIME
+        self.DMX_UNIVERSE_COUNT = dmx_universe_count
+        self.SERIAL_TIMEOUT = serial_timeout
+        self.SERIAL_BAUDRATE = serial_baudrate
+        self.SERIAL_TRY_CONNECTION_TIME = serial_try_connection_time
+        self.DMX_HELLO_MSG = dmx_hello_msg
+        self.DMX_MESSAGE_BYTEORDER = dmx_message_byteorder
+        self.DMX_LIGHT_FPS = dmx_light_fps
+        self.DMX_ADDRESS_COUNT = dmx_address_count
+        self.DMX_KEY_FRAME_TIME = dmx_key_frame_time
         super().__init__(**kwargs)
 
     def init(self):
@@ -118,37 +118,29 @@ class DMX512Dispatcher(EventDispatcher):
         return next((universe for universe, data in self.universes.items()
                               if data.device is None), None)
 
-_initialized = False
+dmx512 = None
 def init(
-    DMX_UNIVERSE_COUNT,
-    SERIAL_TIMEOUT,
-    SERIAL_BAUDRATE,
-    SERIAL_TRY_CONNECTION_TIME,
-    DMX_HELLO_MSG,
-    DMX_MESSAGE_BYTEORDER,
-    DMX_LIGHT_FPS,
-    DMX_ADDRESS_COUNT,
-    DMX_KEY_FRAME_TIME):
-    global _initialized
-    if _initialized:
+        dmx_universe_count,
+        serial_timeout,
+        serial_baudrate,
+        serial_try_connection_time,
+        dmx_hello_msg,
+        dmx_message_byteorder,
+        dmx_light_fps,
+        dmx_address_count,
+        dmx_key_frame_time):
+    global dmx512
+    if dmx512 is not None:
         raise RuntimeError("DMX512 модуль уже инициализирован")
-    _initialized = True
-    globals()["dmx512"] = DMX512Dispatcher(
-        DMX_UNIVERSE_COUNT,
-        SERIAL_TIMEOUT,
-        SERIAL_BAUDRATE,
-        SERIAL_TRY_CONNECTION_TIME,
-        DMX_HELLO_MSG,
-        DMX_MESSAGE_BYTEORDER,
-        DMX_LIGHT_FPS,
-        DMX_ADDRESS_COUNT,
-        DMX_KEY_FRAME_TIME
+    dmx512 = DMX512Dispatcher(
+        dmx_universe_count,
+        serial_timeout,
+        serial_baudrate,
+        serial_try_connection_time,
+        dmx_hello_msg,
+        dmx_message_byteorder,
+        dmx_light_fps,
+        dmx_address_count,
+        dmx_key_frame_time,
     )
     dmx512.init()
-
-def __getattr__(name):
-    # Согласно PEP 562, функция __getattr__ модуля вызывается только в том
-    # случае, если атрибут не был найден обычным путём и ожидает AttributeError
-    if name == "dmx512":
-        raise RuntimeError("DMX512 не инициализирован. Сначала вызовите init().")
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

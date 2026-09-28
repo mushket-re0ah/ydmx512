@@ -1,4 +1,5 @@
 from typing import Dict
+import importlib
 
 
 class PatchedLoader(importlib.abc.Loader):
@@ -18,7 +19,7 @@ class PatchFinder(importlib.abc.MetaPathFinder):
         # {"имя_модуля": "путь_к_файлу"}
         self.patches = patches
 
-    def find_spec(self, fullname, path=None, target=None):
+    def find_spec(self, fullname):
         patch = self.patches.get(fullname)
         if patch is None:
             return None

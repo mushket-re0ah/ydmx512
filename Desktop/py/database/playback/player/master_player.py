@@ -1,7 +1,5 @@
-from collections import defaultdict
 from libs.utils import ThrottledCall
 from libs.dmx512 import dmx512
-from typing import List, Tuple
 from misc import constants
 
 

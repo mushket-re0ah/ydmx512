@@ -37,12 +37,11 @@ def apply_value_modifiers(
 
     if param_title_id == DIMMER_TITLE_ID:
         return apply_dimmer(value, intensive, virtual_dimmer)
-    elif param_title_id == PAN_TITLE_ID:
+    if param_title_id == PAN_TITLE_ID:
         return apply_dynamic_param(value, invert_pan, correction_pan)
-    elif param_title_id == TILT_TITLE_ID:
+    if param_title_id == TILT_TITLE_ID:
         return apply_dynamic_param(value, invert_tilt, correction_tilt)
-    else:
-        return value
+    return value
 
 
 class SoftEffectsRenderer:

@@ -1,3 +1,5 @@
+from typing import List, Optional, Tuple
+from functools import partial
 from kivy.properties import (
     ObjectProperty, ListProperty, NumericProperty, BooleanProperty,
     StringProperty
@@ -5,14 +7,12 @@ from kivy.properties import (
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.widget import Widget
-from typing import List, Optional, Tuple
+from kivy.lang import Builder
+from kivy.clock import Clock
 from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
 from libs.mouse_manager import cursor_manager
-from kivy.lang import Builder
-from .column_config import ColumnConfig
+from libs.uix.database_table.column_config import ColumnConfig
 from libs.uix.button import ArrowToggleButton, HoverToggleButton
-from functools import partial
-from kivy.clock import Clock
 
 
 Builder.load_string("""
@@ -94,7 +94,7 @@ class TableHeaderToggle(ArrowToggleButton):
             reverse=self.sorting_reverse
         )
 
-    def on_sorting_active(self, _, sorting_active):
+    def on_sorting_active(self, _, _sorting_active):
         self.sorting_reverse = True
 
 
@@ -103,7 +103,7 @@ class DatabaseTableHeader(BoxLayout):
     table_ui = ObjectProperty()
 
     def on_columns_config(self, _, columns_config: List[ColumnConfig]):
-        for column in self.columns_config:
+        for column in columns_config:
             self.add_widget(TableHeaderToggle(
                     table_ui=self.table_ui,
                     header=self,
@@ -131,8 +131,7 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
         self.sync_method = {}
         self.sync_method_row = {}
 
-    def __create_content(self, columns_config: List[ColumnConfig],
-                         row: DatabaseRow):
+    def __create_content(self, columns_config: List[ColumnConfig], _: DatabaseRow):
         if self.config_was_created:
             return
         for config in columns_config:
@@ -199,6 +198,7 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
         for idx, config in enumerate(columns_config):
             if config.data_attribute == "_id":
                 return self.children[len(columns_config) - idx - 1]
+        return None
 
     def change_select_id_state(self):
         id_column = self.__get_id_column()
@@ -289,7 +289,7 @@ class DatabaseTableUi(BoxLayout):
         for i, (current, next_widget) in enumerate(zip(widgets, widgets[1:])):
             right_edge = current.right - precision
             next_left_edge = next_widget.x + precision
-            if (right_edge <= x <= next_left_edge):
+            if right_edge <= x <= next_left_edge:
                 self.allow_resizing = True
                 self._resizing_column_index_left = i
                 self._resizing_column_index_right = i + 1
@@ -297,10 +297,10 @@ class DatabaseTableUi(BoxLayout):
                 return
         self.allow_resizing = False
 
-    def on_add_row(self, table: DatabaseTable, row: DatabaseRow):
+    def on_add_row(self, _table: DatabaseTable, _row: DatabaseRow):
         self.trigger_build_rows()
 
-    def on_remove_row(self, table: DatabaseTable, row: DatabaseRow):
+    def on_remove_row(self, _table: DatabaseTable, _row: DatabaseRow):
         self.trigger_build_rows()
 
     def on_allow_resizing(self, _, allow_resizing: bool):

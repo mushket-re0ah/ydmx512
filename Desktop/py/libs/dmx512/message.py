@@ -3,7 +3,7 @@ from enum import Enum
 
 
 def to_bytes(value: int, length: int) -> bytes:
-    from . import dmx512
+    from libs.dmx512 import dmx512
     return value.to_bytes(length=length, byteorder=dmx512.DMX_MESSAGE_BYTEORDER, signed=False)
 
 

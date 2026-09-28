@@ -1,10 +1,10 @@
+from typing import Tuple
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import ObjectProperty, ColorProperty, NumericProperty
+from kivy.properties import ObjectProperty, ColorProperty
 from kivy.animation import Animation
 from libs.uix.map_layout import MapGridItemBehavior, MapLayout
-from typing import Tuple
-from misc import colorscheme as cs
 from libs.kivy_json_orm.table_implementation import DatabaseRow
+from misc import colorscheme as cs
 
 
 class BaseDatabaseGridItem(MapGridItemBehavior, RelativeLayout):
@@ -30,8 +30,7 @@ class BaseDatabaseGridItem(MapGridItemBehavior, RelativeLayout):
             if grid_pos[0] is None:
                 return (0, 0)
             return grid_pos
-        else:
-            return self.db_row.grid_pos
+        return self.db_row.grid_pos
 
     def _self_destroy(self):
         self.disabled = True
@@ -39,10 +38,10 @@ class BaseDatabaseGridItem(MapGridItemBehavior, RelativeLayout):
         anim.bind(on_complete=self.on_self_destroy)
         anim.start(self)
 
-    def on_self_destroy(self, *args):
+    def on_self_destroy(self, *_):
         self.map_layout.remove_widget(self)
 
-    def _save_pos(self, _):
+    def _save_pos(self, *_):
         self.db_row.edit(grid_pos=self.grid_pos)
 
     def on_touch_down(self, touch):

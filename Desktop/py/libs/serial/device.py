@@ -1,11 +1,11 @@
-from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, AliasProperty
-from kivy.event import EventDispatcher
-import serial
-from serial.tools.list_ports_common import ListPortInfo
 from enum import Enum, auto
 from typing import Optional
 import time
 import queue
+import serial
+from serial.tools.list_ports_common import ListPortInfo
+from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, AliasProperty
+from kivy.event import EventDispatcher
 from libs.properties import EnumProperty
 from libs import logger
 
@@ -179,8 +179,8 @@ class SerialDevice(EventDispatcher):
             except (serial.SerialException, ValueError):
                 logger.error("Ошибка чтения сообщения serial", exc_info=True)
                 self._lost_connection()
-            except OSError as e:
-                logger.error(f"Serial I/O error (скорее всего кабель отключен)", exc_info=True)
+            except OSError:
+                logger.error("Serial I/O error (скорее всего кабель отключен)", exc_info=True)
                 self._lost_connection()
 
     def _process_pending_input(self):
@@ -216,8 +216,8 @@ class SerialDevice(EventDispatcher):
             logger.error(f"SerialException while write to device {data}", exc_info=True)
             self._lost_connection()
             return False
-        except OSError as e:
-            logger.error(f"Serial I/O error", exc_info=True)
+        except OSError:
+            logger.error("Serial I/O error", exc_info=True)
             self._lost_connection()
             return False
 

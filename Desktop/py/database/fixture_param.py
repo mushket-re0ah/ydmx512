@@ -1,11 +1,7 @@
 from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from kivy.properties import (
-    StringProperty, ColorProperty, BooleanProperty, NumericProperty
+from libs.kivy_json_orm.fields import (
+    StringField, BooleanField, ColorField, NumericField
 )
-from kivy.utils import get_hex_from_color
-from libs.serialize import *
-from typing import Tuple
-from libs.kivy_json_orm.fields import *
 
 
 class RowFixtureParam(DatabaseRow):

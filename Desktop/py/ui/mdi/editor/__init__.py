@@ -1,11 +1,11 @@
+from typing import Optional, Dict, List
+from collections import defaultdict
 from kivy.properties import StringProperty, ObjectProperty
-from ui.components.database_mdi_window import DatabaseMDIWindow
+from libs.kivy_json_orm.fields import table_ref_serializer, table_ref_deserializer, list_of_refs_serializer, list_of_refs_deserializer
 from database.playback import RowPlayback
 from database.patch import RowPatch
 from database import db
-from libs.kivy_json_orm.fields import table_ref_serializer, table_ref_deserializer, list_of_refs_serializer, list_of_refs_deserializer
-from typing import Optional, Dict, List
-from collections import defaultdict
+from ui.components.database_mdi_window import DatabaseMDIWindow
 
 
 class MDIEditor(DatabaseMDIWindow):
@@ -59,3 +59,4 @@ class MDIEditor(DatabaseMDIWindow):
                 **self.content.automation.row_panel.create_hotkeys(),
                 frozenset({"space"}): self.start_or_stop_playback
             }
+        return None

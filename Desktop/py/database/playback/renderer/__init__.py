@@ -1,18 +1,8 @@
+from collections import defaultdict
+from typing import List, Tuple, Set, Union, Optional, Dict
 from kivy.event import EventDispatcher
 from kivy.properties import BooleanProperty, ObjectProperty, DictProperty
 from database.patch import RowPatch
-from libs.serialize import *
-from typing import List, Tuple, Set, Union
-from libs.properties import ClampedNumericProperty
-from libs.kivy_utils import AutoUnbindBehavior
-from libs.kivy_json_orm.fields import *
-from libs.command import CommandHistory
-from database.playback.renderer.render_data import (
-    PlaybackRenderRow, RowPhaseSpec, InterpatchSpec, RenderDots
-)
-from libs.dmx512_render import (
-    DMXRenderDot, InterpolationType, XYGrid, calc_phase_shift
-)
 from database.phase_curve_type import RowPhaseCurveType
 from database.playback.renderer import render_utils
 from database.playback.renderer.command import (
@@ -22,16 +12,21 @@ from database.playback.renderer.command import (
     CommandCreateRowPhaseSpec, CommandUpdateRowPhaseSpec, CommandRemoveRowPhaseSpec,
     CommandCreateInterpatchSpec, CommandUpdateInterpatchSpec, CommandRemoveInterpatchSpec,
 )
+from database.playback.renderer.render_data import (
+    PlaybackRenderRow, RowPhaseSpec, InterpatchSpec, RenderDots
+)
+from libs.dmx512_render import (
+    DMXRenderDot, InterpolationType, XYGrid, calc_phase_shift
+)
+from libs.serialize import SerializableMixin
+from libs.kivy_utils import AutoUnbindBehavior
+from libs.kivy_json_orm.fields import DictField, BooleanField, ClampedNumericField
+from libs.command import CommandHistory
 from misc import constants
-from libs import logger
 
 
 class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
     playback = ObjectProperty()
-    _rows_by_patch = DictField(  # patch -> list[PlaybackRenderRow]
-        serialize=lambda self, value: self._serialize_rows_by_patch(value),
-        deserialize=lambda self, value: self._deserialize_rows_by_patch(value),
-    )
     def _serialize_rows_by_patch(self, value):
         data = {}
         for patch, rows in value.items():
@@ -56,10 +51,9 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
                 rows.append(render_row)
             restored[patch] = rows
         return restored
-
-    _row_phase_specs_by_patch = DictField(   # patch -> list[RowPhaseSpec]
-        serialize=lambda self, value: self._serialize_row_phase_specs_by_patch(value),
-        deserialize=lambda self, value: self._deserialize_row_phase_specs_by_patch(value)
+    _rows_by_patch = DictField(  # patch -> list[PlaybackRenderRow]
+        serialize=lambda self, value: self._serialize_rows_by_patch(value),
+        deserialize=lambda self, value: self._deserialize_rows_by_patch(value),
     )
 
     def _serialize_row_phase_specs_by_patch(self, value):
@@ -82,10 +76,9 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
                 specs.append(spec)
             restored[patch] = specs
         return restored
-
-    _interpatch_spec_by_patch = DictField(  # patch -> InterpatchSpec (одна группа на патч)
-        serialize=lambda self, value: self._serialize_interpatch_specs(value),
-        deserialize=lambda self, value: self._deserialize_interpatch_specs(value)
+    _row_phase_specs_by_patch = DictField(   # patch -> list[RowPhaseSpec]
+        serialize=lambda self, value: self._serialize_row_phase_specs_by_patch(value),
+        deserialize=lambda self, value: self._deserialize_row_phase_specs_by_patch(value)
     )
 
     def _serialize_interpatch_specs(self, value):
@@ -106,6 +99,10 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             for patch in spec.ordered_patches:
                 restored[patch] = spec
         return restored
+    _interpatch_spec_by_patch = DictField(  # patch -> InterpatchSpec (одна группа на патч)
+        serialize=lambda self, value: self._serialize_interpatch_specs(value),
+        deserialize=lambda self, value: self._deserialize_interpatch_specs(value)
+    )
 
     patch_addresses = DictProperty()
     universe_addresses = DictProperty()
@@ -153,7 +150,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         self.bind(on_remove=self.on_remove_playback)
         self.bind_to(playback.player, frame_count=self.invalidate_all_render_cache)
 
-    def on_remove_playback(self, playback):
+    def on_remove_playback(self, _):
         self.unbind_all()
 
     def add_patch(self, patch: RowPatch):
@@ -189,7 +186,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             return rows[fixture_index]
         return None
 
-    def set_patch_addresses(self, *args):
+    def set_patch_addresses(self, *_):
         patch_addresses = defaultdict(set)
         universe_addresses = defaultdict(set)
         for patch, rows in self._rows_by_patch.items():
@@ -219,7 +216,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         super().redo()
         self.invalidate_all_render_cache()
 
-    def invalidate_all_render_cache(self, *args):
+    def invalidate_all_render_cache(self, *_):
         for rows in self._rows_by_patch.values():
             for row in rows:
                 row.invalidate_render()
@@ -271,7 +268,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             diff_y: float) -> Optional[List[DMXRenderDot]]:
         self._activate_rows_if_needed(render_rows)
         source_rows = self._get_dots_source_rows(render_rows)
-        rows_dots = self._filter_dots_for_rows(render_utils.get_rows_to_dots_all(source_rows), dots, reverse=not (diff_x <= 0))
+        rows_dots = self._filter_dots_for_rows(render_utils.get_rows_to_dots_all(source_rows), dots, reverse=diff_x > 0)
         command = CommandMoveDot(self, source_rows, rows_dots, start_positions, diff_x, diff_y)
         success = self.execute_command(command)
         if not success:
@@ -318,14 +315,14 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
                         ))
         patch_render_rows = self._expand_patches_via_interpatch(patch_render_rows)
 
-        for patch, render_rows in patch_render_rows.items():
-            self._activate_rows_if_needed(render_rows)
-            if len(render_rows) < 2:
+        for patch, p_render_rows in patch_render_rows.items():
+            self._activate_rows_if_needed(p_render_rows)
+            if len(p_render_rows) < 2:
                 continue
-            indices = sorted({row.fixture_index for row in render_rows})
+            indices = sorted({row.fixture_index for row in p_render_rows})
             cmd = self._prepare_row_phase_command(
                 patch, indices, phase_amount, phase_curve, phase_inverted,
-                dots=render_rows[0].dots if not self._get_existing_row_phase_spec(patch, indices) else None
+                dots=p_render_rows[0].dots if not self._get_existing_row_phase_spec(patch, indices) else None
             )
             if cmd:
                 self.execute_command(cmd)
@@ -334,10 +331,10 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         patch_render_rows = render_utils.get_patch_render_rows(render_rows)
         patch_render_rows = self._expand_patches_via_interpatch(patch_render_rows)
 
-        for patch, render_rows in patch_render_rows.items():
-            if len(render_rows) < 2:
+        for patch, p_render_rows in patch_render_rows.items():
+            if len(p_render_rows) < 2:
                 continue
-            indices = {row.fixture_index for row in render_rows}
+            indices = {row.fixture_index for row in p_render_rows}
             intersecting_specs = self._get_row_phase_specs_intersecting(patch, indices)
             for spec in intersecting_specs:
                 remaining_indices = [idx for idx in spec.indices if idx not in indices]
@@ -377,7 +374,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             patches,
             linked_shifts,
         )
-        self.execute_command(cmd)
+        return self.execute_command(cmd)
 
     def _get_expanded_interpatch_linked_shifts(self, render_rows: List[PlaybackRenderRow], amount: float) -> Dict[int, float]:
         """Возвращает расширенный список индексов с учётом row phase."""
@@ -440,10 +437,8 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         if fixture_index is not None:
             if fixture_index in spec.linked_shifts:
                 return spec
-            else:
-                return None
-        else:
-            return spec
+            return None
+        return spec
 
     def get_row_phase_shift(self, row: PlaybackRenderRow) -> float:
         spec = self.get_row_phase_spec(row.patch, row.fixture_index)
@@ -609,16 +604,15 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
                 inverted=inverted,
                 dots=existing_spec.dots if dots is None else dots,
             )
-        else:
-            new_spec = RowPhaseSpec(
-                patch=patch,
-                indices=indices,
-                amount=amount,
-                curve=curve,
-                inverted=inverted,
-                dots=dots if dots is not None else RenderDots([]),
-            )
-            return CommandCreateRowPhaseSpec(self, new_spec)
+        new_spec = RowPhaseSpec(
+            patch=patch,
+            indices=indices,
+            amount=amount,
+            curve=curve,
+            inverted=inverted,
+            dots=dots if dots is not None else RenderDots([]),
+        )
+        return CommandCreateRowPhaseSpec(self, new_spec)
 
     def _prepare_interpatch_command(
             self,
@@ -633,9 +627,8 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             return CommandUpdateInterpatchSpec(
                 self, existing_spec, linked_shifts=new_shifts
             )
-        else:
-            new_spec = InterpatchSpec(
-                ordered_patches=patches,
-                linked_shifts=linked_shifts,
-            )
-            return CommandCreateInterpatchSpec(self, new_spec)
+        new_spec = InterpatchSpec(
+            ordered_patches=patches,
+            linked_shifts=linked_shifts,
+        )
+        return CommandCreateInterpatchSpec(self, new_spec)

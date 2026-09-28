@@ -1,9 +1,9 @@
+from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 from presets import param_preset_manager
 from presets.param_presets import ParamPresetData
 from ui.components.file_preset_manager import FilePresetModal, MenuPresetManager
 from ui.mdi.editor.automation.tools import DiscardRowTool, LoadParamPresetTool
-from kivy.lang import Builder
 
 
 Builder.load_file("ui/mdi/editor/automation/rows/menu_preset_param_fixture.kv")

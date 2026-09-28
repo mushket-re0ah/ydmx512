@@ -1,8 +1,4 @@
-from kivy.properties import NumericProperty, BooleanProperty, ColorProperty, AliasProperty
-from libs.animation import AnimationBehavior
-from libs.uix.behaviors.tooltip import TooltipBehavior
-from kivy.clock import Clock
-from kivy.utils import boundary
+from kivy.properties import NumericProperty, BooleanProperty, AliasProperty
 from kivy.uix.widget import Widget
 from kivy.lang import Builder
 from libs.mouse_manager import cursor_manager
@@ -10,6 +6,8 @@ from libs.uix import colorscheme as uix_cs
 from libs.animation import StatefulColorProperty
 from libs.uix.behaviors.mouse import TouchMouseBehavior
 from libs.properties import ContextualNumericProperty
+from libs.animation import AnimationBehavior
+from libs.uix.behaviors.tooltip import TooltipBehavior
 
 
 Builder.load_string("""

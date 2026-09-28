@@ -1,17 +1,13 @@
+from collections import defaultdict
+from typing import List, Optional
 from kivy.properties import ObjectProperty, ListProperty
 from kivy.lang import Builder
 from libs.uix.layouts import MenuPanel
+from libs.uix.workspace_manager import WorkspaceBehavior
 from database import db
 from database.patch import RowPatch
 from database.scene import RowScene
 from ui.mdi.editor.maps.patch.patch_ui import EditorPatchUi
-from libs.uix.workspace_manager import WorkspaceBehavior
-from operator import attrgetter
-from collections import defaultdict
-from typing import List, Optional
-from libs.uix.context_menu import (
-    ContextMenu, ContextMenuButton, ContextMenuItem
-)
 
 
 Builder.load_file("ui/mdi/editor/maps/patch/patch_map.kv")
@@ -24,7 +20,7 @@ class PatchEditorMap(MenuPanel):
     playback = ObjectProperty(None, allownone=True, rebind=True)
     active_patch: List[RowPatch] = ListProperty([], rebind=True)
 
-    def on_workspace_opened(self, _, workspace_index: int, workspace: WorkspaceBehavior):
+    def on_workspace_opened(self, _, _workspace_index: int, workspace: WorkspaceBehavior):
         self.workspace_now = workspace
 
     def on_active_patch(self, _, active_patch: List[RowPatch]):
@@ -83,7 +79,7 @@ class PatchEditorMap(MenuPanel):
         patch_ui.parent.remove_widget(patch_ui)
         workspace.add_widget(patch_ui)
 
-    def on_scene_change(self, table, old_scene: RowScene, new_scene: RowScene):
+    def on_scene_change(self, _table, _old_scene: RowScene, _new_scene: RowScene):
         self.__init_workspace_manager()
 
     def __init_workspace_manager(self):

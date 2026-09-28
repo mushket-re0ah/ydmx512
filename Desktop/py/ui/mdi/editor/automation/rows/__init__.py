@@ -1,28 +1,22 @@
-from kivy.app import App
-from kivy.properties import ObjectProperty, ListProperty, ObjectProperty, NumericProperty, AliasProperty, ReferenceListProperty, BooleanProperty
-from kivy.lang import Builder
-from database.fixture import RowFixture
-from database.fixture_param import RowFixtureParam
-from libs.uix.scroll_layout import ScrollLayout
-from typing import List, Optional, Tuple, Dict, Set
+from typing import List, Optional, Tuple, Set
 from collections import defaultdict
-from libs.dmx512_render import DMXRenderDot, InterpolationType
-from database.playback import RowPlayback, PlaybackRenderRow
-from libs.dmx512.misc import FullAddress
-from kivy.event import EventDispatcher
-from database.playback.renderer import render_utils
-from misc import dmx_utils
+from kivy.properties import (
+    ObjectProperty, ListProperty, AliasProperty, BooleanProperty
+)
+from kivy.lang import Builder
 from kivy.clock import Clock
-from kivy.utils import boundary
-from ui.mdi.editor.automation.rows.row_data import RowParamData, RowsDataManager
-from ui.mdi.editor.automation.rows.row import RowParam
+from libs.uix.scroll_layout import ScrollLayout
+from libs.dmx512_render import DMXRenderDot
+from libs.dmx512.misc import FullAddress
 from libs.sdl2_keyboard import manager as keyboard_manager
-from database.playback.renderer import PlaybackRenderer
-from ui.mdi.editor.automation.tools import RemoveSelectedDotsTool, PasteTool
-from database.patch import RowPatch
 from libs import logger
-from libs.dmx512 import dmx512
-from contextlib import contextmanager
+from database.playback.renderer import render_utils
+from database.playback import PlaybackRenderRow
+from database.patch import RowPatch
+from ui.mdi.editor.automation.rows.row_data import RowParamData, RowsDataManager
+from ui.mdi.editor.automation.rows.row import RowParam  # lazy kv import initialize
+from ui.mdi.editor.automation.tools import RemoveSelectedDotsTool, PasteTool
+from misc import dmx_utils
 
 
 Builder.load_file("ui/mdi/editor/automation/rows/row_panel.kv")
@@ -54,7 +48,7 @@ class RowPanel(ScrollLayout):
         self.automation.editor_content.bind(on_render_changed=self._on_render_changed)
         self._sync_has_any_data()
 
-    def _on_render_changed(self, _, renderer):
+    def _on_render_changed(self, _, _renderer):
         self._sync_has_any_data()
         self._sync_selected_dots()
 
@@ -65,7 +59,7 @@ class RowPanel(ScrollLayout):
     def _build_params_map(self, agregate=False) -> dict:
         params_of_patches = defaultdict(
             lambda: {
-                "patch_group": list(),
+                "patch_group": [],
                 "fixture_index": defaultdict(list),
                 "fixture_param": None,
             }
@@ -209,7 +203,7 @@ class RowPanel(ScrollLayout):
         norm_x = self.xy_grid.to_normalized_x(frame_x, allow_negative=allow_negative)
         return (norm_x - shift) % 1.0
 
-    def get_frame_row_shift(self, data_row: RowParamData, allow_negative=False) -> int:
+    def get_frame_row_shift(self, data_row: RowParamData) -> int:
         master_row = data_row.master_render_row
         shift = self.renderer.get_row_phase_shift(master_row) if master_row.row_phase_spec else 0.0
         return self.xy_grid.to_frame_x(shift, allow_negative=True)

@@ -1,22 +1,19 @@
+from typing import Tuple, Dict, List, Optional
 from kivy.properties import (
-    StringProperty, NumericProperty, BooleanProperty, ObjectProperty,
-    ReferenceListProperty, AliasProperty, DictProperty
+    AliasProperty, BooleanProperty, ObjectProperty, DictProperty
 )
 from kivy.clock import Clock
 from kivy.utils import boundary
 from misc import constants
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
 from database.fixture import RowFixture
 from database.fixture_param import RowFixtureParam
-from database.scene import RowScene, TableScene, SceneTableMixin, SceneRowMixin
-from database import db
-from typing import Tuple, Dict, List, Optional
+from database.scene import RowScene, SceneTableMixin, SceneRowMixin
+from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
 from libs.dmx512 import dmx512
-from libs.serialize import *
-from libs.properties import ClampedNumericProperty
-from libs.kivy_utils import AutoUnbindBehavior
-from libs.kivy_json_orm.fields import *
-
+from libs.kivy_json_orm.fields import (
+    StringField, RefField, ClampedNumericField, BooleanField, ListField,
+    NumericField
+)
 
 class RowPatch(SceneRowMixin, DatabaseRow):
     title = StringField("Без названия")
@@ -52,7 +49,7 @@ class RowPatch(SceneRowMixin, DatabaseRow):
             self._prev_fixture = fixture
             self.param_list_unpacked = fixture.param_list_unpacked
 
-    def on_start_address(self, _, start_address: int):
+    def on_start_address(self, *_):
         self._table.check_address_conflict(self.universe)
         self._table.update_address_info(self.universe)
 
@@ -74,9 +71,6 @@ class RowPatch(SceneRowMixin, DatabaseRow):
         get_end_address, None,
         bind=["start_address", "param_list_unpacked"], cache=True
     )
-
-    def remove(self) -> "DatabaseRow":
-        super().remove()
 
     def on_remove(self):
         self._table.check_address_conflict(self.universe)
@@ -147,12 +141,11 @@ class TablePatch(SceneTableMixin, DatabaseTable):
 
     def _check_address_conflict(self, _):
         def inner(patch_list: Tuple[RowPatch]):
-            sorted_patches = [i for i in sorted(patch_list,
-                                                key=lambda x: x.start_address)]
+            sorted_patches = list(sorted(patch_list, key=lambda x: x.start_address))
             n = len(sorted_patches)
             if n == 0:
                 return
-            elif n == 1:
+            if n == 1:
                 patch_list[0].is_address_conflict = False
                 return
 

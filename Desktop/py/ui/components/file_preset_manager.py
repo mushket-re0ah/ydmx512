@@ -1,9 +1,8 @@
+from pathlib import Path
 from kivy.properties import ObjectProperty, BooleanProperty, StringProperty
 from kivy.clock import Clock
-from libs.uix.layouts import ModalBoxLayout, WindowModalBoxLayout
-from pathlib import Path
 from kivy.lang import Builder
-from libs import logger
+from libs.uix.layouts import ModalBoxLayout, WindowModalBoxLayout
 
 Builder.load_file("ui/components/file_preset_manager.kv")
 
@@ -59,7 +58,7 @@ class MenuPresetManager(ModalBoxLayout):
         self.filelist.rootpath = rootpath
         self.filelist.bind(on_submit=self.on_filelist_submit)
 
-    def on_filelist_submit(self, filelist, path: Path):
+    def on_filelist_submit(self, _filelist, path: Path):
         preset = self.asset_manager.get_asset_by_path(path)
         if preset:
             self.load_preset(preset)

@@ -1,3 +1,4 @@
+from typing import Tuple, NamedTuple
 from kivy.clock import Clock
 from kivy.properties import (
     BooleanProperty, AliasProperty, ObjectProperty,
@@ -5,7 +6,6 @@ from kivy.properties import (
 )
 from kivy.uix.stencilview import StencilView
 from kivy.graphics import PushMatrix, Translate, PopMatrix, Canvas
-from typing import Tuple, NamedTuple
 from libs.properties import ClampedNumericProperty
 
 
@@ -86,10 +86,10 @@ class RestrictedScrollView(StencilView):
 
     _viewport = ObjectProperty(None, allownone=True)
 
-    def _set_viewport_size(self, instance, value):
+    def _set_viewport_size(self, _instance, value):
         self.viewport_size = value
 
-    def on__viewport(self, instance, value):
+    def on__viewport(self, _instance, value):
         if value:
             value.bind(size=self._set_viewport_size)
             self.viewport_size = value.size
@@ -228,21 +228,19 @@ class RestrictedScrollView(StencilView):
                     ret = scrollable_widget.on_touch_down(touch)
                     touch.pop()
                     return ret
-                else:
-                    return self.simulate_touch_down(touch)
+                return self.simulate_touch_down(touch)
             if touch.button == "middle" and self.scroll_by_content:
                 self._start_pos = touch.pos
                 self._start_scroll = [self.scroll_x, self.scroll_y]
                 touch.grab(self)
                 return True
-            elif touch.button == "scrollup" and self._can_scroll_by_y():
+            if touch.button == "scrollup" and self._can_scroll_by_y():
                 self.scroll_y_down()
                 return True
-            elif touch.button == "scrolldown" and self._can_scroll_by_y():
+            if touch.button == "scrolldown" and self._can_scroll_by_y():
                 self.scroll_y_up()
                 return True
-            else:
-                return self.simulate_touch_down(touch)
+            return self.simulate_touch_down(touch)
         return False
 
     def _can_scroll_by_y(self) -> bool:
@@ -353,8 +351,7 @@ class RestrictedScrollView(StencilView):
         if vp.width > self.width:
             sw = vp.width - self.width
             return dx / float(sw)
-        else:
-            return 0
+        return 0
 
     def convert_distance_to_scroll_y(self, dy: float):
         if not self._viewport:
@@ -363,10 +360,9 @@ class RestrictedScrollView(StencilView):
         if vp.height > self.height:
             sh = vp.height - self.height
             return dy / float(sh)
-        else:
-            return 0
+        return 0
 
-    def update_from_scroll(self, *largs):
+    def update_from_scroll(self, *_):
         if self.scroll_element_block:
             return
         if not self._viewport:
@@ -408,7 +404,7 @@ class RestrictedScrollView(StencilView):
 
     def add_widget(self, widget, *args, **kwargs):
         if self._viewport:
-            raise Exception('RestrictedScrollView accept only one widget')
+            raise RuntimeError('RestrictedScrollView accept only one widget')
         canvas = self.canvas
         self.canvas = self.canvas_viewport
         super().add_widget(widget, *args, **kwargs)
@@ -430,7 +426,7 @@ class RestrictedScrollView(StencilView):
     def _get_uid(self, prefix='sv'):
         return '{0}.{1}'.format(prefix, self.uid)
 
-    def _do_touch_up(self, touch, *largs):
+    def _do_touch_up(self, touch, *_):
         # touch is in window coords
         touch.push()
         touch.apply_transform_2d(self.to_widget)

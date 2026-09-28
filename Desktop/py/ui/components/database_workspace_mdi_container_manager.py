@@ -1,16 +1,17 @@
+from typing import List
+from itertools import chain
 from libs.uix.mdi.workspace_mdi_container_manager import WorkspaceMDIContainerManager
 from libs.uix.mdi.layout_mode import TilingLayoutMode, FloatingLayoutMode
 from libs.uix.mdi.mdi_window import MDIWindow
 from libs.uix.workspace_manager import WorkspaceBehavior
 from database import db
-from typing import List
-from itertools import chain
+from misc import constants
 
 
 class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
     def __init__(self, *args, **kwargs):
         self._database_loaded = False
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, workspace_count=constants.DATABASE_MDI_WORKSPACES_COUNT, **kwargs)
 
     def load_database_data(self, mdi_list: List[MDIWindow]):
         self.workspace_now_index = db.mdi_manager.workspace_index
@@ -19,7 +20,6 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
         self._database_loaded = True
 
     def _load_workspace_database_data(self, index: int, mdi_list: List[MDIWindow]):
-        from libs import logger
         db_row = db.mdi_manager.by_workspace_index(index)
         if not db_row.layout:
             return
@@ -104,13 +104,12 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
         layout_mode = workspace.layout_mode
         if isinstance(layout_mode, FloatingLayoutMode):
             return [i._db_title_id for i in layout_mode.get_layout()]
-        elif isinstance(layout_mode, TilingLayoutMode):
+        if isinstance(layout_mode, TilingLayoutMode):
             return [
                 [mdi._db_title_id for mdi in mdi_group]
                 for mdi_group in layout_mode.get_layout()
             ]
-        else:
-            raise RuntimeError()
+        raise RuntimeError()
 
     def _deserialize_workspace_layout(self, layout: list, mdi_list: List[MDIWindow]) -> List[MDIWindow]:
         mdi_by_title_id = {mdi._db_title_id: mdi for mdi in mdi_list}

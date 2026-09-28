@@ -1,12 +1,12 @@
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel, DEFAULT_FONT
-from kivy.properties import (StringProperty, OptionProperty,
-    NumericProperty, ListProperty,
-    ObjectProperty, ColorProperty, VariableListProperty
+from kivy.properties import (
+    StringProperty, OptionProperty, NumericProperty, ListProperty,
+    ObjectProperty, VariableListProperty
 )
 from kivy.lang import Builder
-from libs.animation import StatefulColorProperty, AnimationBehavior
+from libs.animation import StatefulColorProperty
 from libs.uix import colorscheme as uix_cs
 
 
@@ -65,7 +65,7 @@ class RestrictedLabel(Widget):
 
         self._trigger_texture()
 
-    def texture_update(self, *largs):
+    def texture_update(self, *_):
         self.texture = None
 
         if (not self._label.text or

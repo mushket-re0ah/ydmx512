@@ -1,9 +1,9 @@
+from typing import Optional, Type
 from kivy.properties import NumericProperty
-from typing import Optional
 from libs.serialize import SerializableMixin
 from libs.file_utils import atomic_json_save, json_load
 from libs.kivy_utils import atomic_setattrs, AutoUnbindBehavior
-from libs.kivy_json_orm.fields import *
+from libs.kivy_json_orm.fields import NumericField, DictField
 
 
 class BaseTable(SerializableMixin):
@@ -99,7 +99,7 @@ class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
 
 
 class DatabaseTable(BaseTable):
-    cls_row: DatabaseRow = None
+    cls_row: Type[DatabaseRow]
     counter_id = NumericField(1)
 
     def deserialize_rows(self, rows):
@@ -145,8 +145,7 @@ class DatabaseTable(BaseTable):
         _id = int(_id)
         if _id in self.rows:
             return self.rows[_id]
-        else:
-            return None
+        return None
 
     def get_row_by_attribute(self,
                              attr: str,

@@ -1,8 +1,8 @@
+from functools import partial
 from libs.uix.database_table import DatabaseTableUi
 from libs.uix.database_table import ColumnConfigTemplates
-from misc import constants
 from database import db
-from functools import partial
+from misc import constants
 
 
 def _update_select_button(widget, db_row, *_):

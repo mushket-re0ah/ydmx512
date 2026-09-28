@@ -1,8 +1,7 @@
 from kivy.properties import ObjectProperty, AliasProperty
 from kivy.lang import Builder
 from libs.uix.layouts import ModalBoxLayout
-from database.playback import RowPlayback
-import libs.uix.menu_components
+import libs.uix.menu_components  # lazy kv import initialize
 
 
 Builder.load_file("ui/components/playback_ui/playback_context_menu.kv")

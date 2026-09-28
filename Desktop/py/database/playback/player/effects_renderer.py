@@ -1,10 +1,9 @@
 from typing import Optional, List
+import time
 from database.patch import RowPatch
 from database.fixture_param import DIMMER_TITLE_ID
 from misc.player.status import PlayerStatus
-from misc.player.render_utils import SoftEffectsRenderer, apply_value_modifiers
-from misc.player import render_utils
-import time
+from misc.player.render_utils import apply_value_modifiers
 
 
 class PlayerEffectsRenderer:
@@ -58,8 +57,7 @@ class PlayerEffectsRenderer:
     def _get_render_value(self, patch_render: List[int], frame: int) -> int:
         if self.do_cycle_last_frame:
             return patch_render[-1]
-        else:
-            return patch_render[self._apply_bounce(frame)]
+        return patch_render[self._apply_bounce(frame)]
 
     def _get_render_soft_value(self, patch: RowPatch, fixture_index: int,
                                frame: int, patch_render: List[int]) -> int:

@@ -1,4 +1,5 @@
-from kivy.properties import BooleanProperty, ColorProperty
+from kivy.lang import Builder
+from kivy.properties import BooleanProperty
 from kivy.clock import Clock
 from libs.uix.input.textinput import CentralizedHotkeyTextInput
 from libs.uix.context_menu import (
@@ -6,8 +7,7 @@ from libs.uix.context_menu import (
 )
 from libs.uix import colorscheme as uix_cs
 from libs.animation import StatefulColorProperty
-from libs.uix.behaviors.mouse import TouchMouseBehavior
-from kivy.lang import Builder
+
 Builder.load_string("""
 <-HoverInput>:  # CentralizedHotkeyTextInput
     size_hint: (None, None)
@@ -56,15 +56,14 @@ class HoverInput(CentralizedHotkeyTextInput):
         super().__init__(**kwargs)
         self.bind(focus=self.focus_set_global)
 
-    def focus_set_global(self, instance, value):
+    def focus_set_global(self, _, value):
         self.visible_focus = value
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and touch.button == "right":
             self.open_context_menu(touch.pos)
             return True
-        else:
-            return super().on_touch_down(touch)
+        return super().on_touch_down(touch)
 
     def open_context_menu(self, pos: tuple):
         if self.disabled:
@@ -74,7 +73,7 @@ class HoverInput(CentralizedHotkeyTextInput):
         cursor_pos = self.cursor
         self._create_context_menu().open(self, pos=pos)
 
-        def t(*args):
+        def t(*_):
             if selection_start is None or selection_end is None:
                 return
             self.select_text(selection_start, selection_end)

@@ -1,5 +1,5 @@
-from .manager import KeyboardInputContext, register_context, unregister_context
 from typing import Optional
+from libs.sdl2_keyboard.manager import KeyboardInputContext, register_context, unregister_context
 
 
 class KeyboardBehavior:

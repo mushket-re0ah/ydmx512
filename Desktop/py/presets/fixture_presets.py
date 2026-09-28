@@ -1,14 +1,15 @@
-from misc import constants
+from pathlib import Path
+from typing import Any, Optional
 from database import db
 from database.fixture import RowFixture
 from libs.serialize import SerializableMixin
-from database.playback.renderer.render_data import PlaybackRenderRow
-from database.phase_curve_type import RowPhaseCurveType
-from libs.kivy_json_orm.fields import *
+from libs.kivy_json_orm.fields import (
+    BooleanField, ListField, ClampedNumericField, RefField, StringField,
+    ListNestedField
+)
 from libs.asset_manager import FileAssetManager
-from pathlib import Path
-from typing import Any, Optional
 from libs import logger
+from misc import constants
 
 
 class FixturePresetRowData(SerializableMixin):
