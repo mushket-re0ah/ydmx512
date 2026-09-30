@@ -12,6 +12,7 @@ from ui.mdi.desktops.desktop_slider_2d import DesktopSlider2D
 from database.scene import RowScene
 from database import db
 from database.desktop_uix import DesktopUixType, RowDesktopUix
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/desktops/desktop_map_section.kv")
@@ -39,7 +40,7 @@ class DesktopMapSection(SectionPanel):
     freeze_toggle = ObjectProperty()
 
     workspace_now = None
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.workspace_manager.menu.add_widget(Widget(size_hint=(1, 1)))
         self.freeze_toggle = MapFreezeToggleDesktop(desktop_map_section=self)
         self.workspace_manager.menu.add_widget(self.freeze_toggle)

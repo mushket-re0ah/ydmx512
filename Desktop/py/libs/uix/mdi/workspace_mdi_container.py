@@ -1,5 +1,6 @@
-from libs.uix.workspace_manager import WorkspaceBehavior
 from libs.uix.mdi.mdi_container import MDIContainer
+from libs.uix.workspace_manager import WorkspaceBehavior
+
 
 class WorkspaceMDIContainer(MDIContainer, WorkspaceBehavior):
     def on_showed(self, _, showed: bool):

@@ -6,6 +6,7 @@ from database import db
 from ui.mdi.desktops.desktop_rotary import DesktopRotaryUix
 from ui.mdi.desktops.desktop_slider_2d import DesktopSlider2D
 from ui.mdi.desktops.desktop_map_section import widget_to_desktop_uix_type
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/desktops/map_context_menu.kv")
@@ -27,7 +28,7 @@ class DesktopMapContextMenu(ModalBoxLayout):
     desktop_map = ObjectProperty()
     scroll_layout = ObjectProperty()
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.scroll_layout.scrollview.data = [
             {"widget_cls": DesktopRotaryUix, "widget_cls_text": "Rotary button", "desktop_map": self.desktop_map},
             {"widget_cls": DesktopSlider2D, "widget_cls_text": "Slider 2D", "desktop_map": self.desktop_map}

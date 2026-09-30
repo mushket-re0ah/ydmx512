@@ -1,11 +1,13 @@
 from pathlib import Path
-from kivy.properties import (
-    ObjectProperty, ListProperty, BooleanProperty, NumericProperty
-)
+from typing import Any, Dict, List
+
 from kivy.clock import Clock
 from kivy.lang import Builder
-from libs.uix.scroll_layout import ScrollLayout
+from kivy.properties import BooleanProperty, ListProperty, NumericProperty, ObjectProperty
+
 from libs.uix.button import HoverButton
+from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
+from libs.uix.scroll_layout import ScrollLayout
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -40,11 +42,10 @@ Builder.load_string("""
 
 
 class FileListButton(HoverButton):
-    path = ObjectProperty()
-    filelist = ObjectProperty()
-    is_dir_button = BooleanProperty()
+    path: Path = ObjectProperty()
+    filelist: "Filelist" = ObjectProperty()
+    is_dir_button: bool = BooleanProperty()
 
-    set_colors_ev = None
     def __init__(self, **kwargs):
         set_colors_ev = Clock.create_trigger(self.update_colors, 0)
         self.set_colors_ev = set_colors_ev
@@ -62,21 +63,19 @@ class FileListButton(HoverButton):
 
 
 class Filelist(ScrollLayout):
-    cls_height = NumericProperty("26dp")
+    cls_height: float = NumericProperty("26dp")
 
-    scrollview = ObjectProperty()
+    scrollview: RecycleRestrictedScrollView = ObjectProperty()
 
-    rootpath = ObjectProperty()
-    path = ObjectProperty()
-    filters = ListProperty([])
+    rootpath: Path = ObjectProperty()
+    path: Path = ObjectProperty()
+    filters: List[str] = ListProperty([])
 
     __events__ = ('on_submit',)
 
-    prev_path = None
-    update_ev = None
-    def __init__(self, **kwargs):
-        update_ev = Clock.create_trigger(self.update, -1)
-        self.update_ev = update_ev
+    prev_path: Path
+    def __init__(self, **kwargs: Any):
+        self.update_ev = Clock.create_trigger(self.update, -1)
         self.bind(
             rootpath=self.update_ev,
             path=self.update_ev,
@@ -99,7 +98,7 @@ class Filelist(ScrollLayout):
         if not path.exists() or not path.is_dir():
             self.path = self.rootpath
             return
-        data = []
+        data: List[Dict[str, Any]] = []
         try:
             if path != rootpath:
                 data.append(self.create_item("..", path.parent, True))
@@ -117,7 +116,7 @@ class Filelist(ScrollLayout):
         except PermissionError:
             self.path = self.prev_path
 
-    def create_item(self, text: str, path: Path, is_dir: bool) -> dict:
+    def create_item(self, text: str, path: Path, is_dir: bool) -> Dict[str, Any]:
         return {
             "text": text,
             "path": path,

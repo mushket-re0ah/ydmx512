@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import TYPE_CHECKING, Union, List, Optional
 from enum import Enum, auto
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
@@ -15,6 +15,9 @@ from database.brand import RowBrand
 from misc import constants
 from ui.components.database_mdi_window import DatabaseMDIWindow
 from ui.mdi.library.table import LibraryTable
+
+if TYPE_CHECKING:
+    from ui.mdi.library.fixture_editor import LibraryFixtureEditor
 
 
 class LibraryContexts(Enum):

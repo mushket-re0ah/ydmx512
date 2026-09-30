@@ -1,10 +1,10 @@
-from misc import constants
 from database import db
 from database.fixture_param import RowFixtureParam
-from libs.serialize import SerializableMixin
-from libs.dmx512_render import InterpolationType
-from libs.kivy_json_orm.fields import StringField, ListField
 from libs.asset_manager import FileAssetManager
+from libs.dmx512_render import InterpolationType
+from libs.kivy_json_orm.fields import ListField, StringField
+from libs.serialize import SerializableMixin
+from misc import constants
 
 
 class ParamPresetData(SerializableMixin):
@@ -16,8 +16,8 @@ class ParamPresetsManager(FileAssetManager):
     def __init__(self):
         super().__init__(constants.PRESETS_PATH, constants.PRESETS_PARAMS_SUBDIR, ParamPresetData)
 
-    def _key_to_string(self, fixture_param: RowFixtureParam) -> str:
-        return fixture_param.title_id
+    def _key_to_string(self, key: RowFixtureParam) -> str:
+        return key.title_id if key.title_id is not None else key.title
 
     def _create_default(self):
         self.add_asset(db.fixture_param.by_title_id("pan"), ParamPresetData(

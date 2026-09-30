@@ -1,14 +1,16 @@
-from typing import Optional, List, Type
-from kivy.properties import ObjectProperty, ListProperty, AliasProperty
-from kivy.uix.relativelayout import RelativeLayout
+from typing import Any, List, Optional, Tuple, Type, Union
+
 from kivy.lang import Builder
+from kivy.properties import AliasProperty, ListProperty, ObjectProperty
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.widget import Widget
+from typing_extensions import Self
+
+from libs.kivy_mixins import AutoUnbindBehavior
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
-from libs.kivy_utils import AutoUnbindBehavior
-from libs.uix.mdi.mdi_window import MDIWindow
-from libs.uix.mdi.layout_mode import (
-    ILayoutMode, TilingLayoutMode, FloatingLayoutMode
-)
 from libs.uix.layouts import StencilRelativeLayout
+from libs.uix.mdi.layout_mode import FloatingLayoutMode, ILayoutMode, TilingLayoutMode
+from libs.uix.mdi.mdi_window import MDIWindow
 
 Builder.load_string("""
 <MDIContainer>:  # StencilRelativeLayout
@@ -20,7 +22,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
     mdi_focused: Optional[MDIWindow] = ObjectProperty(None, allownone=True)
     mdi_list_showed: List[MDIWindow] = ListProperty()
 
-    if_contain = AliasProperty(
+    if_contain: bool = AliasProperty(
         lambda self: len(self.mdi_list_showed) > 0,
         bind=["mdi_list_showed"]
     )
@@ -31,7 +33,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
             self._layout_mode = FloatingLayoutMode(self, self._layout_mode)
             self._layout_mode.register_keyboard_context()
         return self._layout_mode
-    def set_layout_mode(self, layout_mode: Type[ILayoutMode]):
+    def set_layout_mode(self, layout_mode: Type[ILayoutMode]) -> bool:
         if isinstance(self._layout_mode, layout_mode):
             return False
         if self._layout_mode:
@@ -43,7 +45,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         self._layout_mode = layout_mode(self, self._layout_mode)
         self._layout_mode.register_keyboard_context()
         return True
-    layout_mode = AliasProperty(
+    layout_mode: ILayoutMode = AliasProperty(
         get_layout_mode,
         set_layout_mode
     )
@@ -51,9 +53,9 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
     def on_mdi_list_showed(self, _, mdi_list_showed: List[MDIWindow]):
         self.layout_mode.sync_mdi_list_showed(mdi_list_showed)
 
-    _kv_ready = False
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    _kv_ready: bool = False
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self._kv_ready = True
 
     def _on_mdi_kv_post(self, mdi: MDIWindow, _):
@@ -61,7 +63,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         if not mdi.hidden:
             self._add_mdi_widget(mdi)
 
-    def add_widget(self, widget, *args, **kwargs):
+    def add_widget(self, widget: Union[Widget, MDIWindow], *args: Any, **kwargs: Any):
         if not isinstance(widget, MDIWindow):
             raise TypeError("add_widget for MDIContainer must be MDIWindow")
         if not self._kv_ready:
@@ -69,7 +71,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
             return
         self._add_mdi_widget(widget)
 
-    def _add_mdi_widget(self, mdi):
+    def _add_mdi_widget(self, mdi: MDIWindow):
         if mdi in self.mdi_list_showed:
             self.set_focus(mdi)
             return
@@ -83,7 +85,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         if was_hidden:
             mdi.property("hidden").dispatch(mdi)
 
-    def remove_widget(self, widget, *args, **kwargs):
+    def remove_widget(self, widget: Widget, *args: Any, **kwargs: Any):
         if not isinstance(widget, MDIWindow):
             raise TypeError("remove_widget for MDIContainer must be MDIWindow")
         widget.mdi_container = None
@@ -94,18 +96,24 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
             self.set_focus(None)
         widget.hidden = True
 
-    def clear_widgets(self):
+    def clear_widgets(self, children:Optional[List[Widget]]=None):
         for mdi in self.mdi_list_showed[:]:
             self.remove_widget(mdi)
 
-    def _layout_add_widget(self, widget, *args, **kwargs):
+    def layout_add_widget(self, widget: Widget, *args: Any, **kwargs: Any):
+        if widget.parent is not None:
+            self.remove_widget(widget)
         RelativeLayout.add_widget(self, widget, *args, **kwargs)
 
-    def _layout_remove_widget(self, widget, *args, **kwargs):
+    def layout_remove_widget(self, widget: Widget, *args: Any, **kwargs: Any):
+        if widget.parent is None:
+            return
         RelativeLayout.remove_widget(self, widget, *args, **kwargs)
 
-    def _clear_layout_widgets(self):
+    def clear_layout_widgets(self):
         for child in self.children[:]:
+            if widget.parent is None:
+                continue
             RelativeLayout.remove_widget(self, child)
 
     def switch_focus(self):
@@ -115,7 +123,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         new_idx = (current_idx + 1) % len(self.mdi_list_showed)
         self.set_focus(self.mdi_list_showed[new_idx])
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         touch.push()
         touch.apply_transform_2d(self.to_local)
         if self.collide_point(*touch.pos) and not self.layout_mode.find_mdi_at_pos(touch.pos):
@@ -127,14 +135,14 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         touch.pop()
         return ret
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         touch.push()
         touch.apply_transform_2d(self.to_local)
         ret = self.layout_mode.handle_touch_move(touch)
         touch.pop()
         return ret
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         touch.push()
         touch.apply_transform_2d(self.to_local)
         ret = self.layout_mode.handle_touch_up(touch)
@@ -144,7 +152,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
     def on_mouse_move(self, pos):
         self.layout_mode.handle_mouse_move(self.to_local(*pos))
 
-    def set_focus(self, mdi_window):
+    def set_focus(self, mdi_window: Optional[MDIWindow]):
         self._discard_focus()
         if mdi_window is None:
             return
@@ -161,7 +169,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         FloatingLayoutMode,
         TilingLayoutMode,
     )
-    def open_context_menu(self, pos):
+    def open_context_menu(self, pos: Tuple[float, float]):
         ctx_menu = ContextMenu(items=[
             ContextMenuTemplates.button(
                 text="Закрыть все окна",
@@ -201,8 +209,8 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
 #         mdi = ObjectProperty()
 #         mdi_container = ObjectProperty()
 
-#         def on_kv_post(self, _):
-#             super().on_kv_post(_)
+#         def on_kv_post(self, base_widget: Self):
+#             super().on_kv_post(base_widget)
 #             self.mdi.bind(hidden=self._set_state_by_mdi)
 #             self._set_state_by_mdi(self.mdi, self.mdi.hidden)
 

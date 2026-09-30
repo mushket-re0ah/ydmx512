@@ -1,13 +1,19 @@
-from typing import Tuple
+from typing import Any, Tuple
+
 from kivy.clock import Clock
-from kivy.uix.widget import Widget
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import (
-    NumericProperty, ListProperty, ObjectProperty, ReferenceListProperty,
-)
 from kivy.graphics.texture import Texture
-from libs.uix.color_selector.colorpicker_utils import get_color_data
 from kivy.lang import Builder
+from kivy.properties import (
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    ReferenceListProperty,
+)
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
+from libs.uix.color_selector.colorpicker_utils import get_color_data
+
+from libs.typecheck import HSL, RGB
 
 Builder.load_string("""
 <ColorSelectorSquare>:  # Widget
@@ -101,31 +107,32 @@ Builder.load_string("""
 
 
 class ColorSelectorSquare(Widget):
-    color = ListProperty([1, 0, 0])  # Текущий цвет в RGB
+    color: RGB = ListProperty([1, 0, 0])  # Текущий цвет в RGB
 
-    red = NumericProperty(0)
-    green = NumericProperty(0)
-    blue = NumericProperty(0)
-    rgb = ReferenceListProperty(red, green, blue)
+    red: float = NumericProperty(0)
+    green: float = NumericProperty(0)
+    blue: float = NumericProperty(0)
+    rgb: RGB = ReferenceListProperty(red, green, blue)
 
-    hue = NumericProperty(0)
-    saturate = NumericProperty(0)
-    lightness = NumericProperty(0.4)
-    hsl = ReferenceListProperty(hue, saturate, lightness)
+    hue: float = NumericProperty(0)
+    saturate: float = NumericProperty(0)
+    lightness: float = NumericProperty(0.4)
+    hsl: HSL = ReferenceListProperty(hue, saturate, lightness)
 
-    texture_size = NumericProperty(256)  # Размер текстуры
-    texture = ObjectProperty()
-    marker_x = NumericProperty(0)
-    marker_y = NumericProperty(0)
-    marker_xy = ReferenceListProperty(marker_x, marker_y)
+    texture_size: float = NumericProperty(256)  # Размер текстуры
+    texture: Texture = ObjectProperty()
+    marker_x: int = NumericProperty(0)
+    marker_y: int = NumericProperty(0)
+    marker_xy: Tuple[int, int] = ReferenceListProperty(marker_x, marker_y)
 
-    marker_graphics_x = NumericProperty(0)
-    marker_graphics_y = NumericProperty(0)
-    marker_graphics_pos = ReferenceListProperty(marker_graphics_x, marker_graphics_y)
+    marker_graphics_x: float = NumericProperty(0)
+    marker_graphics_y: float = NumericProperty(0)
+    marker_graphics_pos: Tuple[float, float] = ReferenceListProperty(marker_graphics_x, marker_graphics_y)
 
     MARKER_SIZE = 10
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
+        self.data: bytes = b''
         self.trigger_update_texture = Clock.create_trigger(self.update_texture, -1)
         self.trigger_update_marker_graphics_pos = Clock.create_trigger(
                                 self.update_marker_graphics_pos, -1)
@@ -143,22 +150,22 @@ class ColorSelectorSquare(Widget):
             marker_xy=self.trigger_update_marker_graphics_pos
         )
 
-    def on_rgb(self, _, rgb: Tuple[float, float, float]):
+    def on_rgb(self, _, rgb: RGB):
         # self.hsl = colorsys.rgb_to_hsl(*rgb)
         pass
 
-    def on_hsl(self, _, hsl: Tuple[float, float, float]):
+    def on_hsl(self, _, hsl: HSL):
         # self.rgb = colorsys.hsl_to_rgb(*hsl)
         self.marker_xy = int(self.hue * 255), int(self.saturate * 255)
         self.update_color(*self.marker_xy)
 
-    def update_texture(self, *args):
+    def update_texture(self, *_):
         # Создаем массив цветов
-        width = self.texture.width
-        height = self.texture.height
+        width: float = self.texture.width
+        height: float = self.texture.height
 
         # data = get_color_data(width, height, self.lightness)
-        data = get_color_data(
+        data: bytes = get_color_data(
             width, height, self.lightness
         )
 
@@ -169,13 +176,13 @@ class ColorSelectorSquare(Widget):
         self.texture.flip_vertical()
         self.update_color(*self.marker_xy)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos):
             self.select_color(touch.x, touch.y)
             return True
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if self.collide_point(*touch.pos):
             self.select_color(touch.x, touch.y)
             return True
@@ -206,9 +213,9 @@ class ColorSelectorSquare(Widget):
         g = pixels[index + 1]
         b = pixels[index + 2]
 
-        self.rgb = [r/255, g/255, b/255]
-        self.hsl = [x/255, y/255, self.lightness]
+        self.rgb = (r/255, g/255, b/255)
+        self.hsl = (x/255, y/255, self.lightness)
 
 
 class ColorSelector(BoxLayout):
-    selector = ObjectProperty(rebind=True)
+    selector: ColorSelectorSquare = ObjectProperty(rebind=True)

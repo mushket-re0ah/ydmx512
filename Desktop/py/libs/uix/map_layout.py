@@ -1,25 +1,34 @@
-from typing import Tuple, Optional, Dict, Set, Iterator
 from math import ceil, floor
-from weakref import WeakKeyDictionary
-from kivy.properties import (
-    ObjectProperty, NumericProperty, BooleanProperty,
-    ListProperty, ColorProperty, ReferenceListProperty,
-    VariableListProperty, AliasProperty
-)
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
+
 from kivy.clock import Clock
-from kivy.uix.widget import Widget
-from kivy.lang import Builder
 from kivy.graphics.texture import Texture
-from libs.uix.workspace_manager import WorkspaceBehavior
-from libs.uix.scroll_layout import ScrollLayout
+from kivy.lang import Builder
+from kivy.properties import (
+    AliasProperty,
+    BooleanProperty,
+    ColorProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    ReferenceListProperty,
+    VariableListProperty,
+)
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.widget import Widget
+from typing_extensions import Self
+
+from libs.animation import AnimationBehavior, StatefulColorProperty
+from libs.kivy_mixins import AutoUnbindBehavior
 from libs.mouse_manager.hover import NestedHoverBehavior
-from libs.animation import AnimationBehavior
-from libs.animation import StatefulColorProperty
-from libs.kivy_utils import AutoUnbindBehavior
 from libs.sdl2_keyboard import manager as keyboard_manager
+from libs.typecheck import RGBA
 from libs.uix import colorscheme as uix_cs
 from libs.uix.context_menu import ContextMenu
-
+from libs.uix.restricted_scrollview import RestrictedScrollView
+from libs.uix.scroll_layout import ScrollLayout
+from libs.uix.workspace_manager import WorkspaceBehavior
 
 Builder.load_string("""
 <MapGridItemBehavior>:
@@ -86,17 +95,17 @@ Builder.load_string("""
 
 
 class _GridGeometryItemBehavior(AutoUnbindBehavior):
-    map_layout = ObjectProperty(allownone=True)
+    map_layout: Optional["MapLayout"] = ObjectProperty(allownone=True)
 
-    grid_x = NumericProperty()
-    grid_y = NumericProperty()
-    grid_pos = ReferenceListProperty(grid_x, grid_y)
+    grid_x: int = NumericProperty()
+    grid_y: int = NumericProperty()
+    grid_pos: Tuple[int, int] = ReferenceListProperty(grid_x, grid_y)
 
-    grid_width = NumericProperty()
-    grid_height = NumericProperty()
-    grid_size = ReferenceListProperty(grid_width, grid_height)
+    grid_width: int = NumericProperty()
+    grid_height: int = NumericProperty()
+    grid_size: Tuple[int, int] = ReferenceListProperty(grid_width, grid_height)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self._trigger_update_geometry = Clock.create_trigger(
             self._update_geometry, -1
         )
@@ -107,11 +116,11 @@ class _GridGeometryItemBehavior(AutoUnbindBehavior):
             map_layout=self._trigger_update_geometry
         )
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self._trigger_update_geometry()
 
-    _prev_map_layout = None
-    def on_map_layout(self, _, map_layout):
+    _prev_map_layout: Optional["MapLayout"] = None
+    def on_map_layout(self, _, map_layout: Optional["MapLayout"]):
         if self._prev_map_layout:
             self.unbind_from(self._prev_map_layout.layout)
         if map_layout:
@@ -130,12 +139,12 @@ class _GridGeometryItemBehavior(AutoUnbindBehavior):
 
 
 class MapGridItemBehavior(AnimationBehavior, NestedHoverBehavior, _GridGeometryItemBehavior):
-    selectable = BooleanProperty(False)
-    selected = BooleanProperty(False)
+    selectable: bool = BooleanProperty(False)
+    selected: bool = BooleanProperty(False)
 
-    _not_selectable = AliasProperty(lambda self: not self.selectable, bind=["selectable"])
-    animation_time = 0.0
-    border_color = StatefulColorProperty(
+    _not_selectable: bool = AliasProperty(lambda self: not self.selectable, bind=["selectable"])
+    animation_time: float = 0.0
+    border_color: RGBA = StatefulColorProperty(
         normal=uix_cs.MapGridItemBehavior.border_color_normal,
         states={
             "_not_selectable": (0, 0, 0, 0),
@@ -146,45 +155,45 @@ class MapGridItemBehavior(AnimationBehavior, NestedHoverBehavior, _GridGeometryI
 
 
 class _MapLayoutSelector(_GridGeometryItemBehavior, Widget):
-    bg_color = ColorProperty(uix_cs.MapSelector.bg)
-    border_color = ColorProperty(uix_cs.MapSelector.border)
+    bg_color: RGBA = ColorProperty(uix_cs.MapSelector.bg)
+    border_color: RGBA = ColorProperty(uix_cs.MapSelector.border)
 
 
 class MapLayout(ScrollLayout, AutoUnbindBehavior):
-    scrollview = ObjectProperty()
-    layout = ObjectProperty()
-    wrap_layout = ObjectProperty()
+    scrollview: RestrictedScrollView = ObjectProperty()
+    layout: RelativeLayout = ObjectProperty()
+    wrap_layout: BoxLayout = ObjectProperty()
 
-    cell_width = NumericProperty("16dp")
-    cell_height = NumericProperty("16dp")
-    cell_size = ReferenceListProperty(cell_width, cell_height)
+    cell_width: float = NumericProperty("16dp")
+    cell_height: float = NumericProperty("16dp")
+    cell_size: Tuple[float, float] = ReferenceListProperty(cell_width, cell_height)
 
-    bg_color = ColorProperty(uix_cs.MapLayout.bg)
-    grid_padding = VariableListProperty([0, 0, 0, 0], length=4)
-    grid_show = BooleanProperty(True)
-    grid_color = ColorProperty(uix_cs.MapLayout.grid_color)
-    grid_line_width = NumericProperty("1dp")
+    bg_color: RGBA = ColorProperty(uix_cs.MapLayout.bg)
+    grid_padding: Tuple[float, float, float, float] = VariableListProperty([0, 0, 0, 0], length=4)
+    grid_show: bool = BooleanProperty(True)
+    grid_color: RGBA = ColorProperty(uix_cs.MapLayout.grid_color)
+    grid_line_width: float = NumericProperty("1dp")
 
-    grid_spacing_width = NumericProperty(0)
-    grid_spacing_height = NumericProperty(0)
-    grid_spacing = ReferenceListProperty(grid_spacing_width, grid_spacing_height)
+    grid_spacing_width: float = NumericProperty(0)
+    grid_spacing_height: float = NumericProperty(0)
+    grid_spacing: Tuple[float, float] = ReferenceListProperty(grid_spacing_width, grid_spacing_height)
 
-    max_columns = NumericProperty(24)
-    max_rows = NumericProperty(24)
-    max_grid_size = ReferenceListProperty(max_columns, max_rows)
+    max_columns: int = NumericProperty(24)
+    max_rows: int = NumericProperty(24)
+    max_grid_size: Tuple[int, int] = ReferenceListProperty(max_columns, max_rows)
 
-    selectable = BooleanProperty(True)
+    selectable: bool = BooleanProperty(True)
 
-    selected = ListProperty()
-    grid_items = ListProperty()
+    selected: List[MapGridItemBehavior] = ListProperty()
+    grid_items: List[MapGridItemBehavior] = ListProperty()
 
-    _columns = NumericProperty()
-    _rows = NumericProperty()
-    _grid_size = ReferenceListProperty(_columns, _rows)
+    _columns: int = NumericProperty()
+    _rows: int = NumericProperty()
+    _grid_size: Tuple[int, int] = ReferenceListProperty(_columns, _rows)
 
-    _grid_texture = ObjectProperty(None, allownone=True)
-    _grid_render_pos = VariableListProperty([0, 0], length=2)
-    _grid_render_size = VariableListProperty([0, 0], length=2)
+    _grid_texture: Texture = ObjectProperty(None, allownone=True)
+    _grid_render_pos: Tuple[float, float] = VariableListProperty([0, 0], length=2)
+    _grid_render_size: Tuple[float, float] = VariableListProperty([0, 0], length=2)
 
     @property
     def _step_x(self) -> float:
@@ -194,29 +203,29 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
     def _step_y(self) -> float:
         return self.cell_height + self.grid_spacing_height
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         self._trigger_draw_grid = Clock.create_trigger(self._draw_grid, -1)
         self._trigger_calc_grid_size = Clock.create_trigger(self._calc_grid_size, -1)
         super().__init__(*args, **kwargs)
 
-        self._grid_occupancy = {}
-        self._grid_item_geometry = {}
+        self._grid_occupancy: Dict[Tuple[int, int], Set[MapGridItemBehavior]] = {}
+        self._grid_item_geometry: Dict[MapGridItemBehavior, Tuple[int, int, int, int]] = {}
 
-        self._grid_texture_cache_key = None
-        self._grid_texture_size = None
-        self._grid_texture_buf = None
+        self._grid_texture_cache_key: Optional[Tuple[Any, ...]] = None
+        self._grid_texture_size: Tuple[float, float] = (0, 0)
+        self._grid_texture_buf: bytes = b""
 
-        self._touched_widget = None
-        self._touch_start_cell = None
-        self._touch_start_pos = None
-        self._touch_selected_start_positions = {}
-        self._touch_last_cell = None
-        self._touch_delta_cell = (0, 0)
+        self._touched_widget: Optional[MapGridItemBehavior] = None
+        self._touch_start_cell: Optional[Tuple[int, int]] = None
+        self._touch_start_pos: Optional[Tuple[float, float]] = None
+        self._touch_selected_start_positions: Dict[MapGridItemBehavior, Tuple[int, int]] = {}
+        self._touch_last_cell: Optional[Tuple[int, int]] = None
+        self._touch_delta_cell: Tuple[int, int] = (0, 0)
 
-        self._selector = None
+        self._selector: Optional[_MapLayoutSelector] = None
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.bind(
             pos=self._trigger_draw_grid,
             size=self._trigger_draw_grid,
@@ -242,7 +251,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         )
         self._trigger_draw_grid()
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.disabled:
             return super().on_touch_down(touch)
 
@@ -289,7 +298,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
                 self._update_selector(self._touch_start_cell)
         return True
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if self._touch_start_pos is None:
             return super().on_touch_move(touch)
         if self._touch_start_cell is None:
@@ -316,7 +325,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         self._touch_last_cell = (current_x, current_y)
         return True
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         touch.ungrab(self)
         self._touched_widget = None
         self._touch_start_cell = None
@@ -328,20 +337,20 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             self._selector = None
         return super().on_touch_up(touch)
 
-    def patch_add_widget(self, widget, index=0, canvas=None):
+    def patch_add_widget(self, widget: Widget, index:int=0, canvas=None):
         if isinstance(widget, MapGridItemBehavior):
             ret = self.layout.add_widget(widget, index, canvas)
             self._bind_grid_item(widget)
             return ret
         return super().patch_add_widget(widget, index, canvas)
 
-    def remove_widget(self, widget, *args, **kwargs):
+    def remove_widget(self, widget: Widget, *args: Any, **kwargs: Any):
         if isinstance(widget, MapGridItemBehavior):
             self._unbind_grid_item(widget)
             return self.layout.remove_widget(widget, *args, **kwargs)
         return super().remove_widget(widget, *args, **kwargs)
 
-    def clear_widgets(self, children=None):
+    def clear_widgets(self, children:Optional[List[Widget]]=None):
         for child in self.layout.children[:]:
             self.remove_widget(child)
 
@@ -417,15 +426,12 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         grid_x: int,
         grid_y: int,
         grid_width: int,
-        grid_height: int,
-        exclude=None,
-    ):
-        selected = set() if exclude is None else {exclude.__self__}
-        collisions = set()
+        grid_height: int
+    ) -> Set[MapGridItemBehavior]:
+        collisions: Set[MapGridItemBehavior] = set()
         for cell in self._cells_of(grid_x, grid_y, grid_width, grid_height):
             for widget in self._grid_occupancy.get(cell, ()):
-                if widget not in selected:
-                    collisions.add(widget)
+                collisions.add(widget)
         return collisions
 
     def can_place(
@@ -433,14 +439,12 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         grid_x: int,
         grid_y: int,
         grid_width: int,
-        grid_height: int,
-        exclude=None,
+        grid_height: int
     ) -> bool:
         if not self._within_bounds(grid_x, grid_y, grid_width, grid_height):
             return False
 
-        selected = set() if exclude is None else {exclude.__self__}
-        return self._cells_free(grid_x, grid_y, grid_width, grid_height, selected)
+        return self._cells_free(grid_x, grid_y, grid_width, grid_height, set())
 
     def find_empty_pos(self, grid_width: int, grid_height: int) -> Optional[Tuple[int, int]]:
         if grid_width > self.max_columns or grid_height > self.max_rows:
@@ -498,11 +502,11 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             widget.selected = False
         self.selected = []
 
-    def unselect(self, widget):
+    def unselect(self, widget: MapGridItemBehavior):
         widget.selected = False
         self.selected = [x for x in self.selected if x is not widget]
 
-    def select(self, widget, clear=True):
+    def select(self, widget: MapGridItemBehavior, clear:bool=True):
         if not self.selectable:
             return
 
@@ -529,7 +533,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             return item
         return None
 
-    def move_selected(self, delta_x: float, delta_y: float):
+    def move_selected(self, delta_x: int, delta_y: int):
         positions = self._resolve_drag(self._touch_selected_start_positions, delta_x, delta_y)
 
         for widget, pos in positions.items():
@@ -537,10 +541,10 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
 
     def _resolve_drag(
         self,
-        positions: Dict[Widget, Tuple[int, int]],
+        positions: Dict[MapGridItemBehavior, Tuple[int, int]],
         delta_x: int,
         delta_y: int,
-    ) -> Dict[Widget, Tuple[int, int]]:
+    ) -> Dict[MapGridItemBehavior, Tuple[int, int]]:
         if not positions or (delta_x == 0 and delta_y == 0):
             return positions
 
@@ -578,7 +582,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
 
     def _clamp_delta(
             self,
-            positions: Dict[Widget, Tuple[int, int]],
+            positions: Dict[MapGridItemBehavior, Tuple[int, int]],
             dx: int,
             dy: int) -> Tuple[int, int]:
         if dx > 0:
@@ -601,11 +605,11 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
 
     def _combined_target_free(
             self,
-            positions: Dict[Widget, Tuple[int, int]],
+            positions: Dict[MapGridItemBehavior, Tuple[int, int]],
             dx: int,
             dy: int) -> bool:
-        selected = set(positions)
-        reserved = set()
+        selected: Set[MapGridItemBehavior] = set(positions)
+        reserved: Set[Tuple[int, int]] = set()
 
         for widget, (x, y) in positions.items():
             nx, ny = x + dx, y + dy
@@ -648,8 +652,8 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
 
     def _drag_score(
             self,
-            start: Dict[Widget, Tuple[int, int]],
-            end: Dict[Widget, Tuple[int, int]],
+            start: Dict[MapGridItemBehavior, Tuple[int, int]],
+            end: Dict[MapGridItemBehavior, Tuple[int, int]],
             dx: int,
             dy: int) -> int:
         score = 0
@@ -661,21 +665,21 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
 
     def _resolve_drag_x(
             self,
-            positions: Dict[Widget, Tuple[int, int]],
-            delta_x: int) -> Dict[Widget, Tuple[int, int]]:
+            positions: Dict[MapGridItemBehavior, Tuple[int, int]],
+            delta_x: int) -> Dict[MapGridItemBehavior, Tuple[int, int]]:
         return self._resolve_axis(positions, delta_x, axis=0)
 
     def _resolve_drag_y(
             self,
-            positions: Dict[Widget, Tuple[int, int]],
-            delta_y: int) -> Dict[Widget, Tuple[int, int]]:
+            positions: Dict[MapGridItemBehavior, Tuple[int, int]],
+            delta_y: int) -> Dict[MapGridItemBehavior, Tuple[int, int]]:
         return self._resolve_axis(positions, delta_y, axis=1)
 
     def _resolve_axis(
             self,
-            positions: Dict[Widget, Tuple[int, int]],
+            positions: Dict[MapGridItemBehavior, Tuple[int, int]],
             delta: int,
-            axis: int) -> Dict[Widget, Tuple[int, int]]:
+            axis: int) -> Dict[MapGridItemBehavior, Tuple[int, int]]:
         direction = 1 if delta > 0 else -1
         desired = abs(delta)
         max_grid = self.max_columns if axis == 0 else self.max_rows
@@ -686,8 +690,8 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             reverse=direction > 0,
         )
 
-        selected = set(positions)
-        resolved = {}
+        selected: Set[MapGridItemBehavior] = set(positions)
+        resolved: Dict[MapGridItemBehavior, Tuple[int, int]] = {}
 
         for widget in ordered:
             pos = positions[widget]
@@ -737,7 +741,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             axis: int,
             w: int,
             h: int,
-            selected: Set[MapGridItemBehavior]):
+            selected: Set[MapGridItemBehavior]) -> bool:
         x, y = pos
         if axis == 0:
             x += delta
@@ -768,6 +772,9 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
 
     def _update_selector(self, cell_pos: Tuple[int, int]):
         if not self.selectable:
+            return
+
+        if self._touch_start_cell is None:
             return
 
         if self._selector is None:
@@ -804,7 +811,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         width = right - left + 1
         return left, width
 
-    def _bind_grid_item(self, widget):
+    def _bind_grid_item(self, widget: MapGridItemBehavior):
         widget.map_layout = self
         self.bind_to(
             widget,
@@ -819,7 +826,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         self._sync_grid_item(widget)
         self.grid_items = [*self.grid_items, widget]
 
-    def _unbind_grid_item(self, widget):
+    def _unbind_grid_item(self, widget: MapGridItemBehavior):
         self.unselect(widget)
         self.unbind_from(widget)
         geometry = self._grid_item_geometry.pop(widget, None)
@@ -828,18 +835,18 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         widget.map_layout = None
         self.grid_items = [x for x in self.grid_items if x is not widget]
 
-    def _on_grid_item_geometry_change(self, widget, _):
+    def _on_grid_item_geometry_change(self, widget: MapGridItemBehavior, _):
         self._sync_grid_item(widget)
         self._trigger_calc_grid_size()
 
-    def _occupy_grid_item(self, widget, geometry: Tuple[int, int, int, int]):
+    def _occupy_grid_item(self, widget: MapGridItemBehavior, geometry: Tuple[int, int, int, int]):
         x, y, width, height = geometry
 
         for cell_y in range(y, y + height):
             for cell_x in range(x, x + width):
                 self._grid_occupancy.setdefault((cell_x, cell_y), set()).add(widget)
 
-    def _release_grid_item(self, widget, geometry: Tuple[int, int, int, int]):
+    def _release_grid_item(self, widget: MapGridItemBehavior, geometry: Tuple[int, int, int, int]):
         x, y, width, height = geometry
 
         for cell_y in range(y, y + height):
@@ -855,7 +862,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
                 if not items:
                     del self._grid_occupancy[cell]
 
-    def _sync_grid_item(self, widget):
+    def _sync_grid_item(self, widget: MapGridItemBehavior):
         new_geometry = self._get_grid_item_geometry(widget)
         old_geometry = self._grid_item_geometry.get(widget)
 
@@ -869,7 +876,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         self._grid_item_geometry[widget] = new_geometry
 
     @staticmethod
-    def _get_grid_item_geometry(widget) -> Tuple[int, int, int, int]:
+    def _get_grid_item_geometry(widget: MapGridItemBehavior) -> Tuple[int, int, int, int]:
         return (
             widget.grid_x,
             widget.grid_y,
@@ -928,18 +935,18 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             y_extent = cell_h + half_right
             x_extent = cell_w + half_right
 
-            def set_pixel(x, y):
+            def set_pixel(x: int, y: int):
                 if 0 <= x < width and 0 <= y < height:
                     offset = (y * width + x) * 4
                     buf[offset:offset + 4] = b"\xff\xff\xff\xff"
 
-            def horizontal_line(y, x_start, x_end):
+            def horizontal_line(y: int, x_start: int, x_end: int):
                 y = round(y)
                 for yy in range(y - half_left, y + half_right):
                     for xx in range(x_start, x_end):
                         set_pixel(xx, yy)
 
-            def vertical_line(x, y_start, y_end):
+            def vertical_line(x: int, y_start: int, y_end: int):
                 x = round(x)
                 for xx in range(x - half_left, x + half_right):
                     for yy in range(y_start, y_end):
@@ -1053,8 +1060,8 @@ class WorkspaceMapLayout(MapLayout, WorkspaceBehavior):
 #             yield child
 #             yield from DesignScaledContainer._walk(child)
 
-#     def on_kv_post(self, _):
-#         super().on_kv_post(_)
+#     def on_kv_post(self, base_widget: Self):
+#         super().on_kv_post(base_widget)
 #         self._capture_design()
 #         self.bind(size=self._apply_design)
 #         self._apply_design()
@@ -1149,7 +1156,7 @@ class WorkspaceMapLayout(MapLayout, WorkspaceBehavior):
 #         w1 = ObjectProperty()
 #         map_layout = ObjectProperty()
 
-#         def on_kv_post(self, _):
+#         def on_kv_post(self, base_widget: Self):
 #             # self.map_layout.move_grid_item(self.w1, 2, 2)
 #             # self.map_layout.remove_widget(self.w2)
 #             pass

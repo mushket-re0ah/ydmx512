@@ -1,16 +1,24 @@
-from typing import Optional
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import (
-    BooleanProperty, ObjectProperty, NumericProperty, StringProperty,
-    ReferenceListProperty, DictProperty, AliasProperty
-)
+from typing import Any, Callable, Dict, FrozenSet, Optional, Tuple
+
 from kivy.lang import Builder
-from libs.kivy_utils import ViewContextSaverMixin
+from kivy.properties import (
+    AliasProperty,
+    BooleanProperty,
+    DictProperty,
+    NumericProperty,
+    ObjectProperty,
+    ReferenceListProperty,
+    StringProperty,
+)
+from kivy.uix.boxlayout import BoxLayout
+from typing_extensions import Self
+
+from libs.animation import AnimationBehavior, StatefulColorProperty
+from libs.kivy_mixins import AutoUnbindBehavior, ViewContextSaverMixin
 from libs.sdl2_keyboard import KeyboardBehavior
-from libs.animation import AnimationBehavior
-from libs.kivy_utils import AutoUnbindBehavior
-from libs.animation import StatefulColorProperty
-from misc import colorscheme as cs
+from libs.typecheck import RGBA, Number
+from libs.uix import colorscheme as uix_cs
+from libs.uix.label import RestrictedLabel
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -63,51 +71,56 @@ Builder.load_string("""
 
 
 class MDIWindow(ViewContextSaverMixin, KeyboardBehavior, AutoUnbindBehavior, AnimationBehavior, BoxLayout):
-    title = StringProperty("")
-    focus = BooleanProperty(False)
-    hidden = BooleanProperty(False)
-    state = DictProperty()
-    window_minimum_width = NumericProperty("250dp")
-    window_minimum_height = NumericProperty("250dp")
-    window_minimum_size = ReferenceListProperty(window_minimum_width, window_minimum_height)
-    focus_selected = BooleanProperty(False)  # Для UI border: наведение, перемещение...
+    title: str = StringProperty("")
+    focus: bool = BooleanProperty(False)
+    hidden: bool = BooleanProperty(False)
+    state: Dict[str, Any] = DictProperty()
+    window_minimum_width: Number = NumericProperty("250dp")
+    window_minimum_height: Number = NumericProperty("250dp")
+    window_minimum_size: Tuple[Number, Number] = ReferenceListProperty(window_minimum_width, window_minimum_height)
+    focus_selected: bool = BooleanProperty(False)  # Для UI border: наведение, перемещение...
 
-    animation_time = 0.0
-    border_color = StatefulColorProperty(
-        normal=cs.MDIWindow.border_normal,
+    animation_time: float = 0.0
+    border_color: RGBA = StatefulColorProperty(
+        normal=uix_cs.MDIWindow.border_normal,
         states={
-            "focus_selected": cs.MDIWindow.border_selected,
-            "focus": cs.MDIWindow.border_focused,
+            "focus_selected": uix_cs.MDIWindow.border_selected,
+            "focus": uix_cs.MDIWindow.border_focused,
         }
     )
 
-    mdi_container = ObjectProperty(allownone=True)
-    title_bar = ObjectProperty()
-    title_bar_label = ObjectProperty()
+    mdi_container: Optional["MDIContainer"] = ObjectProperty(allownone=True)
+    title_bar: BoxLayout = ObjectProperty()
+    title_bar_label: RestrictedLabel = ObjectProperty()
 
-    def __init__(self, view_context=None, layout_state=None, *args, **kwargs):
+    def __init__(
+            self,
+            view_context: Optional[Dict[str, Any]]=None,
+            layout_state: Optional[Dict[str, Any]]=None,
+            *args: Any,
+            **kwargs: Any):
         state = {}
         if layout_state is not None:
             state["layout_state"] = layout_state
         super().__init__(*args, state=state, **kwargs)
         self.load_view_context(view_context)
 
-    def on_window_minimum_width(self, _, value):
+    def on_window_minimum_width(self, _, value: float):
         self.width = max(self.width, value)
 
-    def on_window_minimum_height(self, _, value):
+    def on_window_minimum_height(self, _, value: float):
         self.height = max(self.height, value)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         w, h = self.size
         w_min, h_min = self.window_minimum_size
         self.size = [max(w, w_min), max(h, h_min)]
 
-    def get_layout_state(self, key, default):
+    def get_layout_state(self, key: str, default: Any) -> Any:
         return self.state.get("layout_state", {}).get(key, default)
 
-    def set_layout_state(self, **kwargs):
+    def set_layout_state(self, **kwargs: Any):
         layout_state = self.state.get("layout_state", {}).copy()
         changed = False
         for key, value in kwargs.items():
@@ -125,29 +138,29 @@ class MDIWindow(ViewContextSaverMixin, KeyboardBehavior, AutoUnbindBehavior, Ani
             state["layout_state"] = {}
             self.state = state
 
-    def get_view_context(self):
+    def get_view_context(self) -> Dict[str, Any]:
         return self.state.get("view_context", {})
 
-    def set_view_context(self, view_context):
+    def set_view_context(self, view_context: Dict[str, Any]) -> bool:
         state = self.state.copy()
         state["view_context"] = dict(view_context)
         self.state = state
         return True
 
-    view_context = AliasProperty(
+    view_context: Dict[str, Any] = AliasProperty(
         get_view_context,
         set_view_context,
     )
 
-    def on_hidden(self, _, hidden: bool):
+    def on_hidden(self, _: Self, hidden: bool):
         if hidden and self._view_context_loaded:
             self._save_vc()
 
-    def on_focus(self, _, focus: bool):
+    def on_focus(self, _: Self, focus: bool):
         if focus:
             self.register_keyboard_context()
         else:
             self.unregister_keyboard_context()
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {}

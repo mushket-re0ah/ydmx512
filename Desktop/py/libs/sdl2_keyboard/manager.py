@@ -1,15 +1,21 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, Callable, List
+from typing import Callable, Dict, FrozenSet, List, Optional, Set
+
 from kivy.core.window import Window
-from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP, scancode_is_modifier, key_is_valid
+
 from libs.sdl2_keyboard.patch import patch_window_sdl2_keyboard_input
+from libs.sdl2_keyboard.scancodes import (
+    SDL_SCANCODE_TO_KEYCODE_MAP,
+    key_is_valid,
+    scancode_is_modifier,
+)
 
 
-def normalize_hotkey(hotkey: frozenset) -> frozenset:
+def normalize_hotkey(hotkey: FrozenSet[str]) -> FrozenSet[str]:
     return frozenset({key.upper() for key in hotkey})
 
 
-def hotkey_to_str(hotkey: frozenset) -> str:
+def hotkey_to_str(hotkey: FrozenSet[str]) -> str:
     hotkey = normalize_hotkey(hotkey)
     # Определяем порядок модификаторов
     modifiers_order = ["CTRL", "SHIFT", "ALT"]
@@ -25,23 +31,26 @@ def hotkey_to_str(hotkey: frozenset) -> str:
 @dataclass
 class KeyboardInputContext:
     is_blocked: bool = False
-    hotkeys: Optional[Dict[frozenset, Callable]] = None
-    hotkeys_up: Optional[Dict[frozenset, Callable]] = None
-    on_key_down: Optional[Callable] = None
-    on_key_up: Optional[Callable] = None
+    hotkeys: Optional[Dict[FrozenSet[str], Callable[[], None]]] = None
+    hotkeys_up: Optional[Dict[FrozenSet[str], Callable[[], None]]] = None
+    on_key_down: Optional[Callable[[int, str], None]] = None
+    on_key_up: Optional[Callable[[int, str], None]] = None
 
     def __post_init__(self):
         self.hotkeys = self._parse_hotkeys(self.hotkeys)
         self.hotkeys_up = self._parse_hotkeys(self.hotkeys_up)
 
-    def _parse_hotkeys(self, hotkeys: Optional[Dict[frozenset, Callable]]) -> Optional[dict]:
+    def _parse_hotkeys(
+        self,
+        hotkeys: Optional[Dict[FrozenSet[str], Callable[[], None]]],
+    ) -> Optional[Dict[FrozenSet[str], Callable[[], None]]]:
         if not hotkeys:
             return None
 
         return {self._parse_hotkey(hotkey): callback
                     for hotkey, callback in hotkeys.items()}
 
-    def _parse_hotkey(self, hotkey: frozenset) -> frozenset:
+    def _parse_hotkey(self, hotkey: FrozenSet[str]) -> FrozenSet[str]:
         new_hotkey = normalize_hotkey(hotkey)
         if not all(key_is_valid(key) for key in new_hotkey):
             raise ValueError(f"Error: invalid key in \"{hotkey}\"")
@@ -49,9 +58,9 @@ class KeyboardInputContext:
 
 
 _initialized = False
-_last_keyboard_text = None
+_last_keyboard_text: str = ""
 _contexts: List[KeyboardInputContext] = []
-_modifiers = set()
+_modifiers: Set[str] = set()
 
 # public
 def register_context(context: KeyboardInputContext):
@@ -83,10 +92,10 @@ def check_alt() -> bool:
     return "ALT" in _modifiers
 
 # private
-def _create_hotkey(key) -> frozenset:
+def _create_hotkey(key: str) -> FrozenSet[str]:
     return frozenset({key, *_modifiers})
 
-def _processing_contexts(hotkey: frozenset,
+def _processing_contexts(hotkey: FrozenSet[str],
                          contexts: List[KeyboardInputContext],
                          scancode: int,
                          codepoint: str,
@@ -102,9 +111,9 @@ def _processing_contexts(hotkey: frozenset,
             ctx.on_key_down(scancode, codepoint)
             if stop_on_first:
                 return True
-    return stop_on_first and contexts
+    return stop_on_first and bool(contexts)
 
-def _on_key_down(window, _keycode, scancode, _codepoint, _modifiers):
+def _on_key_down(window: Window, _keycode: str, scancode: int, _codepoint: int, _modifiers: List[str]):
     global _last_keyboard_text
     _last_keyboard_text = window.last_keyboard_text
 
@@ -119,7 +128,7 @@ def _on_key_down(window, _keycode, scancode, _codepoint, _modifiers):
         return
     _processing_contexts(hotkey, other_contexts, scancode, _last_keyboard_text, False)
 
-def _processing_contexts_up(hotkey: frozenset,
+def _processing_contexts_up(hotkey: FrozenSet[str],
                             contexts: List[KeyboardInputContext],
                             scancode: int,
                             codepoint: str,
@@ -135,9 +144,9 @@ def _processing_contexts_up(hotkey: frozenset,
             ctx.on_key_up(scancode, codepoint)
             if stop_on_first:
                 return True
-    return stop_on_first and contexts
+    return stop_on_first and bool(contexts)
 
-def _on_key_up(_window, _keycode, scancode):
+def _on_key_up(_window: Window, _keycode: str, scancode: int):
     key = SDL_SCANCODE_TO_KEYCODE_MAP[scancode]
     _remove_modifier(scancode, key)
 
@@ -149,10 +158,10 @@ def _on_key_up(_window, _keycode, scancode):
         return
     _processing_contexts_up(hotkey, other_contexts, scancode, _last_keyboard_text, False)
 
-def _add_modifier(scancode, key) -> None:
+def _add_modifier(scancode: int, key: str) -> None:
     if scancode_is_modifier(scancode) and key not in _modifiers:
         _modifiers.add(key)
 
-def _remove_modifier(scancode, key) -> None:
+def _remove_modifier(scancode: int, key: str) -> None:
     if scancode_is_modifier(scancode) and key in _modifiers:
         _modifiers.discard(key)

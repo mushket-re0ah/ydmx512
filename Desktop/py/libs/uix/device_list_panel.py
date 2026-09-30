@@ -1,17 +1,27 @@
-from kivy.properties import ObjectProperty, StringProperty, ColorProperty
+from typing import Type
+
 from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
+from kivy.event import EventDispatcher
 from kivy.lang import Builder
+from kivy.properties import ColorProperty, ObjectProperty, StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from typing_extensions import Self
+
+from libs.typecheck import RGBA
 from libs.uix.layouts import SectionPanel
+from libs.uix.restricted_scrollview import RestrictedScrollView
+from libs.uix.scroll_layout import ScrollLayout
 
 Builder.load_string(
 """
 <DeviceListPanel>:  # SectionPanel
-    box: box
+    scroll_layout: scroll_layout
     scrollview: scrollview
+    box: box
     title_text: root.title
     size_hint: (None, 1)
     ScrollLayout:
+        id: scroll_layout
         size_hint: (None, 1)
         width: "175dp"
         scrollview: scrollview
@@ -34,7 +44,7 @@ Builder.load_string(
 
 
 class DeviceUi(BoxLayout):
-    device = ObjectProperty(rebind=True)
+    device: EventDispatcher = ObjectProperty(rebind=True)
 
     def on(self):
         self.device.connect()
@@ -44,17 +54,17 @@ class DeviceUi(BoxLayout):
 
 
 class DeviceListPanel(SectionPanel):
-    device_cls = ObjectProperty(DeviceUi)  # переопределить в наследнике
-    observer = ObjectProperty()  # переопределить в наследнике
+    device_cls: Type[DeviceUi] = ObjectProperty(DeviceUi)  # переопределить в наследнике
+    observer: EventDispatcher = ObjectProperty()  # переопределить в наследнике
 
-    title = StringProperty("untitled")  # переопределить в наследнике
-    bg_scrollview = ColorProperty()  # переопределить в наследнике
+    title: str = StringProperty("untitled")  # переопределить в наследнике
+    bg_scrollview: RGBA = ColorProperty()  # переопределить в наследнике
 
-    scroll_layout = ObjectProperty()
-    scrollview = ObjectProperty()
-    box = ObjectProperty()
+    scroll_layout: ScrollLayout = ObjectProperty()
+    scrollview: RestrictedScrollView = ObjectProperty()
+    box: BoxLayout = ObjectProperty()
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         for dev in self.observer.devices:
             self._add_device(dev)
         self.observer.bind(
@@ -62,15 +72,15 @@ class DeviceListPanel(SectionPanel):
             on_remove_device=self.on_remove_device
         )
 
-    def on_new_device(self, _, device):
+    def on_new_device(self, _, device: EventDispatcher):
         def add_device(_):
             self._add_device(device)
         Clock.schedule_once(add_device, -1)
 
-    def _add_device(self, device):
+    def _add_device(self, device: EventDispatcher):
         self.box.add_widget(self.device_cls(device=device))
 
-    def on_remove_device(self, _, device):
+    def on_remove_device(self, _, device: EventDispatcher):
         def remove_device(_):
             serial_ui = next((i for i in self.box.children if i.device is device), None)
             if serial_ui is not None:

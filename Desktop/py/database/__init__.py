@@ -1,13 +1,11 @@
 from libs.kivy_json_orm.database import Database
-from misc import constants
-from misc import backup
-
+from misc import backup, constants
 
 db = None
 SCENE_TABLES_ORDER = ("patch", "playback", "desktop_uix")
 def create_database():
     global db
-    db = Database(constants.DATABASE_PATH, None, None, lambda: backup.do_backup(None))
+    db = Database(constants.DATABASE_PATH, None, None, backup.do_backup)
     from database.misc import TableMisc
     db.register("misc", TableMisc())
     from database.brand import TableBrand

@@ -8,7 +8,7 @@ from kivy.graphics import Color, Rectangle
 from libs.uix.layouts import ModalBoxLayout
 from libs.uix.layouts import MenuPanel
 from libs.beat_counter import BeatCounter
-from libs.kivy_utils import AutoUnbindBehavior
+from libs.kivy_mixins import AutoUnbindBehavior
 from libs.uix import colorscheme as uix_cs
 from database.patch import RowPatch
 from database.playback import RowPlayback
@@ -17,6 +17,7 @@ from misc import constants
 from ui.mdi.editor.automation.tools import EditorTool
 import ui.mdi.editor.automation.toolbar  # lazy kv import initialize
 import ui.mdi.editor.automation.rows  # lazy kv import initialize
+from typing_extensions import Self
 
 
 class AutomationXWidth(NamedTuple):
@@ -82,7 +83,7 @@ class Automation(AutoUnbindBehavior, MenuPanel):
             size=self.calc_header_beats_ev,
         )
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.row_panel.bind(scrollbar_vertical=self.setter("scrollbar_vertical"))
         self.scrollbar_vertical = self.row_panel.scrollbar_vertical
 
@@ -170,7 +171,7 @@ class Automation(AutoUnbindBehavior, MenuPanel):
         self.property("xwidth").dispatch(self)
 
     cursor_frame_widget = ObjectProperty(allownone=True)
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.playback is None:
             return super().on_touch_down(touch)
         x, width = self.xwidth
@@ -184,14 +185,14 @@ class Automation(AutoUnbindBehavior, MenuPanel):
             self.property("cursor_frame").dispatch(self)
         return super().on_touch_down(touch)
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if self.cursor_frame_widget:
             self.cursor_frame_widget.unbind_from(self)
             self.cursor_frame_widget.dismiss()
             self.cursor_frame_widget = None
         return super().on_touch_up(touch)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if self.playback is None:
             return super().on_touch_move(touch)
         if self.cursor_frame_widget:

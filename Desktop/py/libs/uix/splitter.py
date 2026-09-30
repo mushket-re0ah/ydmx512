@@ -1,6 +1,9 @@
-from kivy.uix.splitter import Splitter
-from kivy.properties import ObjectProperty
+from typing import Type
+
 from kivy.lang import Builder
+from kivy.properties import ObjectProperty
+from kivy.uix.splitter import Splitter
+
 from libs.uix.button import ImageButton
 
 Builder.load_string("""
@@ -18,4 +21,4 @@ class HoverSplitterStrip(ImageButton):
 
 
 class HoverSplitter(Splitter):
-    strip_cls = ObjectProperty(HoverSplitterStrip)
+    strip_cls: Type[HoverSplitterStrip] = ObjectProperty(HoverSplitterStrip)

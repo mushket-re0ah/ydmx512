@@ -1,29 +1,30 @@
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
+
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty
-from libs.utils import ThrottledCall
+
 from libs.kivy_json_orm.table_implementation import BaseTable
+from libs.sub_proc import AsyncProcessCallback
+from libs.utils import ThrottledCall
 
 
 class Database(EventDispatcher):
-    save_interval = NumericProperty(None, allownone=True)
-    backup_interval = NumericProperty(None, allownone=True)
+    save_interval: Optional[float] = NumericProperty(None, allownone=True)
+    backup_interval: Optional[float] = NumericProperty(None, allownone=True)
 
-    root_dir = None
-    tables: Dict[str, BaseTable] = None
-    _backup_callback = None
-    save_throttled = None
-    backup_throttled = None
+    save_throttled: Optional[ThrottledCall] = None
+    backup_throttled: Optional[ThrottledCall] = None
     def __init__(self,
             root_dir: Union[str, Path],
             save_interval: Optional[float]=None,
             backup_interval: Optional[float]=None,
-            backup_callback=None):
+            backup_callback: Optional[AsyncProcessCallback]=None,
+            **kwargs: Any):
         self.root_dir = Path(root_dir)
-        self.tables = {}
-        self._backup_callback = backup_callback
-        super().__init__(save_interval=save_interval, backup_interval=backup_interval)
+        self.tables: Dict[str, BaseTable] = {}
+        self._backup_callback: Optional[AsyncProcessCallback] = backup_callback
+        super().__init__(save_interval=save_interval, backup_interval=backup_interval, **kwargs)
 
     def on_save_interval(self, _, save_interval: float):
         if self.save_throttled:
@@ -35,6 +36,8 @@ class Database(EventDispatcher):
         if self.backup_throttled:
             self.backup_throttled.interval = backup_interval
         else:
+            if self._backup_callback is None:
+                raise ValueError("backup_interval setted, but backup_callback is not")
             self.backup_throttled = ThrottledCall(self._backup_callback, backup_interval)
 
     def register(self, name: str, table: BaseTable) -> BaseTable:
@@ -56,13 +59,13 @@ class Database(EventDispatcher):
         for table in self.tables.values():
             table.try_save()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> BaseTable:
         try:
             return self.tables[name]
         except KeyError as exc:
             raise AttributeError(name) from exc
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> BaseTable:
         try:
             return self.tables[name]
         except KeyError as exc:

@@ -4,12 +4,13 @@ from kivy.properties import ObjectProperty, AliasProperty
 from kivy.lang import Builder
 from libs.uix.layouts import SectionPanel
 from libs.uix.workspace_manager import WorkspaceBehavior
-from libs.kivy_utils import AutoUnbindBehavior
+from libs.kivy_mixins import AutoUnbindBehavior
 from database.scene import RowScene
 from database import db
 from database.patch import RowPatch
 from ui.mdi.patch_list.patch_ui import PatchUi
 
+from typing_extensions import Self
 
 Builder.load_file("ui/mdi/patch_list/patch_map_section.kv")
 
@@ -21,7 +22,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
     selected = AliasProperty(lambda self: self.workspace_manager.workspace_now.selected)
 
     workspace_now = None
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.workspace_now = self.workspace_manager.workspace_now
         self.bind_to(self.workspace_now, selected=self._dispatch_selected)
         self.workspace_manager.bind(on_workspace_opened=self.on_workspace_opened)

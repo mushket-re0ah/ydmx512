@@ -1,7 +1,15 @@
-from kivy.properties import ObjectProperty, StringProperty, ColorProperty
-from libs.uix.device_list_panel import DeviceUi, DeviceListPanel
+from typing import Type
+
+from kivy.lang import Builder
+from kivy.properties import ColorProperty, ObjectProperty, StringProperty
+
+from libs.midi.observer import MidiObserver
 from libs.midi.observer import observer as midi_observer
+from libs.typecheck import RGBA
+from libs.uix.device_list_panel import DeviceListPanel, DeviceUi
 from misc import colorscheme
+
+Builder.load_file("ui/main_ribbon/midi_devices.kv")
 
 
 class MidiUi(DeviceUi):
@@ -9,8 +17,8 @@ class MidiUi(DeviceUi):
 
 
 class MidiDevices(DeviceListPanel):
-    device_cls = ObjectProperty(MidiUi)
-    observer = ObjectProperty(midi_observer)
+    device_cls: Type[DeviceUi] = ObjectProperty(MidiUi)
+    observer: MidiObserver = ObjectProperty(midi_observer)
 
-    title = StringProperty("MIDI устройства")
-    bg_scrollview = ColorProperty(colorscheme.MidiDevices.bg)
+    title: str = StringProperty("MIDI устройства")
+    bg_scrollview: RGBA = ColorProperty(colorscheme.MidiDevices.bg)

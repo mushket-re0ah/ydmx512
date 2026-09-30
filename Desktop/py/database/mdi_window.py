@@ -1,12 +1,14 @@
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
+from typing import Any, Dict
+
+from libs.kivy_json_orm.fields import DictField, ObjectField, StringField
+from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 from libs.serialize import serializable_or_raw_serializer
-from libs.kivy_json_orm.fields import StringField, DictField, ObjectField
 
 
 class RowMDIWindow(DatabaseRow):
-    title_id = StringField()
-    layout_state = DictField()
-    view_context = ObjectField(serialize=serializable_or_raw_serializer(), deserialize=lambda self, v: v, allownone=True)
+    title_id: str = StringField()
+    layout_state: Dict[str, Any] = DictField()
+    view_context: Dict[str, Any] = ObjectField(serialize=serializable_or_raw_serializer(), deserialize=lambda self, v: v, allownone=True)
 
 
 class TableMDIWindow(DatabaseTable):

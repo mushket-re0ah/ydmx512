@@ -1,12 +1,12 @@
-from typing import Union, Optional
-from kivy.properties import (
-    NumericProperty, BooleanProperty, AliasProperty
-)
-from kivy.utils import boundary
+from typing import Callable, Dict, FrozenSet, List, Union
+
 from kivy.lang import Builder
-from libs.uix.context_menu import (
-    ContextMenu, ContextMenuTemplates
-)
+from kivy.properties import AliasProperty, BooleanProperty, NumericProperty
+from kivy.utils import boundary
+from typing_extensions import Self
+
+from libs.typecheck import Number, OptionalNumber
+from libs.uix.context_menu import ContextMenu, ContextMenuItem, ContextMenuTemplates
 from libs.uix.input import HoverInput
 from libs.uix.restricted_scrollview import RestrictedScrollView
 
@@ -20,19 +20,19 @@ Builder.load_string("""
 
 
 class NumericInput(HoverInput):
-    _value = NumericProperty(0, allownone=True, force_dispatch=True)
-    default_value = NumericProperty(0, allownone=True)
-    minimum = NumericProperty(0)
-    maximum = NumericProperty(100)
-    allow_empty = BooleanProperty(False)
-    step_mouse_scroll = NumericProperty(1)
-    decimals = NumericProperty(2)
+    _value: OptionalNumber = NumericProperty(0, allownone=True, force_dispatch=True)
+    default_value: OptionalNumber = NumericProperty(0, allownone=True)
+    minimum: Number = NumericProperty(0)
+    maximum: Number = NumericProperty(100)
+    allow_empty: bool = BooleanProperty(False)
+    step_mouse_scroll: Number = NumericProperty(1)
+    decimals: int = NumericProperty(2)
 
     # Для изменения значений смещением курсора
-    sensitive = NumericProperty(2)
-    THRESHOLD_Y = 35
+    sensitive: Number = NumericProperty(2)
+    THRESHOLD_Y: float = 35
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self._set_text_by_value()
         self.default_value = self.value
 
@@ -58,7 +58,7 @@ class NumericInput(HoverInput):
             self._set_text_by_value()
         super().on_focus(_, focus)
 
-    def set_value(self, value: Union[int, float, None]):
+    def set_value(self, value: OptionalNumber):
         if value is None:
             if self.allow_empty:
                 self._value = value
@@ -74,19 +74,20 @@ class NumericInput(HoverInput):
         if not self.focus:
             self._set_text_by_value()
 
-    value = AliasProperty(
-        lambda self: self._value, set_value, bind=(
-            "_value", "minimum", "maximum"))
+    value: OptionalNumber = AliasProperty(
+        lambda self: self._value, set_value,
+        bind=("_value", "minimum", "maximum")
+    )
 
     def _set_text_by_value(self):
         self.text = self._value_to_str(self.value)
 
-    def _value_to_str(self, value: Union[int, float, None]) -> str:
+    def _value_to_str(self, value: OptionalNumber) -> str:
         if value is None:
             return ""
         return str(value)
 
-    def _str_to_value(self, text: str) -> Optional[Union[int, float]]:
+    def _str_to_value(self, text: str) -> OptionalNumber:
         if text in ("", "-"):
             if self.allow_empty:
                 return None
@@ -95,14 +96,14 @@ class NumericInput(HoverInput):
             float(text))
         return self._value_bounds(value)
 
-    def _value_bounds(self, value: Union[int, float]) -> Union[int, float]:
+    def _value_bounds(self, value: Number) -> Number:
         if self.input_filter == "float":
             value = round(value, self.decimals)
         else:
             value = int(value)
         return boundary(value, self.minimum, self.maximum)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if touch.grab_current is not None:
             return False
 
@@ -119,12 +120,12 @@ class NumericInput(HoverInput):
         touch.grab(self)
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if touch.grab_current is self and self._do_move_value(touch):
             return True
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
             return True
@@ -158,7 +159,7 @@ class NumericInput(HoverInput):
             return True
         return False
 
-    def create_hotkeys(self) -> dict:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             **super().create_hotkeys(),
             frozenset({"up"}): self._do_arrows_scroll_up,
@@ -171,7 +172,7 @@ class NumericInput(HoverInput):
     def _do_arrows_scroll_down(self):
         self._inc_value(-self.step_mouse_scroll)
 
-    def _inc_value(self, step: Union[int, float]):
+    def _inc_value(self, step: Number):
         cursor = self.cursor
         value = self.default_value if self.value is None else self.value
         if value is None:
@@ -184,7 +185,7 @@ class NumericInput(HoverInput):
     def _create_context_menu(self) -> ContextMenu:
         return ContextMenu(items=self._create_context_menu_items(clean_btn=False))
 
-    def _create_context_menu_items(self, clean_btn=False) -> ContextMenu:
+    def _create_context_menu_items(self, clean_btn: bool=False) -> List[ContextMenuItem]:
         items = super()._create_context_menu_items()
         items.append(ContextMenuTemplates.separator())
         items.append(

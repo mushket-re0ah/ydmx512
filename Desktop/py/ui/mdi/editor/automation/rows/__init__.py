@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Set
+from typing import List, Optional, Tuple, Set, Dict, FrozenSet, Callable
 from collections import defaultdict
 from kivy.properties import (
     ObjectProperty, ListProperty, AliasProperty, BooleanProperty
@@ -17,6 +17,7 @@ from ui.mdi.editor.automation.rows.row_data import RowParamData, RowsDataManager
 from ui.mdi.editor.automation.rows.row import RowParam  # lazy kv import initialize
 from ui.mdi.editor.automation.tools import RemoveSelectedDotsTool, PasteTool
 from misc import dmx_utils
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/editor/automation/rows/row_panel.kv")
@@ -43,8 +44,8 @@ class RowPanel(ScrollLayout):
         )
         super().__init__(**kwargs)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.automation.editor_content.bind(on_render_changed=self._on_render_changed)
         self._sync_has_any_data()
 
@@ -179,11 +180,11 @@ class RowPanel(ScrollLayout):
         if self.rows_data_manager:
             self.rows_data_manager.dispatch_row_change()
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         self.row_selection = False
         return super().on_touch_up(touch)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if self.row_selection:
             touch.push()
             touch.apply_transform_2d(self.scrollview.to_local)
@@ -208,7 +209,7 @@ class RowPanel(ScrollLayout):
         shift = self.renderer.get_row_phase_shift(master_row) if master_row.row_phase_spec else 0.0
         return self.xy_grid.to_frame_x(shift, allow_negative=True)
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             frozenset({"ctrl", "a"}): self.select_all,
             frozenset({"esc"}): self.unselect_all,

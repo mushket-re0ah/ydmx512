@@ -1,14 +1,16 @@
-from kivy.utils import platform
+from typing import Union
 
+from kivy.utils import platform
+from serial.tools.list_ports_common import ListPortInfo
 
 if platform == "win":
     # https://stackoverflow.com/questions/67121032/make-usb-device-visible-with-different-vendor-and-product-id
 
     import struct
 
+    import pywintypes
     import win32api
     import win32file
-    import pywintypes
 
 
     def CTL_CODE(DeviceType, Function, Method, Access):
@@ -134,7 +136,7 @@ if platform == "win":
                 return get_str_desc(handle, idx, prod)
 
 
-    def get_product_name_by_port(port: "list_ports.comports") -> [str, None]:
+    def get_product_name_by_port(port: ListPortInfo) -> Union[str, None]:
         # usb_location - location из serial.tools.list_ports_common.ListPortInfo
         usb_location = port.location
         if usb_location is None:
@@ -167,11 +169,11 @@ if platform == "win":
                 return product_name
 
 elif platform == "macosx":
-    def get_product_name_by_port(port: "list_ports.comports") -> [str, None]:
+    def get_product_name_by_port(port: ListPortInfo) -> Union[str, None]:
         return port.product
 
 elif platform == "linux":
-    def get_product_name_by_port(port: "list_ports.comports") -> [str, None]:
+    def get_product_name_by_port(port: ListPortInfo) -> Union[str, None]:
         return port.product
 else:
     raise ImportError(f"Нет реализации для данной платформы: {platform}")

@@ -56,7 +56,7 @@ class MenuPresetFixture(MenuPresetManager):
     def load_preset(self, preset):
         self.row_panel.automation.set_tool(LoadFixturePresetTool, preset, self.patch)
 
-    def create_modal(self) -> "Modal":
+    def create_modal(self) -> ModalSaveFixturePreset:
         return ModalSaveFixturePreset(
             category_key=self.category_key,
             patch=self.patch,

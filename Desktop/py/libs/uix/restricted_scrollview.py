@@ -1,11 +1,18 @@
-from typing import Tuple, NamedTuple
+from typing import Any, List, NamedTuple, Optional, Tuple, Type
+
 from kivy.clock import Clock
+from kivy.graphics import Canvas, PopMatrix, PushMatrix, Translate
 from kivy.properties import (
-    BooleanProperty, AliasProperty, ObjectProperty,
-    ListProperty, NumericProperty
+    AliasProperty,
+    BooleanProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
 )
 from kivy.uix.stencilview import StencilView
-from kivy.graphics import PushMatrix, Translate, PopMatrix, Canvas
+from kivy.uix.widget import Widget
+from typing_extensions import Self
+
 from libs.properties import ClampedNumericProperty
 
 
@@ -15,20 +22,20 @@ class ScrollbarData(NamedTuple):
 
 
 class RestrictedScrollView(StencilView):
-    _scrollable_widget_classes = []  # static
+    _scrollable_widget_classes: List[Type[Widget]] = []  # static
     @classmethod
-    def register_scrollable_widget_class(cls, widget_cls):
+    def register_scrollable_widget_class(cls, widget_cls: Type[Widget]):
         if widget_cls not in cls._scrollable_widget_classes:
             cls._scrollable_widget_classes.append(widget_cls)
 
-    scroll_wheel_distance = NumericProperty('30dp')
-    _scroll_x = ClampedNumericProperty(0.0, 0.0, 1.0)
-    _scroll_y = ClampedNumericProperty(0.0, 0.0, 1.0)
-    do_scroll_x = BooleanProperty(True)
-    do_scroll_y = BooleanProperty(True)
-    scroll_by_content = BooleanProperty(False)
-    do_scroll_by_element = BooleanProperty(False)
-    _scroll_element = NumericProperty(0)
+    scroll_wheel_distance: float = NumericProperty('30dp')
+    _scroll_x: float = ClampedNumericProperty(0.0, 0.0, 1.0)
+    _scroll_y: float = ClampedNumericProperty(0.0, 0.0, 1.0)
+    do_scroll_x: bool = BooleanProperty(True)
+    do_scroll_y: bool = BooleanProperty(True)
+    scroll_by_content: bool = BooleanProperty(False)
+    do_scroll_by_element: bool = BooleanProperty(False)
+    _scroll_element: int = NumericProperty(0)
 
     def set_scroll_element(self, scroll_element: int) -> bool:
         scroll_element = self.scroll_element_limiter(scroll_element)
@@ -40,7 +47,7 @@ class RestrictedScrollView(StencilView):
     def scroll_element_limiter(self, scroll_element: int) -> int:
         raise NotImplementedError()
 
-    scroll_element = AliasProperty(
+    scroll_element: int = AliasProperty(
         lambda self: self._scroll_element, set_scroll_element
     )
 
@@ -58,7 +65,7 @@ class RestrictedScrollView(StencilView):
         py = (1.0 - ph) * (1.0 - sy)
         return ScrollbarData(py, ph)
 
-    vbar = AliasProperty(_get_vbar,
+    vbar: ScrollbarData = AliasProperty(_get_vbar,
                          bind=('_scroll_y', '_viewport', 'viewport_size',
                                'height', '_scroll_element', "do_scroll_x", "do_scroll_y"),
                          cache=True)
@@ -77,26 +84,26 @@ class RestrictedScrollView(StencilView):
         px = (1.0 - pw) * sx
         return ScrollbarData(px, pw)
 
-    hbar = AliasProperty(_get_hbar,
+    hbar: ScrollbarData = AliasProperty(_get_hbar,
                          bind=('_scroll_x', '_viewport', 'viewport_size',
                                'width', '_scroll_element', "do_scroll_x", "do_scroll_y"),
                          cache=True)
 
-    viewport_size = ListProperty([0, 0])
+    viewport_size: Tuple[float, float] = ListProperty([0, 0])
 
-    _viewport = ObjectProperty(None, allownone=True)
+    _viewport: Optional[Widget] = ObjectProperty(None, allownone=True)
 
-    def _set_viewport_size(self, _instance, value):
-        self.viewport_size = value
+    def _set_viewport_size(self, instance: Optional[Widget], size: Tuple[float, float]):
+        self.viewport_size = size
 
-    def on__viewport(self, _instance, value):
-        if value:
-            value.bind(size=self._set_viewport_size)
-            self.viewport_size = value.size
+    def on__viewport(self, instance: Self, viewport: Optional[Widget]):
+        if viewport:
+            viewport.bind(size=self._set_viewport_size)
+            self.viewport_size = viewport.size
 
-    def __init__(self, **kwargs):
-        self._start_pos = None
-        self._start_scroll = None
+    def __init__(self, **kwargs: Any):
+        self._start_pos: Optional[Tuple[float, float]] = None
+        self._start_scroll: Optional[Tuple[float, float]] = None
         self._trigger_update_from_scroll = Clock.create_trigger(
             self.update_from_scroll, -1)
         self.trigger_do_scroll_by_element = Clock.create_trigger(
@@ -106,7 +113,7 @@ class RestrictedScrollView(StencilView):
         self.canvas = Canvas()
         with self.canvas_viewport.before:
             PushMatrix()
-            self.g_translate = Translate(0, 0)
+            self.g_translate: Translate = Translate(0, 0)
         with self.canvas_viewport.after:
             PopMatrix()
         super().__init__(**kwargs)
@@ -122,9 +129,9 @@ class RestrictedScrollView(StencilView):
 
         trigger_update_from_scroll()
 
-        self.on_do_scroll_by_element(None, self.do_scroll_by_element)
+        self.on_do_scroll_by_element(self, self.do_scroll_by_element)
 
-    def on_do_scroll_by_element(self, _, do_scroll_by_element: bool):
+    def on_do_scroll_by_element(self, instance: Self, do_scroll_by_element: bool):
         if do_scroll_by_element:
             self.bind(
                 size=self.trigger_do_scroll_by_element,
@@ -142,7 +149,7 @@ class RestrictedScrollView(StencilView):
                 scroll_element=self.trigger_do_scroll_by_element
             )
 
-    scroll_element_block = False
+    scroll_element_block: bool = False
     def _do_scroll_by_element(self, _):
         if self.do_scroll_by_element:
             self.scroll_element_block = True
@@ -150,8 +157,8 @@ class RestrictedScrollView(StencilView):
             self.scroll_element_block = False
             self.update_from_scroll()
 
-    block_set_scroll_x = False
-    def set_scroll_x(self, scroll_x: float):
+    block_set_scroll_x: bool = False
+    def set_scroll_x(self, scroll_x: float) -> bool:
         if (scroll_x == self._scroll_x) or self.block_set_scroll_x:
             return False
         self.block_set_scroll_x = True
@@ -162,15 +169,15 @@ class RestrictedScrollView(StencilView):
             self._scroll_x = scroll_x
         self.block_set_scroll_x = False
         return True
-    scroll_x = AliasProperty(
+    scroll_x: float = AliasProperty(
         lambda self: self._scroll_x, set_scroll_x
     )
 
     def set_scroll_element_by_scroll_x(self, scroll_x: float) -> bool:
         raise NotImplementedError()
 
-    block_set_scroll_y = False
-    def set_scroll_y(self, scroll_y: float):
+    block_set_scroll_y: bool = False
+    def set_scroll_y(self, scroll_y: float) -> bool:
         if (scroll_y == self._scroll_y) or self.block_set_scroll_y:
             return False
         self.block_set_scroll_y = True
@@ -181,27 +188,27 @@ class RestrictedScrollView(StencilView):
             self._scroll_y = scroll_y
         self.block_set_scroll_y = False
         return True
-    scroll_y = AliasProperty(
+    scroll_y: float = AliasProperty(
         lambda self: self._scroll_y, set_scroll_y
     )
 
     def set_scroll_element_by_scroll_y(self, scroll_y: float) -> bool:
         raise NotImplementedError()
 
-    def to_local(self, x, y, **k) -> Tuple[float, float]:
+    def to_local(self, x: float, y: float, relative:bool=False) -> Tuple[float, float]:
         tx, ty = self.g_translate.xy
         return x - tx, y - ty
 
-    def to_parent(self, x, y, **k) -> Tuple[float, float]:
+    def to_parent(self, x: float, y: float, relative:bool=False) -> Tuple[float, float]:
         tx, ty = self.g_translate.xy
         return x + tx, y + ty
 
-    def _apply_transform(self, m, pos=None) -> Tuple[float, float]:
+    def _apply_transform(self, m, pos:Optional[Tuple[float, float]]=None) -> Tuple[float, float]:
         tx, ty = self.g_translate.xy
         m.translate(tx, ty, 0)
         return super()._apply_transform(m, (0, 0))
 
-    def simulate_touch_down(self, touch):
+    def simulate_touch_down(self, touch) -> bool:
         # at this point the touch is in parent coords
         touch.push()
         touch.apply_transform_2d(self.to_local)
@@ -209,7 +216,7 @@ class RestrictedScrollView(StencilView):
         touch.pop()
         return ret
 
-    def on_motion(self, etype, me):
+    def on_motion(self, etype, me) -> bool:
         if me.type_id in self.motion_filter and 'pos' in me.profile:
             me.push()
             me.apply_transform_2d(self.to_local)
@@ -218,7 +225,7 @@ class RestrictedScrollView(StencilView):
             return ret
         return super().on_motion(etype, me)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos):
             scrollable_widget = self._get_scrollable_widget()
             if scrollable_widget and scrollable_widget is not self:
@@ -255,7 +262,7 @@ class RestrictedScrollView(StencilView):
         vp = self._viewport
         return vp is not None and vp.width > self.width
 
-    def _get_scrollable_widget(self):
+    def _get_scrollable_widget(self) -> Optional[Widget]:
         from libs.kivy_utils import walk_by_parents
         from libs.mouse_manager.hover import HoverBehavior
 
@@ -263,7 +270,7 @@ class RestrictedScrollView(StencilView):
         if hovered_widget is None:
             return None
 
-        def is_scrollable(widget):
+        def is_scrollable(widget: Widget) -> bool:
             return any(isinstance(widget, cls) for cls in self._scrollable_widget_classes)
 
         if is_scrollable(hovered_widget):
@@ -273,7 +280,7 @@ class RestrictedScrollView(StencilView):
                 return parent
         return None
 
-    def scroll_y_up(self, diff=1):
+    def scroll_y_up(self, diff:float=1):
         if self.do_scroll_y:
             if self.do_scroll_by_element:
                 self.scroll_element -= int(diff)
@@ -281,7 +288,7 @@ class RestrictedScrollView(StencilView):
                 dy = self.convert_distance_to_scroll_y(self.scroll_wheel_distance)
                 self.scroll_y -= dy * diff
 
-    def scroll_y_down(self, diff=1):
+    def scroll_y_down(self, diff:float=1):
         if self.do_scroll_y:
             if self.do_scroll_by_element:
                 self.scroll_element += int(diff)
@@ -289,7 +296,7 @@ class RestrictedScrollView(StencilView):
                 dy = self.convert_distance_to_scroll_y(self.scroll_wheel_distance)
                 self.scroll_y += dy * diff
 
-    def scroll_x_left(self, diff=1):
+    def scroll_x_left(self, diff:float=1):
         if self.do_scroll_x:
             if self.do_scroll_by_element:
                 self.scroll_element -= int(diff)
@@ -297,7 +304,7 @@ class RestrictedScrollView(StencilView):
                 dx = self.convert_distance_to_scroll_x(self.scroll_wheel_distance)
                 self.scroll_x -= dx * diff
 
-    def scroll_x_right(self, diff=1):
+    def scroll_x_right(self, diff:float=1):
         if self.do_scroll_x:
             if self.do_scroll_by_element:
                 self.scroll_element += int(diff)
@@ -305,7 +312,7 @@ class RestrictedScrollView(StencilView):
                 dx = self.convert_distance_to_scroll_x(self.scroll_wheel_distance)
                 self.scroll_x += dx * diff
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if self._start_scroll:
             if self.do_scroll_x:
                 dx = self.convert_distance_to_scroll_x(touch.x - self._start_pos[0])
@@ -320,7 +327,7 @@ class RestrictedScrollView(StencilView):
         touch.pop()
         return ret
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if self._start_scroll:
             touch.ungrab(self)
         self._start_pos = None
@@ -331,7 +338,7 @@ class RestrictedScrollView(StencilView):
         touch.pop()
         return ret
 
-    def scroll_to(self, widget):
+    def scroll_to(self, index: int) -> None:
         raise NotImplementedError()
 
     def convert_distance_to_scroll(self, dx: float, dy: float) -> Tuple[float, float]:
@@ -344,7 +351,7 @@ class RestrictedScrollView(StencilView):
         return (self.convert_distance_to_scroll_x(dx),
                 self.convert_distance_to_scroll_y(dy))
 
-    def convert_distance_to_scroll_x(self, dx: float):
+    def convert_distance_to_scroll_x(self, dx: float) -> float:
         if not self._viewport:
             return 0
         vp = self._viewport
@@ -353,7 +360,7 @@ class RestrictedScrollView(StencilView):
             return dx / float(sw)
         return 0
 
-    def convert_distance_to_scroll_y(self, dy: float):
+    def convert_distance_to_scroll_y(self, dy: float) -> float:
         if not self._viewport:
             return 0
         vp = self._viewport
@@ -362,7 +369,7 @@ class RestrictedScrollView(StencilView):
             return dy / float(sh)
         return 0
 
-    def update_from_scroll(self, *_):
+    def update_from_scroll(self, *_:Any):
         if self.scroll_element_block:
             return
         if not self._viewport:
@@ -402,7 +409,7 @@ class RestrictedScrollView(StencilView):
 
         self.g_translate.xy = x, y
 
-    def add_widget(self, widget, *args, **kwargs):
+    def add_widget(self, widget: Widget, *args:Any, **kwargs:Any):
         if self._viewport:
             raise RuntimeError('RestrictedScrollView accept only one widget')
         canvas = self.canvas
@@ -415,7 +422,7 @@ class RestrictedScrollView(StencilView):
                     size_hint_min=self._trigger_update_from_scroll)
         self._trigger_update_from_scroll()
 
-    def remove_widget(self, widget, *args, **kwargs):
+    def remove_widget(self, widget: Widget, *args: Any, **kwargs: Any):
         canvas = self.canvas
         self.canvas = self.canvas_viewport
         super().remove_widget(widget, *args, **kwargs)
@@ -423,8 +430,8 @@ class RestrictedScrollView(StencilView):
         if widget is self._viewport:
             self._viewport = None
 
-    def _get_uid(self, prefix='sv'):
-        return '{0}.{1}'.format(prefix, self.uid)
+    def _get_uid(self, prefix:str='sv') -> str:
+        return f'{prefix}.{self.uid}'
 
     def _do_touch_up(self, touch, *_):
         # touch is in window coords

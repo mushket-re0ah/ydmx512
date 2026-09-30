@@ -1,7 +1,7 @@
 from misc.constants import IMGS_PATH
 
 
-def _img(name):
+def _img(name: str) -> str:
     return (IMGS_PATH / name).as_posix()
 
 

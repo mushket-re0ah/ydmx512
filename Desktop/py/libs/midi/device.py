@@ -1,12 +1,12 @@
+import rtmidi
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty, StringProperty
-import rtmidi
-from rtmidi.midiconstants import NOTE_OFF, NOTE_ON, CONTROLLER_CHANGE
+from rtmidi.midiconstants import CONTROLLER_CHANGE, NOTE_OFF, NOTE_ON
 
 
 class MidiDevice(EventDispatcher):
-    name = StringProperty()
-    port = StringProperty()
+    name: str = StringProperty()
+    port: str = StringProperty()
     connection = ObjectProperty(allownone=True)
 
     def __init__(self, port: str):

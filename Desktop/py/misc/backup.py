@@ -1,12 +1,14 @@
-from typing import List, Callable
-from pathlib import Path
 import sys
-from libs.sub_proc import run_async_process, AsyncProcessContext
-from libs.sub_proc import exit_code
+from multiprocessing import Queue
+from pathlib import Path
+from typing import Any, List, Optional
+
+from libs.sub_proc import AsyncProcessCallback, AsyncProcessContext, run_async_process
+from libs.sub_proc.exit_code import ExitCode
 from misc import constants
 
 
-def do_backup(callback: Callable):
+def do_backup(callback: Optional[AsyncProcessCallback]=None):
     from database import db
 
     run_async_process(
@@ -15,23 +17,23 @@ def do_backup(callback: Callable):
             process_target=_start,
             callback=callback,
             block_gui=False,
-            process_kwargs={
+            process_args={
                 "backup_max_count": db.misc.database_backup_max_count
             }
         )
     )
 
 
-def _start(queue: "multiprocessing.Queue", backup_max_count: int):
+def _start(queue: Queue[Any], backup_max_count: int):
     try:
         _create_backup_dir()
         _create_backup()
         _clean_old_backups(backup_max_count)
-        sys.exit(exit_code.EXIT_SUCCESS)
+        sys.exit(ExitCode.SUCCESS)
     except Exception:
         import traceback
         queue.put(traceback.format_exc())
-        sys.exit(exit_code.EXIT_FAILURE)
+        sys.exit(ExitCode.FAILURE)
 
 
 def _create_backup():

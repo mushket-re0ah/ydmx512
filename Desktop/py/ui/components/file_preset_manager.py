@@ -3,6 +3,7 @@ from kivy.properties import ObjectProperty, BooleanProperty, StringProperty
 from kivy.clock import Clock
 from kivy.lang import Builder
 from libs.uix.layouts import ModalBoxLayout, WindowModalBoxLayout
+from typing_extensions import Self
 
 Builder.load_file("ui/components/file_preset_manager.kv")
 
@@ -53,7 +54,7 @@ class MenuPresetManager(ModalBoxLayout):
     filelist = ObjectProperty()
     allow_create_preset = BooleanProperty(False)
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         rootpath = self.asset_manager._get_asset_dirname(self.category_key)
         self.filelist.rootpath = rootpath
         self.filelist.bind(on_submit=self.on_filelist_submit)

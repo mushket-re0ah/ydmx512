@@ -1,9 +1,11 @@
 from typing import List
+
 import rtmidi
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty
-from libs.midi.device import MidiDevice
+
 from libs import logger
+from libs.midi.device import MidiDevice
 
 
 class MidiObserver(EventDispatcher):

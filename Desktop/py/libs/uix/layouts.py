@@ -1,10 +1,16 @@
+from typing import Literal
+
+from kivy.lang import Builder
+from kivy.properties import ColorProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import StringProperty, ColorProperty, NumericProperty, ObjectProperty
 from kivy.uix.stencilview import StencilView
-from kivy.lang import Builder
+from kivy.uix.widget import Widget
+
+from libs.typecheck import RGBA
 from libs.uix import colorscheme as uix_cs
 from libs.uix.behaviors.modal import ModalBehavior
+from libs.uix.label import RestrictedLabel
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -123,17 +129,17 @@ class MenuPanel(StencilBoxLayout):
 
 
 class SectionPanel(BoxLayout):
-    title_text = StringProperty("NOT SETTED (SECTION PANEL)")
-    bg = ColorProperty(uix_cs.SectionPanel.bg)
-    fg = ColorProperty(uix_cs.SectionPanel.fg)
-    halign = StringProperty("left")
-    valign = StringProperty("top")
-    font_size = NumericProperty("11dp")
-    section_label = ObjectProperty()
+    title_text: str = StringProperty("NOT SETTED (SECTION PANEL)")
+    bg: RGBA = ColorProperty(uix_cs.SectionPanel.bg)
+    fg: RGBA = ColorProperty(uix_cs.SectionPanel.fg)
+    halign: Literal["left", "center", "right", "justify", "auto"] = StringProperty("left")
+    valign: Literal["bottom", "middle", "center", "top"] = StringProperty("top")
+    font_size: float = NumericProperty("11dp")
+    section_label: RestrictedLabel = ObjectProperty()
 
 
 class SubSectionPanel(SectionPanel):
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget: Widget, index:int=0, canvas=None):
         # inverted
         super().add_widget(widget, len(self.children) + 1, canvas)
 

@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, FrozenSet, Callable
 from collections import defaultdict
 from kivy.properties import StringProperty, ObjectProperty
 from libs.kivy_json_orm.fields import table_ref_serializer, table_ref_deserializer, list_of_refs_serializer, list_of_refs_deserializer
@@ -52,7 +52,7 @@ class MDIEditor(DatabaseMDIWindow):
             return
         self.playback.player.start_or_stop()
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         if self.content:
             return {
                 **super().create_hotkeys(),

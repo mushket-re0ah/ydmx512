@@ -11,6 +11,7 @@ from misc import constants
 from ui.mdi.editor.maps.playback.playback_ui import EditorPlaybackUi
 from ui.mdi.editor.maps.map_layout import EditorMapLayout
 
+from typing_extensions import Self
 
 Builder.load_file("ui/mdi/editor/maps/playback/playback_map.kv")
 
@@ -24,8 +25,8 @@ class PlaybackEditorMapSection(MenuPanel):
 class PlaybackEditorMap(EditorMapLayout):
     playback = ObjectProperty(None, allownone=True, rebind=True)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.__init_map()
         db.playback.bind(on_add_row=self.on_add_playback)
         db.playback.bind(on_remove_row=self.on_remove_playback)

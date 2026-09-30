@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 
 
 class Command:
@@ -20,15 +20,15 @@ class Command:
     def _do_redo(self):
         raise NotImplementedError()
 
-    def merge(self, command: "Command"):
+    def merge(self, command: "Command") -> bool:
         raise NotImplementedError()
 
 
 class CommandSession:
     def __init__(self):
-        self.commands = []
+        self.commands: List[Command] = []
 
-    def add_command(self, command) -> bool:
+    def add_command(self, command: Command) -> bool:
         success = command.execute()
         if not success:
             return False
@@ -59,28 +59,28 @@ class CommandSession:
 class CommandHistory:
     session_cls = CommandSession
 
-    def __init__(self, *args, **kwargs):
-        self.history = []
-        self.redo_stack = []
+    def __init__(self, *args: Any, **kwargs: Any):
+        self.history: List[CommandSession] = []
+        self.redo_stack: List[CommandSession] = []
         self.command_session: Optional[CommandSession] = None
         super().__init__(*args, **kwargs)
 
-    def push(self, command, clear_redo=False):
+    def push(self, command: CommandSession, clear_redo:bool=False):
         self.history.append(command)
         if clear_redo:
             self.redo_stack.clear()
 
-    def pop(self):
+    def pop(self) -> Optional[CommandSession]:
         if self.history:
             return self.history.pop()
         return None
 
-    def redo_pop(self):
+    def redo_pop(self) -> Optional[CommandSession]:
         if self.redo_stack:
             return self.redo_stack.pop()
         return None
 
-    def push_redo(self, command):
+    def push_redo(self, command: CommandSession):
         self.redo_stack.append(command)
 
     def start_session(self):

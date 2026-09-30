@@ -1,22 +1,28 @@
-from libs.utils import ThrottledCall
+from typing import TYPE_CHECKING, List, Set, Tuple
+
+from libs import logger
 from libs.dmx512 import dmx512
+from libs.utils import ThrottledCall
 from misc import constants
+
+if TYPE_CHECKING:
+    from database.playback.player import PlaybackPlayer
 
 
 class PlaybackMasterPlayer:
     def __init__(self):
-        self.player_list = []
+        self.player_list: List["PlaybackPlayer"] = []
         self.loop = ThrottledCall(self._loop, constants.DMX_WRITE_INTERVAL)
 
-    def add_playback(self, player):
+    def add_playback(self, player: "PlaybackPlayer"):
         if player not in self.player_list:
             self.player_list.append(player)
 
-    def remove_playback(self, player):
+    def remove_playback(self, player: "PlaybackPlayer"):
         self.player_list.remove(player)
         self.clear_matrix_on_playback_off(player)
 
-    def clear_matrix_on_playback_off(self, player):
+    def clear_matrix_on_playback_off(self, player: "PlaybackPlayer"):
         for universe, address_list in player.playback.renderer.universe_addresses.items():
             clear_address_list = address_list.copy()
             for p in self.player_list:
@@ -28,8 +34,11 @@ class PlaybackMasterPlayer:
     def _loop(self):
         if not self.player_list:
             return
-        used_fulladdresses = set()
+        used_fulladdresses: Set[Tuple[int, int]] = set()
         for player in reversed(self.player_list):
+            if player.beat_counter is None:
+                logger.debug("player not work, but in player_list")
+                continue
             for patch, address_list in player.playback.renderer.patch_addresses.items():
                 universe = patch.universe
                 for address in address_list:

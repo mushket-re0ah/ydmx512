@@ -1,13 +1,15 @@
-from typing import Tuple, Union, List
-from enum import Enum, auto
 from dataclasses import dataclass
+from enum import Enum, auto
+from typing import Callable, Iterator, List, Tuple, Union
+
+from libs.typecheck import Number
 
 
 class XYGrid:
-    size_x_getter = None
-    size_y_getter = None
+    size_x_getter: Callable[[], int]
+    size_y_getter: Callable[[], int]
 
-    def __init__(self, size_x_getter, size_y_getter=lambda: 255):
+    def __init__(self, size_x_getter: Callable[[], int], size_y_getter: Callable[[], int]=lambda: 255):
         self.size_x_getter = size_x_getter
         self.size_y_getter = size_y_getter
 
@@ -18,23 +20,23 @@ class XYGrid:
     def last_x_frame(self) -> int:
         return self.size_x_getter() - 1
 
-    def to_frame_x(self, norm_x: float, allow_negative=False) -> int:
-        norm_x = self._boundary(norm_x, 1.0, allow_negative)
-        return round(norm_x * self.last_x_frame)
+    def to_frame_x(self, norm_x: float, allow_negative:bool=False) -> int:
+        _norm_x = self._boundary(norm_x, 1.0, allow_negative)
+        return round(_norm_x * self.last_x_frame)
 
-    def to_normalized_x(self, frame_x: int, allow_negative=False) -> float:
-        frame_x = self._boundary(frame_x, self.last_x_frame, allow_negative)
-        return frame_x / self.last_x_frame
+    def to_normalized_x(self, frame_x: int, allow_negative:bool=False) -> float:
+        _frame_x: Number = self._boundary(frame_x, self.last_x_frame, allow_negative)
+        return _frame_x / self.last_x_frame
 
-    def to_frame_y(self, norm_y: float, allow_negative=False) -> int:
-        norm_y = self._boundary(norm_y, 1.0, allow_negative)
-        return round(norm_y * self.size_y_getter())
+    def to_frame_y(self, norm_y: float, allow_negative:bool=False) -> int:
+        _norm_y = self._boundary(norm_y, 1.0, allow_negative)
+        return round(_norm_y * self.size_y_getter())
 
-    def to_normalized_y(self, frame_y: int, allow_negative=False) -> float:
-        frame_y = self._boundary(frame_y, self.size_y_getter(), allow_negative)
-        return frame_y / self.size_y_getter()
+    def to_normalized_y(self, frame_y: int, allow_negative:bool=False) -> float:
+        _frame_y: Number = self._boundary(frame_y, self.size_y_getter(), allow_negative)
+        return _frame_y / self.size_y_getter()
 
-    def _boundary(self, value: Union[int, float], maximum: Union[int, float], allow_negative: bool) -> Union[int, float]:
+    def _boundary(self, value: Union[int, float], maximum: Union[int, float], allow_negative: bool) -> Number:
         if allow_negative:
             return min(max(value, -maximum), maximum)
         return min(max(value, 0), maximum)
@@ -45,7 +47,7 @@ class InterpolationType(int, Enum):
     SPLINE = auto()
 
     @staticmethod
-    def get_next_type(interp) -> "InterpolationType":
+    def get_next_type(interp: "InterpolationType") -> "InterpolationType":
         if interp is InterpolationType.LINEAR:
             return InterpolationType.SPLINE
         return InterpolationType.LINEAR
@@ -57,17 +59,37 @@ class DMXRenderDot:
     y: float  # [0.0 ... 1.0]
     dot_type: InterpolationType
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Union[float, InterpolationType]]:
         """Для поддержки распаковки"""
         return iter((self.x, self.y, self.dot_type))
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Union[float, InterpolationType]:
         return (self.x, self.y, self.dot_type)[index]
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(id(self))
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        return id(self) == id(other)
+
+
+@dataclass(frozen=False)
+class DenormalizedDMXRenderDot:
+    x: int
+    y: int
+    dot_type: InterpolationType
+
+    def __iter__(self) -> Iterator[Union[int, InterpolationType]]:
+        """Для поддержки распаковки"""
+        return iter((self.x, self.y, self.dot_type))
+
+    def __getitem__(self, index: int) -> Union[int, InterpolationType]:
+        return (self.x, self.y, self.dot_type)[index]
+
+    def __hash__(self) -> int:
+        return hash(id(self))
+
+    def __eq__(self, other: object) -> bool:
         return id(self) == id(other)
 
 

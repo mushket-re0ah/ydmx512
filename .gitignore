@@ -6,4 +6,6 @@ __pycache__/
 /Desktop/py/presets_data/
 /Desktop/py/database_backup/
 /Desktop/py/logs/
+/Desktop/py/typings/
 /Desktop/py/.pylintrc
+/Desktop/py/pyproject.toml

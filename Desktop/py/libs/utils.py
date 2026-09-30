@@ -1,7 +1,7 @@
-from typing import Callable
+from typing import Any, Callable, Dict
 
 
-def merge_kwargs(default_kwargs: dict, kwargs: dict) -> dict:
+def merge_kwargs(default_kwargs: Dict[Any, Any], kwargs: Dict[Any, Any]) -> Dict[Any, Any]:
     for k, v in default_kwargs.items():
         if k not in kwargs:
             kwargs[k] = v
@@ -12,13 +12,14 @@ def merge_kwargs(default_kwargs: dict, kwargs: dict) -> dict:
                 kwargs_other_attrs[k] = v
     return kwargs
 
-class ThrottledCall:
-    def __init__(self, func: Callable, initial_interval: float):
-        self.func = func
-        self.interval = initial_interval
-        self._accumulator = 0.0
 
-    def __call__(self, delta_time: float, *args, **kwargs) -> any:
+class ThrottledCall:
+    def __init__(self, func: Callable[..., None], initial_interval: float):
+        self.func: Callable[..., None] = func
+        self.interval: float = initial_interval
+        self._accumulator: float = 0.0
+
+    def __call__(self, delta_time: float, *args: Any, **kwargs: Any) -> Any:
         self._accumulator += delta_time
         if self._accumulator >= self.interval:
             self._accumulator -= self.interval

@@ -1,10 +1,14 @@
-from kivy.properties import (
-    ObjectProperty, NumericProperty, BooleanProperty
-)
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
 from kivy.core.window import Window
 from kivy.lang import Builder
-from libs.uix.scroll_layout import ScrollLayout
+from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty
+from kivy.uix.widget import Widget
+from typing_extensions import Self
+
 from libs.uix.behaviors.modal import ModalBehavior
+from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
+from libs.uix.scroll_layout import ScrollLayout
 
 Builder.load_string("""
 <RecycleDropdown>:  # ScrollLayout
@@ -28,15 +32,16 @@ Builder.load_string("""
 
 
 class RecycleDropdown(ModalBehavior, ScrollLayout):
-    max_height = NumericProperty("400dp")
-    min_height = NumericProperty("120dp")
-    auto_width = BooleanProperty(True)
-    force_width = NumericProperty("300dp")
-    auto_height = BooleanProperty(True)
-    force_height = NumericProperty("300dp")
-    cls_height = NumericProperty("30dp")
-    values = ObjectProperty()
-    selected = ObjectProperty()
+    max_height: float = NumericProperty("400dp")
+    min_height: float = NumericProperty("120dp")
+    auto_width: bool = BooleanProperty(True)
+    force_width: float = NumericProperty("300dp")
+    auto_height: bool = BooleanProperty(True)
+    force_height: float = NumericProperty("300dp")
+    cls_height: float = NumericProperty("30dp")
+    values: List[Any] = ObjectProperty()
+    selected: Any = ObjectProperty()
+    scrollview: RecycleRestrictedScrollView
 
     __events__ = ("on_select",)
 
@@ -46,24 +51,24 @@ class RecycleDropdown(ModalBehavior, ScrollLayout):
                 self, v) for v in self.values_getter(self)]
             self._reposition()
 
-    def _default_values_getter(self) -> any:
+    def default_values_getter(self) -> List[Any]:
         return self.values
-    values_getter = ObjectProperty(_default_values_getter)
+    values_getter: Callable[[Any], List[Any]] = ObjectProperty(default_values_getter)
 
-    def _default_value_to_dict(self, value) -> dict:
+    def default_value_to_dict(self, value: Any) -> Dict[str, Any]:
         return {
             "text": str(self.value_to_host(value)),
             "stored_value": value,
             "on_release": lambda x=value: self.select(x)
         }
-    value_to_dict = ObjectProperty(_default_value_to_dict)
+    value_to_dict: Callable[[Any, Any], Dict[str, Any]] = ObjectProperty(default_value_to_dict)
 
     @staticmethod
-    def _default_value_to_host(value: str) -> str:
+    def default_value_to_host(value: str) -> str:
         return value
-    value_to_host = ObjectProperty(_default_value_to_host)
+    value_to_host: Callable[[Any], Any] = ObjectProperty(default_value_to_host)
 
-    def open(self, widget=None, pos=None):
+    def open(self, widget: Optional[Widget]=None, pos:Optional[Tuple[float, float]]=None):
         self.update_values()
         super().open(widget)
 
@@ -73,12 +78,12 @@ class RecycleDropdown(ModalBehavior, ScrollLayout):
     def on_cls_height(self, _, value: float):
         self.scrollview.layout_manager.default_size = (None, value)
 
-    def select(self, data: any):
+    def select(self, data: Any):
         self.selected = data
         self.dispatch("on_select", data)
         self.dismiss()
 
-    def on_select(self, data: any):
+    def on_select(self, data: Any):
         pass
 
     def _reposition(self, *_):

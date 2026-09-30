@@ -1,23 +1,26 @@
-from typing import Tuple
-from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import ObjectProperty, ColorProperty
+from typing import Any, Optional, Tuple
+
 from kivy.animation import Animation
-from libs.uix.map_layout import MapGridItemBehavior, MapLayout
+from kivy.properties import ColorProperty, ObjectProperty
+from kivy.uix.relativelayout import RelativeLayout
+from typing_extensions import Self
+
 from libs.kivy_json_orm.table_implementation import DatabaseRow
+from libs.uix.map_layout import MapGridItemBehavior, MapLayout
 from misc import colorscheme as cs
 
 
 class BaseDatabaseGridItem(MapGridItemBehavior, RelativeLayout):
     db_row: DatabaseRow = ObjectProperty(rebind=True)
-    map_layout: MapLayout = ObjectProperty(allownone=True, rebind=True)
+    map_layout: Optional[MapLayout] = ObjectProperty(allownone=True, rebind=True)
     bg = ColorProperty()
 
-    def __init__(self, create_animation=True, **kwargs):
+    def __init__(self, create_animation:bool=True, **kwargs: Any):
         super().__init__(opacity=0.0 if create_animation else 1.0, **kwargs)
         self._do_create_animation(create_animation)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.grid_pos = self._get_grid_pos()
 
     def _do_create_animation(self, create_animation: bool):
@@ -44,7 +47,7 @@ class BaseDatabaseGridItem(MapGridItemBehavior, RelativeLayout):
     def _save_pos(self, *_):
         self.db_row.edit(grid_pos=self.grid_pos)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if not self.collide_point(*touch.pos):
             return False
         if super().on_touch_down(touch):

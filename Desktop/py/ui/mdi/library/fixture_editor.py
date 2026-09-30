@@ -12,6 +12,7 @@ from database import db
 from database.fixture_param import RowFixtureParam
 from database.fixture import RowFixture, FixtureChannelsGroup
 from misc import constants
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/library/fixture_editor.kv")
@@ -100,8 +101,8 @@ class LibraryFixtureParams(ScrollLayout):
     context = ObjectProperty()
     edit_exist = BooleanProperty(False)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         for group in self.context.channels_groups:
             self.add_group(group)
 
@@ -188,7 +189,7 @@ class LibraryFixtureEditor(StencilBoxLayout):
                 **kwargs)
         library.property("view_context").dispatch(library)
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.fixture_params.edit_exist = self.edit_exist
 
     def close(self):

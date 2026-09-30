@@ -1,173 +1,183 @@
-from collections import namedtuple
+from types import SimpleNamespace
+from typing import Union
+
 from kivy.utils import get_color_from_hex as _kivy_get_color_from_hex
+
 from libs.animation import ColorDiff
+from libs.typecheck import RGBA
 
 
-def _h(s):
-    return tuple(_kivy_get_color_from_hex(s))
+def hex_str_to_color(hex_str: str) -> RGBA:
+    return tuple(_kivy_get_color_from_hex(hex_str))
 
 
-def _cs(**kwargs) -> namedtuple:
-    return namedtuple("Colorscheme", kwargs)(**kwargs)
+def create_colorscheme(**kwargs: Union[ColorDiff, RGBA]) -> SimpleNamespace:
+    return SimpleNamespace(**kwargs)
 
 
-general = _cs(
-    menu_bg=_h("#2C3235FF"),
-    menu_wrap_bg=_h("#596267FF"),
+general = create_colorscheme(
+    menu_bg=hex_str_to_color("#2C3235FF"),
+    menu_wrap_bg=hex_str_to_color("#596267FF"),
 )
 
-Label = _cs(
-    fg=_h("#FFFFFFFF"),
-    fg_disabled=_h("#AFAFAFFF"),
+Label = create_colorscheme(
+    fg=hex_str_to_color("#FFFFFFFF"),
+    fg_disabled=hex_str_to_color("#AFAFAFFF"),
 )
 
-WorkspaceToggleButton = _cs(
-    color_if_contain=_h("#00FF00FF"),
-    color_if_not_contain=_h("#E5E5E5FF"),
+WorkspaceToggleButton = create_colorscheme(
+    color_if_contain=hex_str_to_color("#00FF00FF"),
+    color_if_not_contain=hex_str_to_color("#E5E5E5FF"),
 )
 
-HoverSlider = _cs(
-    background_color_normal=_h("#2C3235FF"),
-    background_color_hover=_h("#2C3223FF"),
-    background_color_disabled=_h("#1C2225FF"),
-    background_color_focused=_h("#33392AFF"),
+HoverSlider = create_colorscheme(
+    background_color_normal=hex_str_to_color("#2C3235FF"),
+    background_color_hover=hex_str_to_color("#2C3223FF"),
+    background_color_disabled=hex_str_to_color("#1C2225FF"),
+    background_color_focused=hex_str_to_color("#33392AFF"),
 
-    value_track_color_normal=_h("#00FFFF99"),
-    value_track_color_hover=_h("#00FFFFFF"),
-    value_track_color_disabled=_h("#009999FF"),
-    value_track_color_focused=_h("#44FFFFFF"),
+    value_track_color_normal=hex_str_to_color("#00FFFF99"),
+    value_track_color_hover=hex_str_to_color("#00FFFFFF"),
+    value_track_color_disabled=hex_str_to_color("#009999FF"),
+    value_track_color_focused=hex_str_to_color("#44FFFFFF"),
 )
 
-TitleNumericSlider = _cs(
-    title_bg=_h("#262F34FF"),
+TitleNumericSlider = create_colorscheme(
+    title_bg=hex_str_to_color("#262F34FF"),
 )
 
-Slider2D = _cs(
-    dot_color_normal=_h("#00DDDDFF"),
-    dot_color_hover=_h("#00DD89FF"),
-    dot_color_disabled=_h("#00AAAAFF"),
-    dot_color_focused=_h("#FFFFFFFF"),
+Slider2D = create_colorscheme(
+    dot_color_normal=hex_str_to_color("#00DDDDFF"),
+    dot_color_hover=hex_str_to_color("#00DD89FF"),
+    dot_color_disabled=hex_str_to_color("#00AAAAFF"),
+    dot_color_focused=hex_str_to_color("#FFFFFFFF"),
 
-    line_color_normal=_h("#00DDDDFF"),
-    line_color_hover=_h("#00DD89FF"),
-    line_color_disabled=_h("#00AAAAFF"),
-    line_color_focused=_h("#FFFFFFFF"),
+    line_color_normal=hex_str_to_color("#00DDDDFF"),
+    line_color_hover=hex_str_to_color("#00DD89FF"),
+    line_color_disabled=hex_str_to_color("#00AAAAFF"),
+    line_color_focused=hex_str_to_color("#FFFFFFFF"),
 )
 
-HoverButton = _cs(
-    background_color_normal=_h("#FFFFFFFF"),
-    background_color_down=_h("#FFFFFFFF"),
-    background_color_hover=_h("#FFFFCBFF"),
-    background_color_disabled=_h("#AAAAAAFF"),
+HoverButton = create_colorscheme(
+    background_color_normal=hex_str_to_color("#FFFFFFFF"),
+    background_color_down=hex_str_to_color("#FFFFFFFF"),
+    background_color_hover=hex_str_to_color("#FFFFCBFF"),
+    background_color_disabled=hex_str_to_color("#AAAAAAFF"),
 )
 
-ColorToggleButton = _cs(
-    border_color_normal=_h("#00000000"),
-    border_color_hover=_h("#0000FFFF"),
-    border_color_is_select=_h("#00FFFFFF"),
+ColorToggleButton = create_colorscheme(
+    border_color_normal=hex_str_to_color("#00000000"),
+    border_color_hover=hex_str_to_color("#0000FFFF"),
+    border_color_is_select=hex_str_to_color("#00FFFFFF"),
 )
 
-ArrowToggleButton = _cs(
-    arrow_color_normal=_h("#AFAFAFFF"),
-    arrow_color_down=_h("#D1D127FF"),
-    arrow_color_hover=_h("#D1D127FF"),
-    arrow_color_disabled=_h("#7C7C7CFF"),
+ArrowToggleButton = create_colorscheme(
+    arrow_color_normal=hex_str_to_color("#AFAFAFFF"),
+    arrow_color_down=hex_str_to_color("#D1D127FF"),
+    arrow_color_hover=hex_str_to_color("#D1D127FF"),
+    arrow_color_disabled=hex_str_to_color("#7C7C7CFF"),
 )
 
-RotaryButton = _cs(
-    texture_color_normal=_h("#FFFFFFFF"),
+RotaryButton = create_colorscheme(
+    texture_color_normal=hex_str_to_color("#FFFFFFFF"),
     texture_color_hover_diff=ColorDiff(0, 0, -0x32, 0x00),  # FFFFCD
     texture_color_disabled_diff=ColorDiff(-0x55, -0x55, -0x55, 0x00),  # AAAAAA
     texture_color_focused_diff=ColorDiff(-0x32, -0x32, -0x66, 0x00),  # CDCD99
 
-    rotary_active_color_normal=_h("#AFFF80FF"),
+    rotary_active_color_normal=hex_str_to_color("#AFFF80FF"),
     rotary_active_color_hover_diff=ColorDiff(-0x10, -0x10, -0x30, 0x00),  # 9FEF50FF
     rotary_active_color_disabled_diff=ColorDiff(-0x30, -0x20, -0x30, 0x00),  # 7FDF50FF
     rotary_active_color_focused_diff=ColorDiff(0x10, 0x00, 0x10, 0x00),  # BFFF90FF
 
-    rotary_passive_color_normal=_h("#2C3235FF"),
+    rotary_passive_color_normal=hex_str_to_color("#2C3235FF"),
     rotary_passive_color_hover_diff=ColorDiff(0x00, 0x00, 0x00, 0x00),  # 2C3235FF
     rotary_passive_color_disabled_diff=ColorDiff(-0x10, -0x10, 0x0F, 0x00),  # 1C2244FF
     rotary_passive_color_focused_diff=ColorDiff(0x10, 0x10, 0x0F, 0x00),  # 3C4244FF
 )
 
-PanRotaryButton = _cs(
-    rotary_active_color_right_normal=_h("#96FFFFDD"),
-    rotary_active_color_left_normal=_h("#BD7FF4FF"),
+PanRotaryButton = create_colorscheme(
+    rotary_active_color_right_normal=hex_str_to_color("#96FFFFDD"),
+    rotary_active_color_left_normal=hex_str_to_color("#BD7FF4FF"),
 )
 
-FileListButton = _cs(
-    dir_bg=_h("#CCCCCCCC"),
-    file_bg=_h("#FFFFFFFF"),
+FileListButton = create_colorscheme(
+    dir_bg=hex_str_to_color("#CCCCCCCC"),
+    file_bg=hex_str_to_color("#FFFFFFFF"),
 )
 
-HoverInput = _cs(
-    background_color_normal=_h("#2C3235FF"),
-    background_color_hover=_h("#2C3227FF"),
-    background_color_disabled=_h("#1C2225FF"),
-    background_color_focused=_h("#1C2225FF"),
+HoverInput = create_colorscheme(
+    background_color_normal=hex_str_to_color("#2C3235FF"),
+    background_color_hover=hex_str_to_color("#2C3227FF"),
+    background_color_disabled=hex_str_to_color("#1C2225FF"),
+    background_color_focused=hex_str_to_color("#1C2225FF"),
 
-    border_color_normal=_h("#00000000"),
-    border_color_hover=_h("#BCC1C4FF"),
-    border_color_disabled=_h("#000000FF"),
-    border_color_focused=_h("#BCC1C4FF"),
+    border_color_normal=hex_str_to_color("#00000000"),
+    border_color_hover=hex_str_to_color("#BCC1C4FF"),
+    border_color_disabled=hex_str_to_color("#000000FF"),
+    border_color_focused=hex_str_to_color("#BCC1C4FF"),
 
-    foreground_color_normal=_h("#99FFFFFF"),
-    foreground_color_hover=_h("#99FFFFFF"),
-    foreground_color_disabled=_h("#99FFFFFF"),
-    foreground_color_focused=_h("#99FFFFFF"),
+    foreground_color_normal=hex_str_to_color("#99FFFFFF"),
+    foreground_color_hover=hex_str_to_color("#99FFFFFF"),
+    foreground_color_disabled=hex_str_to_color("#99FFFFFF"),
+    foreground_color_focused=hex_str_to_color("#99FFFFFF"),
 )
 
-MidiInput = _cs(
-    background_color_normal=_h("#005500FF"),
-    foreground_color_normal=_h("#99FFFFFF"),
+MidiInput = create_colorscheme(
+    background_color_normal=hex_str_to_color("#005500FF"),
+    foreground_color_normal=hex_str_to_color("#99FFFFFF"),
 )
 
-DatabaseTable = _cs(
-    bg=_h("#1C2225FF"),
+DatabaseTable = create_colorscheme(
+    bg=hex_str_to_color("#1C2225FF"),
 )
 
-MenuPanel = _cs(
-    bg=_h("#677075FF"),
-    border=_h("#596267FF"),
+MenuPanel = create_colorscheme(
+    bg=hex_str_to_color("#677075FF"),
+    border=hex_str_to_color("#596267FF"),
 )
 
-SectionPanel = _cs(
-    bg=_h("#677075FF"),
-    fg=_h("#2C3235FF"),
+SectionPanel = create_colorscheme(
+    bg=hex_str_to_color("#677075FF"),
+    fg=hex_str_to_color("#2C3235FF"),
 )
 
-SubSectionPanel = _cs(
-    bg=_h("#717A7FFF"),
-    fg=_h("#2C3235FF"),
+SubSectionPanel = create_colorscheme(
+    bg=hex_str_to_color("#717A7FFF"),
+    fg=hex_str_to_color("#2C3235FF"),
 )
 
-Modal = _cs(
-    bg=_h("#2E393EFF"),
-    border_color=_h("#888888FF"),
+Modal = create_colorscheme(
+    bg=hex_str_to_color("#2E393EFF"),
+    border_color=hex_str_to_color("#888888FF"),
 )
 
-LabelRow = _cs(
-    bg=_h("#495257FF"),
-    fg=_h("#BCBCBCFF"),
+LabelRow = create_colorscheme(
+    bg=hex_str_to_color("#495257FF"),
+    fg=hex_str_to_color("#BCBCBCFF"),
 )
 
-ModalMenu = _cs(
-    title_bg=_h("#1F292EFF"),
+ModalMenu = create_colorscheme(
+    title_bg=hex_str_to_color("#1F292EFF"),
 )
 
-MapSelector = _cs(
-    bg=_h("#00FFFF33"),
-    border=_h("00FFFFFF"),
+MapSelector = create_colorscheme(
+    bg=hex_str_to_color("#00FFFF33"),
+    border=hex_str_to_color("00FFFFFF"),
 )
 
-MapGridItemBehavior = _cs(
-    border_color_normal=_h("#00000000"),
-    border_color_hover=_h("#0000FFFF"),
-    border_color_is_select=_h("#00FFFFFF"),
+MapGridItemBehavior = create_colorscheme(
+    border_color_normal=hex_str_to_color("#00000000"),
+    border_color_hover=hex_str_to_color("#0000FFFF"),
+    border_color_is_select=hex_str_to_color("#00FFFFFF"),
 )
 
-MapLayout = _cs(
-    bg=_h("#525A5EFF"),
-    grid_color=_h("#646B6EFF"),
+MapLayout = create_colorscheme(
+    bg=hex_str_to_color("#525A5EFF"),
+    grid_color=hex_str_to_color("#646B6EFF"),
+)
+
+MDIWindow = create_colorscheme(
+    border_normal=hex_str_to_color("#00000000"),
+    border_focused=hex_str_to_color("#00FFFFFF"),
+    border_selected=hex_str_to_color("#44FF88FF"),
 )

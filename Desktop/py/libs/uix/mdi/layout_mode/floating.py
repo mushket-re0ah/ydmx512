@@ -1,11 +1,18 @@
 from enum import Enum
-from typing import Tuple, Optional, List
-from libs.uix.mdi.mdi_window import MDIWindow
+from typing import TYPE_CHECKING, Any, Callable, Dict, FrozenSet, List, Optional, Tuple
+
 from libs.kivy_utils import (
-    WidgetSide, LEFT_WIDGET_SIDES, RIGHT_WIDGET_SIDES, TOP_WIDGET_SIDES,
-    BOTTOM_WIDGET_SIDES
+    BOTTOM_WIDGET_SIDES,
+    LEFT_WIDGET_SIDES,
+    RIGHT_WIDGET_SIDES,
+    TOP_WIDGET_SIDES,
+    WidgetSide,
 )
 from libs.uix.mdi.layout_mode.interface import ILayoutMode
+from libs.uix.mdi.mdi_window import MDIWindow
+
+if TYPE_CHECKING:
+    from libs.uix.mdi.mdi_container import MDIContainer
 
 
 class FlexMode(str, Enum):
@@ -19,24 +26,24 @@ class FloatingLayoutMode(ILayoutMode):
     title = "Плавающие окна"
     FLEX_OPACITY = 0.4
 
-    def __init__(self, mdi_container, from_layout_mode):
+    def __init__(self, mdi_container: MDIContainer, from_layout_mode: ILayoutMode):
         self._save_lock = False
         super().__init__(mdi_container, from_layout_mode)
 
-    def _can_start_resize(self, _touch, _mdi, side) -> bool:
+    def _can_start_resize(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
         return side != WidgetSide.VOID
 
-    def _can_start_move(self, touch, mdi, side) -> bool:
+    def _can_start_move(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
         return mdi.title_bar_label.collide_point(*touch.pos) and side == WidgetSide.VOID
 
     def show_mdi(self, mdi: MDIWindow):
         super().show_mdi(mdi)
-        self.mdi_container._layout_add_widget(mdi)
+        self.mdi_container.layout_add_widget(mdi)
         mdi.size_hint = (None, None)
         self._mdi_bind(mdi)
         self.setup_title_buttons(mdi)
 
-    def _on_mdi_state(self, mdi, _state: dict):
+    def _on_mdi_state(self, mdi: MDIWindow, state: Dict[str, Any]):
         self.apply_mdi_expand(mdi, mdi.get_layout_state("expanded", False))
         flex = self._get_mdi_flex_state(mdi)
         if flex is None:
@@ -67,7 +74,7 @@ class FloatingLayoutMode(ILayoutMode):
         )
         self._on_mdi_state(mdi, mdi.state)
 
-    def _save_mdi_state(self, mdi, *_):
+    def _save_mdi_state(self, mdi: MDIWindow, *_):
         expanded = mdi.get_layout_state("expanded", False)
         if expanded or self._save_lock:
             return
@@ -108,14 +115,14 @@ class FloatingLayoutMode(ILayoutMode):
     def get_title_buttons(self) -> List[str]:
         return ["lock", "expand", "close"]
 
-    def hide_mdi(self, mdi: MDIWindow):
+    def hide_mdi(self, mdi: Optional[MDIWindow]):
         if mdi is None:
             return
 
         if self._focused_mdi() is mdi:
             self._hide_mdi_focused()
 
-        self.mdi_container._layout_remove_widget(mdi)
+        self.mdi_container.layout_remove_widget(mdi)
         self.unbind_from(mdi)
 
     def on_start_move(self, mdi: MDIWindow):
@@ -146,7 +153,7 @@ class FloatingLayoutMode(ILayoutMode):
         mdi.y = self._limiter_y(start_mdi_y + now_mouse_y - start_mouse_y)
         self._flex_manager(mdi, now_mouse_x, now_mouse_y)
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             **super().create_hotkeys(),
             frozenset({"ctrl", "shift", "l"}): self.mdi_invert_locked,
@@ -156,7 +163,7 @@ class FloatingLayoutMode(ILayoutMode):
             frozenset({"ctrl", "shift", "down"}): self.mdi_do_unexpand,
         }
 
-    def _flex_manager(self, mdi, mouse_x, mouse_y):
+    def _flex_manager(self, mdi: MDIWindow, mouse_x: float, mouse_y: float):
         mdc = self.mdi_container
         mouse_hint_x = mouse_x / mdc.width
         mouse_hint_y = mouse_y / mdc.height
@@ -185,7 +192,7 @@ class FloatingLayoutMode(ILayoutMode):
 
         self._apply_flex_style(mdi, width, x)
 
-    def _apply_flex_style(self, mdi, width, x):
+    def _apply_flex_style(self, mdi: MDIWindow, width: float, x: float):
         mdi.opacity = self.FLEX_OPACITY
         mdi.size_hint = (None, 1.0)
         mdi.width = width
@@ -204,7 +211,7 @@ class FloatingLayoutMode(ILayoutMode):
             },
         )
 
-    def _reset_flex(self, mdi):
+    def _reset_flex(self, mdi: MDIWindow):
         if self._get_mdi_flex_mode(mdi) is not None:
             mdi.size_hint = mdi.get_layout_state("size_hint", (None, None))
             mdi.size = mdi.get_layout_state("size", mdi.size[:])
@@ -281,17 +288,17 @@ class FloatingLayoutMode(ILayoutMode):
 
     def _move_widget_on_top(self, mdi: MDIWindow):
         if mdi.parent is not None:
-            self.mdi_container._layout_remove_widget(mdi)
-        self.mdi_container._layout_add_widget(mdi)
+            self.mdi_container.layout_remove_widget(mdi)
+        self.mdi_container.layout_add_widget(mdi)
         for locked_mdi in (i for i in self.mdi_container.mdi_list_showed if i.get_layout_state("locked", False)):
-            self.mdi_container._layout_remove_widget(locked_mdi)
-            self.mdi_container._layout_add_widget(locked_mdi)
+            self.mdi_container.layout_remove_widget(locked_mdi)
+            self.mdi_container.layout_add_widget(locked_mdi)
 
     def _on_double_tap(self, touch, mdi: MDIWindow) -> bool:
         mdi.set_layout_state(expanded=not mdi.get_layout_state("expanded", False))
         return True
 
-    def _limiter_x(self, x: float):
+    def _limiter_x(self, x: float) -> float:
         mdi = self._focused_mdi()
         return max(0, min(x, self.mdi_container.width - mdi.width))
 
@@ -308,7 +315,7 @@ class FloatingLayoutMode(ILayoutMode):
     def _set_focus(self, mdi: MDIWindow):
         self.mdi_container.set_focus(mdi)
 
-    def find_mdi_at_pos(self, pos: Tuple[float, float]):
+    def find_mdi_at_pos(self, pos: Tuple[float, float]) -> Optional[MDIWindow]:
         return next(
             (mdi for mdi in self.mdi_container.children
              if mdi.collide_point(*pos)),
@@ -321,7 +328,7 @@ class FloatingLayoutMode(ILayoutMode):
             container = self.mdi_container
             for mdi in container.mdi_list_showed:
                 mdi.parent.remove_widget(mdi)
-            container._clear_layout_widgets()
+            container.clear_layout_widgets()
             for mdi in container.mdi_list_showed:
                 from_layout_mode.unbind_from(mdi)
                 self._mdi_bind(mdi)
@@ -330,4 +337,4 @@ class FloatingLayoutMode(ILayoutMode):
                 mdi.size = size
                 mdi.pos = mdi.pos[:]
                 self.setup_title_buttons(mdi)
-                self.mdi_container._layout_add_widget(mdi)
+                self.mdi_container.layout_add_widget(mdi)

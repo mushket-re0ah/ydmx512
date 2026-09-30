@@ -1,18 +1,22 @@
-from typing import Optional, List
 import time
-from database.patch import RowPatch
+from typing import TYPE_CHECKING, List, Optional
+
 from database.fixture_param import DIMMER_TITLE_ID
+from database.patch import RowPatch
+from misc.player.render_utils import SoftEffectsRenderer, apply_value_modifiers
 from misc.player.status import PlayerStatus
-from misc.player.render_utils import apply_value_modifiers
+
+if TYPE_CHECKING:
+    from database.playback.player import PlaybackPlayer
 
 
 class PlayerEffectsRenderer:
-    def __init__(self, player):
-        self.player = player
-        self.soft_renderer = player.soft_renderer
-        self.do_cycle_last_frame = False
+    def __init__(self, player: "PlaybackPlayer"):
+        self.player: "PlaybackPlayer" = player
+        self.soft_renderer: SoftEffectsRenderer = player.soft_renderer
+        self.do_cycle_last_frame: bool = False
 
-    def on_status_change(self, status):
+    def on_status_change(self, status: PlayerStatus):
         self.soft_renderer.reset(status)
         if status is PlayerStatus.STOP:
             self.do_cycle_last_frame = False
@@ -63,14 +67,14 @@ class PlayerEffectsRenderer:
                                frame: int, patch_render: List[int]) -> int:
         is_attack = self.player.status is PlayerStatus.ATTACK
         param = patch.fixture.param_list_unpacked[fixture_index]
-        return self.soft_renderer.get_soft_value(
+        value = self.soft_renderer.get_soft_value(
             is_attack, fixture_index, frame, self.player.frame_count,
             live_value=patch_render[0] if is_attack else patch_render[self._apply_bounce(frame)],
             default_value=param.default_value
         )
+        return value if value is not None else param.default_value
 
-    def _apply_fade_to_black(self, patch: RowPatch, fixture_index: int,
-            value: int) -> int:
+    def _apply_fade_to_black(self, patch: RowPatch, fixture_index: int, value: int) -> int:
         if not self.player.fade_to_black:
             return value
         fade_time_sec = self.player.fade_to_black_time / 1000

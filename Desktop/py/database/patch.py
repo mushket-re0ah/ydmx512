@@ -1,38 +1,44 @@
-from typing import Tuple, Dict, List, Optional
-from kivy.properties import (
-    AliasProperty, BooleanProperty, ObjectProperty, DictProperty
-)
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 from kivy.clock import Clock
+from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ObjectProperty
 from kivy.utils import boundary
-from misc import constants
+
 from database.fixture import RowFixture
 from database.fixture_param import RowFixtureParam
-from database.scene import RowScene, SceneTableMixin, SceneRowMixin
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
+from database.scene import RowScene, SceneRowMixin, SceneTableMixin
 from libs.dmx512 import dmx512
 from libs.kivy_json_orm.fields import (
-    StringField, RefField, ClampedNumericField, BooleanField, ListField,
-    NumericField
+    BooleanField,
+    ClampedNumericField,
+    ListField,
+    NumericField,
+    RefField,
+    StringField,
 )
+from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
+from libs.typecheck import Number
+from misc import constants
+
 
 class RowPatch(SceneRowMixin, DatabaseRow):
-    title = StringField("Без названия")
+    title: str = StringField("Без названия")
 
-    fixture = RefField("fixture", fallback_fn=lambda db: db.fixture.get_default_row())
-    universe = ClampedNumericField(1, 1, constants.DMX_UNIVERSE_COUNT)
-    start_address = ClampedNumericField(1, 1, constants.DMX_ADDRESS_COUNT)
-    invert_pan = BooleanField(False)
-    invert_tilt = BooleanField(False)
-    correction_pan = ClampedNumericField(0, -255, 255)
-    correction_tilt = ClampedNumericField(0, -255, 255)
-    virtual_dimmer = ClampedNumericField(100, constants.DIMMER_MINIMUM, constants.DIMMER_MAXIMUM)
-    grid_pos = ListField([None, None])
-    workspace = NumericField(0)
+    fixture: RowFixture = RefField("fixture", fallback_fn=lambda db: db.fixture.get_default_row())
+    universe: int = ClampedNumericField(1, 1, constants.DMX_UNIVERSE_COUNT)
+    start_address: int = ClampedNumericField(1, 1, constants.DMX_ADDRESS_COUNT)
+    invert_pan: bool = BooleanField(False)
+    invert_tilt: bool = BooleanField(False)
+    correction_pan: int = ClampedNumericField(0, -255, 255)
+    correction_tilt: int = ClampedNumericField(0, -255, 255)
+    virtual_dimmer: Number = ClampedNumericField(100, constants.DIMMER_MINIMUM, constants.DIMMER_MAXIMUM)
+    grid_pos: Tuple[int, int] = ListField([None, None])
+    workspace: int = NumericField(0)
 
-    is_address_conflict = BooleanProperty(False)
-    param_list_unpacked = ObjectProperty()
+    is_address_conflict: bool = BooleanProperty(False)
+    param_list_unpacked: Tuple[RowFixtureParam, ...] = ObjectProperty()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._table.update_address_info(self.universe)
 
@@ -53,7 +59,7 @@ class RowPatch(SceneRowMixin, DatabaseRow):
         self._table.check_address_conflict(self.universe)
         self._table.update_address_info(self.universe)
 
-    _prev_universe = None
+    _prev_universe: Optional[int] = None
     def on_universe(self, _, universe: int):
         if universe != self._prev_universe:
             self._table.check_address_conflict(self._prev_universe)
@@ -67,7 +73,7 @@ class RowPatch(SceneRowMixin, DatabaseRow):
             self.start_address + len(self.param_list_unpacked) - 1,
             1, constants.DMX_ADDRESS_COUNT
         )
-    end_address = AliasProperty(
+    end_address: int = AliasProperty(
         get_end_address, None,
         bind=["start_address", "param_list_unpacked"], cache=True
     )
@@ -87,32 +93,30 @@ class TablePatch(SceneTableMixin, DatabaseTable):
 
     address_info: Dict[Tuple[int, int], List[Tuple[RowPatch, RowFixtureParam]]] = DictProperty()
 
-    trigger_check_address_conflict = None
     _universes_need_to_check = None
-    def __init__(self, **kwargs):
-        self.trigger_check_address_conflict = Clock.create_trigger(
-                                        self._check_address_conflict, -1)
+    def __init__(self, **kwargs: Any):
+        self.trigger_check_address_conflict = Clock.create_trigger(self._check_address_conflict, -1)
         self.update_address_info = Clock.create_trigger(self._update_address_info)
-        self._universes_need_to_check = set()
+        self._universes_need_to_check: Set[int] = set()
         super().__init__(**kwargs)
 
     def on_scene_change(self, old_scene: RowScene, new_scene: RowScene):
-        self._update_address_info(None)
+        self._update_address_info()
         for patch in self.rows.values():
             self.check_address_conflict(patch.universe)
 
-    def add_row(self, **kwargs) -> DatabaseRow:
+    def add_row(self, **kwargs: Any) -> DatabaseRow:
         if "start_address" not in kwargs:
             kwargs["start_address"] = self.find_free_start_address(
                 kwargs["universe"], len(kwargs["fixture"].param_list_unpacked)
             )
         return super().add_row(**kwargs)
 
-    def _update_address_info(self, _):
-        address_info = {}
+    def _update_address_info(self, _dt:Optional[float]=None):
+        address_info: Dict[Tuple[int, int], List[Tuple[RowPatch, RowFixtureParam]]] = {}
 
         dmx512.clear_default_matrix_all()
-        patch_universes = set()
+        patch_universes: Set[int] = set()
         for patch in self.rows.values():
             universe = patch.universe
             patch_universes.add(universe)
@@ -132,7 +136,7 @@ class TablePatch(SceneTableMixin, DatabaseTable):
 
         self.address_info = address_info
 
-    def get_address_info(self, universe: int, address: int) -> Optional[Tuple[RowPatch, RowFixtureParam]]:
+    def get_address_info(self, universe: int, address: int) -> Optional[List[Tuple[RowPatch, RowFixtureParam]]]:
         return self.address_info.get((universe, address), None)
 
     def check_address_conflict(self, universe: int):
@@ -140,7 +144,7 @@ class TablePatch(SceneTableMixin, DatabaseTable):
         self.trigger_check_address_conflict()
 
     def _check_address_conflict(self, _):
-        def inner(patch_list: Tuple[RowPatch]):
+        def inner(patch_list: Tuple[RowPatch, ...]):
             sorted_patches = list(sorted(patch_list, key=lambda x: x.start_address))
             n = len(sorted_patches)
             if n == 0:
@@ -149,7 +153,7 @@ class TablePatch(SceneTableMixin, DatabaseTable):
                 patch_list[0].is_address_conflict = False
                 return
 
-            conflict_patches = set()
+            conflict_patches: Set[RowPatch] = set()
             prev_patch = sorted_patches[0]
             for i in range(1, n):
                 patch = sorted_patches[i]
@@ -162,7 +166,7 @@ class TablePatch(SceneTableMixin, DatabaseTable):
                 patch.is_address_conflict = patch in conflict_patches
 
         for universe in self._universes_need_to_check:
-            inner([i for i in self.rows.values() if i.universe == universe])
+            inner(tuple(i for i in self.rows.values() if i.universe == universe))
         self._universes_need_to_check.clear()
 
     def find_free_start_address(self, universe: int, length: int) -> int:

@@ -1,8 +1,10 @@
+from typing import Optional
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.utils import platform
+from multiprocessing import Process
 
 
 Builder.load_string("""
@@ -22,25 +24,25 @@ Builder.load_string("""
 
 
 class SubProcModalBlock(BoxLayout):
-    process = ObjectProperty()
+    process: Process = ObjectProperty()
 
-    def on_window_focus(self, _window, focus: bool):
+    def on_window_focus(self, _window: Window, focus: bool):
         if focus:
             _set_focus_on_process_window(self.process)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         return True
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         return True
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         return True
 
 
-_modal_block_widget = None
+_modal_block_widget: Optional[SubProcModalBlock] = None
 
-def start(process):
+def start(process: Process):
     global _modal_block_widget
     _modal_block_widget = SubProcModalBlock(process=process)
     Window.add_widget(_modal_block_widget)
@@ -105,18 +107,18 @@ if platform == "win":
         return main_hwnd
 
 
-    def _set_focus_on_process_window(process):
+    def _set_focus_on_process_window(process: Process):
         hwnd = _get_main_hwnd(process.pid)
         if hwnd:
             win32gui.SetForegroundWindow(hwnd)
             win32gui.SetActiveWindow(hwnd)
 
 elif platform == "linux":
-    def _set_focus_on_process_window(_process):
+    def _set_focus_on_process_window(process: Process):
         pass
 elif platform == "macosx":
-    def _set_focus_on_process_window(_process):
+    def _set_focus_on_process_window(process: Process):
         pass
 else:
-    def _set_focus_on_process_window(_process):
+    def _set_focus_on_process_window(process: Process):
         pass

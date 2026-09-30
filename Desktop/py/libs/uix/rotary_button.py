@@ -1,15 +1,19 @@
-from typing import Union
-from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty, AliasProperty, BooleanProperty
-from kivy.lang import Builder
-from libs.uix.behaviors.tooltip import TooltipBehavior
-from libs.uix import colorscheme as uix_cs
-from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
-from libs.mouse_manager import cursor_manager
-from libs.animation import StatefulColorProperty, AnimationBehavior
-from libs.uix.behaviors.mouse import TouchMouseBehavior
-from libs.properties import ContextualNumericProperty
+from typing import Tuple, Union
 
+from kivy.lang import Builder
+from kivy.properties import AliasProperty, BooleanProperty, NumericProperty
+from kivy.uix.widget import Widget
+from typing_extensions import Self
+
+from libs.animation import AnimationBehavior, StatefulColorProperty
+from libs.mouse_manager import cursor_manager
+from libs.properties import ContextualNumericProperty
+from libs.typecheck import RGBA, Number
+from libs.uix import colorscheme as uix_cs
+from libs.uix.behaviors.mouse import TouchMouseBehavior
+from libs.uix.behaviors.tooltip import TooltipBehavior
+from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.restricted_scrollview import RestrictedScrollView
 
 Builder.load_string("""
 <RotaryButton>:
@@ -44,10 +48,10 @@ Builder.load_string("""
 
 
 class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget):
-    TEXTURE_PADDING_POS = 0.07
-    TEXTURE_PADDING_SIZE = 1 - TEXTURE_PADDING_POS * 2
+    TEXTURE_PADDING_POS: float = 0.07
+    TEXTURE_PADDING_SIZE: float = 1 - TEXTURE_PADDING_POS * 2
 
-    texture_color = StatefulColorProperty(
+    texture_color: RGBA = StatefulColorProperty(
         normal=uix_cs.RotaryButton.texture_color_normal,
         states={
             "disabled": uix_cs.RotaryButton.texture_color_disabled_diff,
@@ -55,7 +59,7 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
             "hover": uix_cs.RotaryButton.texture_color_hover_diff,
         }
     )
-    rotary_active_color = StatefulColorProperty(
+    rotary_active_color: RGBA = StatefulColorProperty(
         normal=uix_cs.RotaryButton.rotary_active_color_normal,
         states={
             "disabled": uix_cs.RotaryButton.rotary_active_color_disabled_diff,
@@ -63,7 +67,7 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
             "hover": uix_cs.RotaryButton.rotary_active_color_hover_diff,
         }
     )
-    rotary_passive_color = StatefulColorProperty(
+    rotary_passive_color: RGBA = StatefulColorProperty(
         normal=uix_cs.RotaryButton.rotary_passive_color_normal,
         states={
             "disabled": uix_cs.RotaryButton.rotary_passive_color_disabled_diff,
@@ -72,19 +76,19 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
         }
     )
 
-    angle_start = NumericProperty(-135)
-    angle_end = NumericProperty(135)
+    angle_start: float = NumericProperty(-135)
+    angle_end: float = NumericProperty(135)
 
-    minimum = NumericProperty(0)
-    maximum = NumericProperty(100)
-    default_value = NumericProperty(0, allownone=True)
-    step_mouse_scroll = NumericProperty(5)
-    drag_sensitivity = NumericProperty(150)
-    decimals = NumericProperty(2)
+    minimum: Number = NumericProperty(0)
+    maximum: Number = NumericProperty(100)
+    default_value: Number = NumericProperty(0, allownone=True)
+    step_mouse_scroll: Number = NumericProperty(5)
+    drag_sensitivity: Number = NumericProperty(150)
+    decimals: int = NumericProperty(2)
 
-    focus = BooleanProperty(False)
+    focus: bool = BooleanProperty(False)
 
-    value = ContextualNumericProperty(
+    value: Number = ContextualNumericProperty(
         default=0,
         min_getter=lambda self: self.minimum,
         max_getter=lambda self: self.maximum,
@@ -92,32 +96,32 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
         dependencies=("minimum", "maximum", "decimals")
     )
 
-    drag_enabled = BooleanProperty(True)
+    drag_enabled: bool = BooleanProperty(True)
 
-    def on_drag_start(self, touch):
+    def on_drag_start(self, touch) -> bool:
         self.focus = True
         touch.ud["start_value"] = self.value
         return True
 
-    def on_drag(self, touch, delta_x, delta_y):
+    def on_drag(self, touch, delta_x: float, delta_y: float) -> bool:
         y_offset = delta_y / self.drag_sensitivity
         y_offset *= self._get_full_value()
         self.value = touch.ud["start_value"] + y_offset
         return True
 
-    def on_drag_end(self, touch):
+    def on_drag_end(self, touch) -> bool:
         self.focus = False
         return True
 
-    def on_scroll_up(self, touch):
+    def on_scroll_up(self, touch) -> bool:
         self.value -= self.step_mouse_scroll
         return True
 
-    def on_scroll_down(self, touch):
+    def on_scroll_down(self, touch) -> bool:
         self.value += self.step_mouse_scroll
         return True
 
-    def on_right_click(self, touch):
+    def on_right_click(self, touch) -> bool:
         self.open_context_menu(touch.pos)
         return True
 
@@ -131,7 +135,7 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
     def _get_full_value(self) -> Union[int, float]:
         return max(self.maximum - self.minimum, 1)
 
-    def open_context_menu(self, pos: tuple):
+    def open_context_menu(self, pos: Tuple[float, float]):
         if self.disabled:
             return
         self._create_context_menu().open(self, pos=pos)
@@ -153,7 +157,7 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
             ]
         )
 
-    def _get_angle(self):
+    def _get_angle(self) -> float:
         # Вычисляем угол пропорционально значению
         if self._get_full_value() != 0:
             angle_per_value = self._get_full_angle() / self._get_full_value()
@@ -162,7 +166,7 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
             angle = self.angle_start
         return min(max(angle, self.angle_start), self.angle_end)
 
-    angle = AliasProperty(
+    angle: float = AliasProperty(
         _get_angle,
         bind=["value", "angle_start", "angle_end", "minimum", "maximum"],
         cache=True
@@ -170,14 +174,14 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
 
 
 class PanRotaryButton(RotaryButton):
-    angle_start = NumericProperty(-180)
-    angle_end = NumericProperty(180)
+    angle_start: float = NumericProperty(-180)
+    angle_end: float = NumericProperty(180)
 
     color_left = uix_cs.PanRotaryButton.rotary_active_color_left_normal
     color_right = uix_cs.PanRotaryButton.rotary_active_color_right_normal
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self._update_color()
 
     def on_angle(self, _, _angle: float):
@@ -190,5 +194,4 @@ class PanRotaryButton(RotaryButton):
         else:
             prop.set_normal(self, self.color_left)
 
-from libs.uix.restricted_scrollview import RestrictedScrollView
 RestrictedScrollView.register_scrollable_widget_class(RotaryButton)

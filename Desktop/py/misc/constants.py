@@ -1,3 +1,4 @@
+import logging
 import sys
 from pathlib import Path
 
@@ -7,7 +8,7 @@ VERSION = "0.01"
 SUB_VERSION = "Alpha"
 PROFILING_CPU = False
 PROFILING_RAM = False
-DEBUG = False
+LOG_LEVEL = logging.DEBUG
 
 BACKUP_MENU_ENV_KEY = "EXEC_BACKUP_MENU"
 BACKUP_MENU_ENV_KEY_TRUE = "True"
@@ -16,13 +17,17 @@ SESSION_LOG_ENV_KEY = "SESSION_LOG_FILEPATH"
 
 BYTE_ORDER = "little"
 
-# Определяем директорию, где находится скрипт или исполняемый файл
-if getattr(sys, "frozen", False):
-    # Для Nuitka или PyInstaller
-    SCRIPT_DIR = Path(sys.executable).parent.parent
-else:
-    # Для обычного Python-скрипта
-    SCRIPT_DIR = Path(__file__).parent.parent
+def _get_script_dir() -> Path:
+    # Определяем директорию, где находится скрипт или исполняемый файл
+    if getattr(sys, "frozen", False):
+        # Для Nuitka или PyInstaller
+        return Path(sys.executable).parent.parent
+    else:
+        # Для обычного Python-скрипта
+        return Path(__file__).parent.parent
+
+SCRIPT_DIR = _get_script_dir()
+APP_FILENAME = SCRIPT_DIR / "app_start.py"
 
 # Создаём путь к папке database_data
 DATABASE_PATH = SCRIPT_DIR / "database_data"
@@ -94,7 +99,7 @@ DMX_UNIVERSE_COUNT = 32
 DMX_ADDRESS_COUNT = 512
 
 SERIAL_BAUDRATE = 115200
-SERIAL_TIMEOUT = 1
+SERIAL_TIMEOUT = 1.0
 SERIAL_MONITORING_CALL_INTERVAL = 1/3
 DMX_WRITE_INTERVAL = 1/60
 DMX_MESSAGE_BYTEORDER = "little"

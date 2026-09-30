@@ -8,6 +8,7 @@ from libs.uix.button import ImageToggleButton
 from database.desktop_uix import RowDesktopUix
 from misc.player.status import PlayerStatus
 from ui.components.base_database_grid_item import BaseDatabaseGridItem
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/desktops/desktop_uix.kv")
@@ -38,8 +39,8 @@ class DesktopUix(BaseDatabaseGridItem):
         self.bind(grid_pos=self._save_pos)
         super().__init__(selectable=True, **kwargs)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.desktop_uix.player.bind(status=self.on_player_status)
         self.on_player_status(None, self.desktop_uix.player.status)
 

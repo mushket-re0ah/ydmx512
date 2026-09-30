@@ -1,30 +1,33 @@
 import sys
-from typing import Optional
+from pathlib import Path
+from typing import Any, Callable, Dict, FrozenSet
+
 from kivy.app import App
+from kivy.clock import Clock
+from kivy.core.text import Label as CoreLabel
+from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import Metrics
-from kivy.core.window import Window
-from kivy.core.text import Label as CoreLabel
-from kivy.clock import Clock
 from kivy.properties import ObjectProperty
+
+import presets
+from database import db
 from libs import logger
+from libs.dmx512.serial.device import DMXSerialDevice
+from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.serial.observer import observer as serial_observer
-from libs.dmx512.serial.device import DMXSerialDevice
-from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
-from database import db
-import presets
-from misc import event_thread
-from misc import constants
+from libs.sub_proc.exit_code import ExitCode
+from misc import constants, event_thread
 from ui.root import Root
 
 
 class DesktopApp(KeyboardBehavior, App):
-    use_kivy_settings = False
-    root = ObjectProperty()
+    use_kivy_settings: bool = False
+    root: Root = ObjectProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         builder_sync.apply_patch()
         on_touch_double_tap.apply_patch()
@@ -39,18 +42,18 @@ class DesktopApp(KeyboardBehavior, App):
 
         db.misc.bind(do_filter_serial_names=serial_observer.setter("do_filter_devices"))
         serial_observer.do_filter_devices = db.misc.do_filter_serial_names
-        serial_observer.filter_name_list = {
+        serial_observer.filter_name_list = frozenset({
             "Univer DMX A1",
             "U-DMX A11",
             "U-DMX K12",
             "U-DMX K23",
             "U-DMX K46",
-        }
+        })
         serial_observer.device_cls = DMXSerialDevice
 
         cursor_manager.init(lambda: db.misc.use_system_cursor)
-        def _cur(name: str) -> str:
-            return (constants.CURSOR_PATH / name).as_posix()
+        def _cur(name: str) -> Path:
+            return constants.CURSOR_PATH / name
         cursor_manager.register_software_cursor(
             arrow=_cur("arrow.png"),
             ibeam=_cur("ibeam.png"),
@@ -69,7 +72,7 @@ class DesktopApp(KeyboardBehavior, App):
         self.title = f"{c.APP_NAME} v.{c.VERSION}{c.SUB_VERSION} (Сцена: none)"
         event_thread.init()
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             frozenset({"F12"}): self.fullscreen_toggle
         }
@@ -111,10 +114,10 @@ class DesktopApp(KeyboardBehavior, App):
                     left=self._window_position_trigger,
                     top=self._window_position_trigger)
 
-    def _on_window_size(self, _):
+    def _on_window_size(self, _dt: float):
         db.misc.edit(window_size=Window.size)
 
-    def _on_window_position(self, _):
+    def _on_window_position(self, _dt: float):
         db.misc.edit(window_position=(Window.left, Window.top))
 
     def __init_metrics(self):
@@ -134,7 +137,7 @@ class DesktopApp(KeyboardBehavior, App):
                 CoreLabel.register(name, (constants.FONTS_PATH / file).as_posix())
             except Exception:
                 logger.error(f"Failed to register font '{name}'", exc_info=True)
-                sys.exit(1)
+                sys.exit(ExitCode.FAILURE)
 
     def fullscreen_toggle(self):
         if Window.fullscreen:
@@ -165,7 +168,7 @@ class DesktopApp(KeyboardBehavior, App):
     def _set_scale_font(self, _, value: float):
         Metrics.fontscale = value
 
-    def open_settings(self, *largs):
+    def open_settings(self, *_):
         """
                 Отключение меню настроек на F1
         """

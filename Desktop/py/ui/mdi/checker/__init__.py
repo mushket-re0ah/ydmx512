@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, FrozenSet, Callable
 from kivy.properties import StringProperty, ObjectProperty, AliasProperty
 from ui.components.database_mdi_window import DatabaseMDIWindow
 from libs.properties import ClampedNumericProperty
@@ -47,7 +47,7 @@ class MDIChecker(DatabaseMDIWindow):
         set_address_start
     )
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             **super().create_hotkeys(),
             **{

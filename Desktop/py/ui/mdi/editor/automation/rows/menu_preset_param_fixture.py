@@ -45,7 +45,7 @@ class MenuPresetParamFixture(MenuPresetManager):
         self.row_panel.automation.set_tool(DiscardRowTool, self.render_rows)
         self.dismiss()
 
-    def create_modal(self) -> "Modal":
+    def create_modal(self) -> ModalSaveParamFixturePreset:
         return ModalSaveParamFixturePreset(
             category_key=self.category_key,
             render_row=self.render_rows[0]

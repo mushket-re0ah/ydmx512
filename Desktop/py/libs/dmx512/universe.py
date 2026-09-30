@@ -1,18 +1,19 @@
-from typing import Optional, Tuple, Union
 import time
+from typing import List, Optional, Set, Tuple
+
 from kivy.event import EventDispatcher
-from kivy.properties import ObjectProperty, NumericProperty
+from kivy.properties import NumericProperty, ObjectProperty
+
+from libs.dmx512 import message
 from libs.dmx512.serial.device import DMXSerialDevice
 from libs.serial.device import SerialState
-from libs.dmx512.lan.device import LanDevice
-from libs.dmx512 import message
 from libs.utils import ThrottledCall
 
 
 class DMX512Universe(EventDispatcher):
-    universe = NumericProperty()
-    device: Union[DMXSerialDevice, LanDevice] = ObjectProperty(allownone=True)
-    force_value_set = ObjectProperty()
+    universe: int = NumericProperty()
+    device: Optional[DMXSerialDevice] = ObjectProperty(allownone=True)
+    force_value_set: Set[int] = ObjectProperty()
 
     matrix: bytearray = None
     default_matrix: bytearray = None
@@ -25,13 +26,13 @@ class DMX512Universe(EventDispatcher):
         self.force_value_set = set()
         super().__init__(**kwargs)
 
-        self.address_changed = set()
+        self.address_changed: Set[int] = set()
         self.last_key_frame_time = 0
         self._loop_write_matrix = ThrottledCall(
             self._write_matrix, 1 / dmx512.DMX_LIGHT_FPS
         )
 
-    def loop(self, time_diff):
+    def loop(self, time_diff: float):
         if self.device:
             self.device.loop()
             self._loop_write_matrix(time_diff)
@@ -94,8 +95,8 @@ class DMX512Universe(EventDispatcher):
 
     def _create_dmx_message(self) -> Optional[bytes]:
         from libs.dmx512 import dmx512
-        address_list = []
-        value_list = []
+        address_list: List[int] = []
+        value_list: List[int] = []
         if (time.monotonic() - self.last_key_frame_time) > dmx512.DMX_KEY_FRAME_TIME:
             for address, value in enumerate(self.matrix, 1):
                 address_list.append(address)

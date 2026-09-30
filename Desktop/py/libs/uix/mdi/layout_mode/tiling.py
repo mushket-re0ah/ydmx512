@@ -1,13 +1,18 @@
-from typing import Tuple, Union, Optional, List
 from enum import Enum, auto
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import ObjectProperty
-from kivy.lang import Builder
-from libs.uix.mdi.mdi_window import MDIWindow
-from libs.kivy_utils import WidgetSide, TOP_WIDGET_SIDES, BOTTOM_WIDGET_SIDES
-from libs.uix.mdi.layout_mode import ILayoutMode
-from libs.properties import EnumProperty
+from typing import TYPE_CHECKING, Callable, Dict, FrozenSet, List, Optional, Tuple, Union
 
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
+
+from libs.kivy_utils import BOTTOM_WIDGET_SIDES, TOP_WIDGET_SIDES, WidgetSide
+from libs.properties import EnumProperty
+from libs.uix.mdi.layout_mode import ILayoutMode
+from libs.uix.mdi.mdi_window import MDIWindow
+
+if TYPE_CHECKING:
+    from libs.uix.mdi.mdi_container import MDIContainer
 
 Builder.load_string("""
 #:set mdi_tiling_spacing "4dp"
@@ -26,9 +31,9 @@ Builder.load_string("""
 
 class MDITilingBox(BoxLayout):
     """Удаляется сам, если не осталось дочерних элементов"""
-    layout_mode = ObjectProperty()
+    layout_mode: ILayoutMode = ObjectProperty()
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget: Widget):
         autoremove = len(self.children) == 1
         super().remove_widget(widget)
         if autoremove:
@@ -51,7 +56,7 @@ class MDITilingBox(BoxLayout):
 
 
 class MDITilingBoxContainer(BoxLayout):
-    layout_mode = ObjectProperty()
+    layout_mode: ILayoutMode = ObjectProperty()
 
     def on_children(self, *_):
         self.layout_mode.dispatch("on_layout_changed", self.layout_mode.get_layout())
@@ -63,27 +68,27 @@ class TilingOrientation(Enum):
 
 
 class TilingLayoutMode(ILayoutMode):
-    SIZE_HINT_MINIMUM = 0.1
-    EDGE_DROP_ZONE = 30
+    SIZE_HINT_MINIMUM: float = 0.1
+    EDGE_DROP_ZONE: float = 30
 
-    layout_state_key = "tiling"
-    title = "Тайлинг"
-    container: MDITilingBoxContainer = None
-    tiling_orientation = EnumProperty(TilingOrientation, TilingOrientation.HORIZONTAL)
+    layout_state_key: str = "tiling"
+    title: str = "Тайлинг"
+    container: MDITilingBoxContainer
+    tiling_orientation: TilingOrientation = EnumProperty(TilingOrientation, TilingOrientation.HORIZONTAL)
 
-    def __init__(self, mdi_container, from_layout_mode):
+    def __init__(self, mdi_container: "MDIContainer", from_layout_mode: ILayoutMode):
         self.mdi_container = mdi_container
         self.container = MDITilingBoxContainer(layout_mode=self)
         super().__init__(mdi_container, from_layout_mode)
-        mdi_container._layout_add_widget(self.container)
+        mdi_container.layout_add_widget(self.container)
 
-    def get_layout(self):
+    def get_layout(self) -> List[List[MDIWindow]]:
         return [
             list(reversed(mdi_box.children))
             for mdi_box in reversed(self.container.children)
         ]
 
-    def load_layout(self, layout):
+    def load_layout(self, layout: List[List[MDIWindow]]):
         mdi_list = [
             mdi
             for mdi_group in layout
@@ -102,10 +107,10 @@ class TilingLayoutMode(ILayoutMode):
                 mdi_box.add_widget(mdi)
             self.container.add_widget(mdi_box)
 
-    def _can_start_resize(self, _touch, mdi, side) -> bool:
+    def _can_start_resize(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
         return side != WidgetSide.VOID and not mdi.get_layout_state("locked", False)
 
-    def _can_start_move(self, touch, mdi, side) -> bool:
+    def _can_start_move(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
         return mdi.title_bar_label.collide_point(*touch.pos) and side == WidgetSide.VOID
 
     def show_mdi(self, mdi: MDIWindow):
@@ -134,7 +139,7 @@ class TilingLayoutMode(ILayoutMode):
     def get_title_buttons(self) -> List[str]:
         return ["lock", "close"]
 
-    def hide_mdi(self, mdi: MDIWindow):
+    def hide_mdi(self, mdi: Optional[MDIWindow]):
         if mdi is None:
             return
         mdi_box = mdi.parent
@@ -153,7 +158,13 @@ class TilingLayoutMode(ILayoutMode):
     def on_stop_move(self, mdi: MDIWindow):
         mdi.opacity = 1.0
 
-    def move_mdi(self, mdi, start_mdi_pos, start_mouse_pos, now_mouse_pos):
+    def move_mdi(
+            self,
+            mdi: MDIWindow,
+            start_mdi_pos: Tuple[float, float],
+            start_mouse_pos: Tuple[float, float],
+            now_mouse_pos: Tuple[float, float]
+        ):
         locked = mdi.get_layout_state("locked", False)
         if locked:
             return
@@ -186,7 +197,12 @@ class TilingLayoutMode(ILayoutMode):
         current_box.remove_widget(mdi)
         target_box.add_widget(mdi, target_index)
 
-    def _find_drop_location(self, mdi, mouse_x, mouse_y):
+    def _find_drop_location(
+            self,
+            mdi: MDIWindow,
+            mouse_x: float,
+            mouse_y: float
+        ) -> Optional[Tuple[Optional[MDITilingBox], Optional[Union[str, int]]]]:
         """
         Определяет, в какой MDITilingBox и на какую позицию нужно переместить mdi
         при перетаскивании в точку (mouse_x, mouse_y).
@@ -228,17 +244,16 @@ class TilingLayoutMode(ILayoutMode):
 
         return collided_box, collided_box.children.index(collided_mdi)
 
-    def resize_mdi(self, side: WidgetSide, mdi_now: MDIWindow,
-                   mouse_pos: Tuple[float, float]):
-        if mdi_now.get_layout_state("locked", False):
+    def resize_mdi(self, side: WidgetSide, mdi: MDIWindow, mouse_pos: Tuple[float, float]):
+        if mdi.get_layout_state("locked", False):
             return
         mouse_x, mouse_y = mouse_pos
         if side in (WidgetSide.LEFT, WidgetSide.RIGHT):
-            self.__change_mdi_width(side, mdi_now, mouse_x)
+            self.__change_mdi_width(side, mdi, mouse_x)
         elif (side in TOP_WIDGET_SIDES) or (side in BOTTOM_WIDGET_SIDES):
-            self.__change_mdi_height(side, mdi_now, mouse_y)
+            self.__change_mdi_height(side, mdi, mouse_y)
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             **super().create_hotkeys(),
             frozenset({"ctrl", "shift", "l"}): self.mdi_invert_locked,
@@ -335,7 +350,7 @@ class TilingLayoutMode(ILayoutMode):
         if 0 <= new_index < len(mdi_box.children):
             self._set_focus(mdi_box.children[new_index])
 
-    def _move_horizontal(self, step):
+    def _move_horizontal(self, step: int):
         mdi_box = self._focused_mdi_box()
         if mdi_box is None:
             return
@@ -364,10 +379,13 @@ class TilingLayoutMode(ILayoutMode):
         вертикали."""
         self._set_focus(self.__get_must_overlapped_mdi(mdi_box))
 
-    def __get_must_overlapped_mdi(self, mdi_box: MDITilingBox) -> MDIWindow:
+    def __get_must_overlapped_mdi(self, mdi_box: MDITilingBox) -> Optional[MDIWindow]:
         """Возвращает mdi, наиболее пересекающийся с другим MDI из параметра
         mdi_box."""
-        current_y, current_top = self._focused_mdi().y, self._focused_mdi().top
+        focused_mdi = self._focused_mdi()
+        if focused_mdi is None:
+            return None
+        current_y, current_top = focused_mdi.y, focused_mdi.top
 
         must_overlapped_mdi = None
         max_overlap = 0
@@ -387,7 +405,7 @@ class TilingLayoutMode(ILayoutMode):
     def __add_mdi_tiling_mdi_box(
             self,
             mdi: MDIWindow,
-            index=0) -> MDITilingBox:
+            index: int=0) -> MDITilingBox:
         mdi_box = MDITilingBox(layout_mode=self)
         mdi_box.add_widget(mdi)
         self.container.add_widget(mdi_box, index)
@@ -427,7 +445,7 @@ class TilingLayoutMode(ILayoutMode):
             self.mdi_container.mdi_focused = None
             for mdi in container.mdi_list_showed:
                 from_layout_mode.unbind_from(mdi)
-                container._layout_remove_widget(mdi)
+                container.layout_remove_widget(mdi)
                 self.show_mdi(mdi)
                 mdi.size_hint = (1, 1)
             self.mdi_container.mdi_focused = focused
