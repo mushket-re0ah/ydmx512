@@ -2,9 +2,9 @@ from kivy.properties import BooleanProperty
 
 
 class TouchMouseBehavior:
-    drag_enabled = BooleanProperty(False)
+    drag_enabled: bool = BooleanProperty(False)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.disabled:
             return False
         if touch.grab_current is not None:
@@ -32,7 +32,7 @@ class TouchMouseBehavior:
                     return True
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if self.drag_enabled and touch.grab_current is self:
             dx = touch.pos[0] - touch.ud["start_mouse_pos"][0]
             dy = touch.pos[1] - touch.ud["start_mouse_pos"][1]
@@ -40,18 +40,18 @@ class TouchMouseBehavior:
                 return True
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if self.drag_enabled and touch.grab_current is self:
             touch.ungrab(self)
             if self.on_drag_end(touch):
                 return True
         return super().on_touch_up(touch)
 
-    def on_left_click(self, touch): return False
-    def on_right_click(self, touch): return False
-    def on_middle_click(self, touch): return False
-    def on_scroll_up(self, touch): return False
-    def on_scroll_down(self, touch): return False
-    def on_drag_start(self, touch): return False
-    def on_drag(self, touch, delta_x, delta_y): return False
-    def on_drag_end(self, touch): return False
+    def on_left_click(self, touch) -> bool: return False
+    def on_right_click(self, touch) -> bool: return False
+    def on_middle_click(self, touch) -> bool: return False
+    def on_scroll_up(self, touch) -> bool: return False
+    def on_scroll_down(self, touch) -> bool: return False
+    def on_drag_start(self, touch) -> bool: return False
+    def on_drag(self, touch, delta_x: float, delta_y: float) -> bool: return False
+    def on_drag_end(self, touch) -> bool: return False

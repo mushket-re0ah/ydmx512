@@ -1,21 +1,23 @@
-from typing import List, Dict
 from collections import defaultdict
+from typing import Dict, List
+
 from database.patch import RowPatch
+from database.playback.renderer.render_data import PlaybackRenderRow
 from libs.dmx512_render import DMXRenderDot
 
 
 def get_rows_to_dots_all(
-    render_rows: List["PlaybackRenderRow"]
-) -> Dict["PlaybackRenderRow", List[DMXRenderDot]]:
-    rows_dots = defaultdict(list)
+    render_rows: List[PlaybackRenderRow]
+) -> Dict[PlaybackRenderRow, List[DMXRenderDot]]:
+    rows_dots: Dict[PlaybackRenderRow, List[DMXRenderDot]] = defaultdict(list)
     for row in render_rows:
         rows_dots[row] = row.dots
     return rows_dots
 
 def get_rows_to_dots_by_x(
-    render_rows: List["PlaybackRenderRow"], x: float
-) -> Dict["PlaybackRenderRow", List[DMXRenderDot]]:
-    rows_dots = defaultdict(list)
+    render_rows: List[PlaybackRenderRow], x: float
+) -> Dict[PlaybackRenderRow, List[DMXRenderDot]]:
+    rows_dots: Dict[PlaybackRenderRow, List[DMXRenderDot]] = defaultdict(list)
     for row in render_rows:
         dot = row.dots.find_dot_by_x(x, render_rows[0].renderer.xy_grid)
         if dot:
@@ -23,9 +25,9 @@ def get_rows_to_dots_by_x(
     return rows_dots
 
 def get_dots_by_x(
-    render_rows: List["PlaybackRenderRow"], x: float
+    render_rows: List[PlaybackRenderRow], x: float
 ) -> List[DMXRenderDot]:
-    dots = []
+    dots: List[DMXRenderDot] = []
     for row in render_rows:
         dot = row.dots.find_dot_by_x(x, render_rows[0].renderer.xy_grid)
         if dot is not None and dot not in dots:
@@ -33,10 +35,10 @@ def get_dots_by_x(
     return dots
 
 def get_dots_by_area(
-    render_rows: List["PlaybackRenderRow"],
+    render_rows: List[PlaybackRenderRow],
     x: float, y: float, width: float, height: float
 ) -> List[DMXRenderDot]:
-    dots = []
+    dots: List[DMXRenderDot] = []
     for row in render_rows:
         for dot in row.dots.find_dots_by_area(x, y, width, height):
             if dot not in dots:
@@ -44,9 +46,9 @@ def get_dots_by_area(
     return dots
 
 def get_patch_render_rows(
-    render_rows: List["PlaybackRenderRow"]
-) -> Dict[RowPatch, List["PlaybackRenderRow"]]:
-    rows = defaultdict(list)
+    render_rows: List[PlaybackRenderRow]
+) -> Dict[RowPatch, List[PlaybackRenderRow]]:
+    rows: Dict[RowPatch, List[PlaybackRenderRow]] = defaultdict(list)
     for row in render_rows:
         rows[row.patch].append(row)
     return rows

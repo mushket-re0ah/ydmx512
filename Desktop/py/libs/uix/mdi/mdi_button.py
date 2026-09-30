@@ -1,7 +1,10 @@
+from typing import Any, Dict
+
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
-from libs.uix.button import ImageToggleButton, ImageButton
 
+from libs.uix.button import ImageButton, ImageToggleButton
+from libs.uix.mdi.mdi_window import MDIWindow
 
 Builder.load_string("""
 #:import imgs_path misc.imgs_path
@@ -28,21 +31,21 @@ Builder.load_string("""
 
 
 class MDIStateToggleBehavior:
-    mdi = ObjectProperty(allownone=False)
-    state_key = None  # for override
+    mdi: MDIWindow = ObjectProperty(allownone=False)
+    state_key: str
 
-    def on_mdi(self, _, mdi):
+    def on_mdi(self, _, mdi: MDIWindow):
         mdi.bind(state=self.on_mdi_state)
         self.on_mdi_state(mdi, mdi.state)
 
-    def on_mdi_state(self, _, state: dict):
+    def on_mdi_state(self, _, state: Dict[str, Any]):
         self.is_down = self.mdi.get_layout_state(self.state_key, False)
         self.set_disabled_by_state(state)
 
     def on_is_down(self, _, is_down: bool):
         self.mdi.set_layout_state(**{self.state_key: is_down})
 
-    def set_disabled_by_state(self, state: dict):
+    def set_disabled_by_state(self, state: Dict[str, Any]):
         pass
 
 
@@ -52,12 +55,12 @@ class MDIButtonLock(MDIStateToggleBehavior, ImageToggleButton):
 class MDIButtonExpand(MDIStateToggleBehavior, ImageToggleButton):
     state_key = "expanded"
 
-    def set_disabled_by_state(self, state: dict):
+    def set_disabled_by_state(self, state: Dict[str, Any]):
         self.disabled = self.mdi.get_layout_state("locked", False)
 
 
 class MDIButtonClose(ImageButton):
-    mdi = ObjectProperty(allownone=False)
+    mdi: MDIWindow = ObjectProperty(allownone=False)
 
     def close(self):
         self.mdi.mdi_container.remove_widget(self.mdi)

@@ -1,31 +1,36 @@
+from typing import Any, Optional
+
 from kivy.properties import ObjectProperty
+
 from libs.beat_counter import BeatCounter
-from libs.properties import EnumProperty, BindableObjectProperty
-from libs.serialize import SerializableMixin
-from libs.kivy_utils import AutoUnbindBehavior
-from libs.kivy_json_orm.fields import *
+from libs.kivy_json_orm.fields import BooleanField, ClampedNumericField, StringField
+from libs.kivy_json_orm.table_implementation import DatabaseRow
+from libs.kivy_mixins import AutoUnbindBehavior
 from libs.midi import midi
-from misc.player.status import PlayerStatus
-from misc.player.render_utils import SoftEffectsRenderer
+from libs.properties import BindableObjectProperty, EnumProperty
+from libs.serialize import SerializableMixin
+from libs.typecheck import Number
 from misc import constants
+from misc.player.render_utils import SoftEffectsRenderer
+from misc.player.status import PlayerStatus
 
 
 class BasePlayer(SerializableMixin, AutoUnbindBehavior):
-    parent_row = ObjectProperty()
+    parent_row: DatabaseRow = ObjectProperty()
 
-    temp = ClampedNumericField(120, constants.TEMP_MINIMUM, constants.TEMP_MAXIMUM)
-    is_moment = BooleanField(False)
-    is_attack = BooleanField(False)
-    is_release = BooleanField(False)
-    soft_play = BooleanField(False)
-    midi_channel = ClampedNumericField(None, 0, constants.MIDI_MAXIMUM_CHANNEL, allownone=True)
-    hotkey = StringField("A")
+    temp: Number = ClampedNumericField(120, constants.TEMP_MINIMUM, constants.TEMP_MAXIMUM)
+    is_moment: bool = BooleanField(False)
+    is_attack: bool = BooleanField(False)
+    is_release: bool = BooleanField(False)
+    soft_play: bool = BooleanField(False)
+    midi_channel: Optional[int] = ClampedNumericField(None, 0, constants.MIDI_MAXIMUM_CHANNEL, allownone=True)
+    hotkey: str = StringField("A")
 
-    status = EnumProperty(PlayerStatus, PlayerStatus.STOP, rebind=True)
+    status: PlayerStatus = EnumProperty(PlayerStatus, PlayerStatus.STOP, rebind=True)
 
     __events__ = ("on_start", "on_stop")
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self.soft_renderer = SoftEffectsRenderer()
         super().__init__(**kwargs)
         self.bind_to(
@@ -34,7 +39,7 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
             on_note_off=self.on_midi_note_off
         )
 
-    def on_parent_row(self, _, parent_row):
+    def on_parent_row(self, _, parent_row: DatabaseRow):
         parent_row.bind(
             on_remove=self.on_remove
         )
@@ -46,13 +51,13 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
     def on_remove(self, _):
         self.unbind_all()
 
-    def on_midi_note_on(self, _, channel: int, intensive: int):
+    def on_midi_note_on(self, _, channel: int, intensive: Number):
         pass
 
-    def on_midi_note_off(self, _, channel: int, intensive: int):
+    def on_midi_note_off(self, _, channel: int, intensive: Number):
         pass
 
-    def edit(self, **kwargs):
+    def edit(self, **kwargs: Any):
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.parent_row.save()
@@ -73,7 +78,7 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
         else:
             self.status = PlayerStatus.STOP
 
-    def on_status(self, _, status):
+    def on_status(self, _, status: PlayerStatus):
         if status is PlayerStatus.STOP:
             self.dispatch("on_stop", self.beat_counter)
             self._remove_beat_counter()
@@ -85,10 +90,10 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
             self._remove_beat_counter()
             self.soft_renderer.reset(status)
 
-    def on_soft_play(self, _, _soft_play):
+    def on_soft_play(self, _, _soft_play: bool):
         self.soft_renderer.reset(PlayerStatus.STOP)
 
-    beat_counter = BindableObjectProperty(
+    beat_counter: Optional[BeatCounter] = BindableObjectProperty(
         None, allownone=True,
         bind={
             "beat_now": "on_bc_beat_now",

@@ -1,14 +1,23 @@
-from kivy.clock import Clock
-from kivy.uix.widget import Widget
-from kivy.core.text import Label as CoreLabel, DEFAULT_FONT
-from kivy.properties import (
-    StringProperty, OptionProperty, NumericProperty, ListProperty,
-    ObjectProperty, VariableListProperty
-)
-from kivy.lang import Builder
-from libs.animation import StatefulColorProperty
-from libs.uix import colorscheme as uix_cs
+from typing import Any, Literal, Tuple
 
+from kivy.clock import Clock
+from kivy.core.text import DEFAULT_FONT
+from kivy.core.text import Label as CoreLabel
+from kivy.graphics.texture import Texture
+from kivy.lang import Builder
+from kivy.properties import (
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    OptionProperty,
+    StringProperty,
+    VariableListProperty,
+)
+from kivy.uix.widget import Widget
+
+from libs.animation import StatefulColorProperty
+from libs.typecheck import RGBA
+from libs.uix import colorscheme as uix_cs
 
 Builder.load_string("""
 <RestrictedLabel>:
@@ -29,7 +38,7 @@ class RestrictedLabel(Widget):
         "halign", "valign", "padding", "text_size",
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
         super().__init__(**kwargs)
 
@@ -79,29 +88,29 @@ class RestrictedLabel(Widget):
                 self.texture = self._label.texture
                 self.texture_size = list(self.texture.size)
 
-    text = StringProperty("")
+    text: str = StringProperty("")
 
-    text_size = ListProperty([None, None])
+    text_size: Tuple[float, float] = ListProperty([None, None])
 
-    font_name = StringProperty(DEFAULT_FONT)
+    font_name: str = StringProperty(DEFAULT_FONT)
 
-    font_size = NumericProperty("15sp")
+    font_size: float = NumericProperty("15sp")
 
-    padding = VariableListProperty([0, 0, 0, 0])
+    padding: Tuple[float, float, float, float] = VariableListProperty([0, 0, 0, 0])
 
-    halign = OptionProperty("auto", options=["left", "center", "right",
-                            "justify", "auto"])
+    halign: Literal["left", "center", "right", "justify", "auto"] = OptionProperty(
+                        "auto", options=["left", "center", "right", "justify", "auto"])
 
-    valign = OptionProperty("bottom",
+    valign: Literal["bottom", "middle", "center", "top"] = OptionProperty("bottom",
                             options=["bottom", "middle", "center", "top"])
 
-    color = StatefulColorProperty(
+    color: RGBA = StatefulColorProperty(
         normal=uix_cs.Label.fg,
         states={
             "disabled": uix_cs.Label.fg_disabled,
         }
     )
 
-    texture = ObjectProperty(None, allownone=True)
+    texture: Texture = ObjectProperty(None, allownone=True)
 
-    texture_size = ListProperty([0, 0])
+    texture_size: Tuple[int, int] = ListProperty([0, 0])

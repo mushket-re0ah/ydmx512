@@ -1,11 +1,12 @@
-from typing import Callable, Optional, Tuple
-from kivy.event import EventDispatcher
-from kivy.properties import ObjectProperty, NumericProperty
+from typing import Any, Callable, Literal, Optional, Tuple
+
 from kivy.clock import Clock
+from kivy.event import EventDispatcher
+
+from libs.dmx512.serial.device import DMXSerialDevice
 from libs.dmx512.universe import DMX512Universe
 from libs.serial.observer import observer as serial_observer
-from libs.dmx512.serial.device import DMXSerialDevice
-from libs.utils import ThrottledCall
+from libs.typecheck import KivyCallback
 
 
 class DMX512Dispatcher(EventDispatcher):
@@ -13,16 +14,16 @@ class DMX512Dispatcher(EventDispatcher):
 
     trigger_sync_universe_device = None
     def __init__(self,
-            dmx_universe_count,
-            serial_timeout,
-            serial_baudrate,
-            serial_try_connection_time,
-            dmx_hello_msg,
-            dmx_message_byteorder,
-            dmx_light_fps,
-            dmx_address_count,
-            dmx_key_frame_time,
-            **kwargs):
+            dmx_universe_count: int,
+            serial_timeout: float,
+            serial_baudrate: int,
+            serial_try_connection_time: float,
+            dmx_hello_msg: bytes,
+            dmx_message_byteorder: Literal["little", "big"],
+            dmx_light_fps: int,
+            dmx_address_count: int,
+            dmx_key_frame_time: float,
+            **kwargs: Any):
         self.DMX_UNIVERSE_COUNT = dmx_universe_count
         self.SERIAL_TIMEOUT = serial_timeout
         self.SERIAL_BAUDRATE = serial_baudrate
@@ -37,14 +38,13 @@ class DMX512Dispatcher(EventDispatcher):
     def init(self):
         self.universes = {universe: DMX512Universe(universe=universe)
                     for universe in range(1, self.DMX_UNIVERSE_COUNT + 1)}
-        self.trigger_sync_universe_device = Clock.create_trigger(
-                                        self.sync_universe_device, -1)
+        self.trigger_sync_universe_device = Clock.create_trigger(self.sync_universe_device, -1)
         serial_observer.bind(
             on_new_device=self.trigger_sync_universe_device,
             on_remove_device=self.trigger_sync_universe_device
         )
 
-    def loop(self, time_diff):
+    def loop(self, time_diff: float):
         for universe in self.universes.values():
             universe.loop(time_diff)
 
@@ -105,10 +105,10 @@ class DMX512Dispatcher(EventDispatcher):
         for universe, universe_obj in self.universes.items():
             universe_obj.device = device_dict.get(universe, None)
 
-    def register_on_write_matrix(self, universe: int, callback: Callable):
+    def register_on_write_matrix(self, universe: int, callback: KivyCallback):
         self.universes[universe].bind(on_write_matrix=callback)
 
-    def unregister_on_write_matrix(self, universe: int, callback: Callable):
+    def unregister_on_write_matrix(self, universe: int, callback: KivyCallback):
         self.universes[universe].unbind(on_write_matrix=callback)
 
     def get_universe(self, universe: int) -> DMX512Universe:
@@ -120,15 +120,15 @@ class DMX512Dispatcher(EventDispatcher):
 
 dmx512 = None
 def init(
-        dmx_universe_count,
-        serial_timeout,
-        serial_baudrate,
-        serial_try_connection_time,
-        dmx_hello_msg,
-        dmx_message_byteorder,
-        dmx_light_fps,
-        dmx_address_count,
-        dmx_key_frame_time):
+        dmx_universe_count: int,
+        serial_timeout: float,
+        serial_baudrate: int,
+        serial_try_connection_time: float,
+        dmx_hello_msg: bytes,
+        dmx_message_byteorder: Literal["little", "big"],
+        dmx_light_fps: int,
+        dmx_address_count: int,
+        dmx_key_frame_time: float):
     global dmx512
     if dmx512 is not None:
         raise RuntimeError("DMX512 модуль уже инициализирован")

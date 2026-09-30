@@ -1,62 +1,66 @@
 import time
-from typing import Optional
-from kivy.properties import BooleanProperty, ObjectProperty, AliasProperty
-from kivy.clock import Clock
-from libs.dmx512 import dmx512
-from libs.beat_counter import BeatCounter
-from libs.kivy_json_orm.fields import ClampedNumericField, BooleanField
+from typing import TYPE_CHECKING, Optional
+
+from kivy.properties import AliasProperty, BooleanProperty, ObjectProperty
+
 from database.patch import RowPatch
 from database.playback.player.effects_renderer import PlayerEffectsRenderer
 from database.playback.player.master_player import master_player
+from libs.beat_counter import BeatCounter
+from libs.dmx512 import dmx512
+from libs.kivy_json_orm.fields import BooleanField, ClampedNumericField
+from libs.typecheck import Number
+from misc import constants
 from misc.player import BasePlayer
 from misc.player.status import PlayerStatus
-from misc.player.render_utils import SoftEffectsRenderer
-from misc import constants
+
+if TYPE_CHECKING:
+    from database.playback import RowPlayback
 
 
 class PlaybackPlayer(BasePlayer):
-    playback = ObjectProperty()
+    playback: "RowPlayback" = ObjectProperty()
 
-    beats_count = ClampedNumericField(4, constants.BEATS_COUNT_MINIMIUM, constants.BEATS_COUNT_MAXIMUM)
-    is_link_global_temp = BooleanField(True)
-    is_cycle = BooleanField(True)
-    is_cycle_last_frame = BooleanField(False)
-    fade_to_black = BooleanField(False)
-    fade_to_black_time = ClampedNumericField(1000, constants.FADE_TO_BLACK_MS_MINIMUM, constants.FADE_TO_BLACK_MS_MAXIMUM)
-    blackout_activate = BooleanField(False)
-    bounce = BooleanField(False)
+    beats_count: int = ClampedNumericField(4, constants.BEATS_COUNT_MINIMIUM, constants.BEATS_COUNT_MAXIMUM)
+    is_link_global_temp: bool = BooleanField(True)
+    is_cycle: bool = BooleanField(True)
+    is_cycle_last_frame: bool = BooleanField(False)
+    fade_to_black: bool = BooleanField(False)
+    fade_to_black_time: int = ClampedNumericField(1000, constants.FADE_TO_BLACK_MS_MINIMUM, constants.FADE_TO_BLACK_MS_MAXIMUM)
+    blackout_activate: bool = BooleanField(False)
+    bounce: bool = BooleanField(False)
 
     _bounce_direction = 1
-    play = BooleanProperty(False)
+    play: bool = BooleanProperty(False)
 
-    def __init__(self, *args, **kwargs):
+    effects_renderer: PlayerEffectsRenderer
+    def __init__(self, *args: Any, **kwargs: Any):
         self.time_start = None
-        self.effects_renderer = None
         super().__init__(*args, **kwargs)
 
-    def on_parent_row(self, _, parent_row):
+    def on_parent_row(self, _, parent_row: "RowPlayback"):
         super().on_parent_row(_, parent_row)
         self.playback = parent_row
         self.effects_renderer = PlayerEffectsRenderer(self)
         self.bind_to(dmx512, on_blackout=self.on_blackout)
         self.bind_to(self.playback.database.scene, scene_now_beats_count=self._update_real_beats_count)
 
-    def on_remove(self, instance):
+    def on_remove(self, instance: "RowPlayback"):
         self.stop()
         super().on_remove(instance)
 
     def _update_real_beats_count(self, *_):
         self.property("is_link_global_temp").dispatch(self)
 
-    _save_intensive = None
-    def on_midi_note_on(self, _, channel: int, intensive: int):
+    _save_intensive: Optional[int] = None
+    def on_midi_note_on(self, _, channel: int, intensive: Number):
         renderer = self.playback.renderer
         if channel == self.midi_channel:
             self._save_intensive = renderer.intensive
             renderer.intensive = intensive
             self.start()
 
-    def on_midi_note_off(self, _, channel: int, _intensive: int):
+    def on_midi_note_off(self, _, channel: int, intensive: Number):
         renderer = self.playback.renderer
         if channel == self.midi_channel:
             renderer.intensive = self._save_intensive
@@ -70,11 +74,11 @@ class PlaybackPlayer(BasePlayer):
             if self.status in (PlayerStatus.WORK, PlayerStatus.ATTACK):
                 self.stop()
 
-    def _on_bounce(self, _, bounce):
+    def _on_bounce(self, _, bounce: bool):
         if not bounce:
             self._bounce_direction = 1
 
-    def _create_beat_counter(self):
+    def _create_beat_counter(self) -> BeatCounter:
         if self.is_link_global_temp:
             return self.playback.database.scene.scene_now_bc
         bc = BeatCounter(temp=self.temp, beats_count=self.real_beats_count)
@@ -105,7 +109,7 @@ class PlaybackPlayer(BasePlayer):
                 return 1
             return bc.beats_count if bc else self.real_beats_count
         return bc.beat_now + 1 if bc else 1
-    beat_now = AliasProperty(get_beat_now)
+    beat_now: int = AliasProperty(get_beat_now)
 
     def on_start(self, _: BeatCounter):
         self.play = True
@@ -135,13 +139,13 @@ class PlaybackPlayer(BasePlayer):
             master_player.add_playback(self)
 
 
-    real_beats_count = AliasProperty(
+    real_beats_count: int = AliasProperty(
         lambda self: self.playback.database.scene.scene_now_beats_count if self.is_link_global_temp else self.beats_count,
         bind=["is_link_global_temp", "beats_count"]
     )
 
 
-    frame_count = AliasProperty(
+    frame_count: int = AliasProperty(
         lambda self: self.real_beats_count * constants.FRAMES_IN_BEAT,
         bind=["real_beats_count"]
     )

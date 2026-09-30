@@ -1,14 +1,14 @@
-from kivy.properties import NumericProperty, BooleanProperty, AliasProperty
-from kivy.uix.widget import Widget
 from kivy.lang import Builder
-from libs.mouse_manager import cursor_manager
-from libs.uix import colorscheme as uix_cs
-from libs.animation import StatefulColorProperty
-from libs.uix.behaviors.mouse import TouchMouseBehavior
-from libs.properties import ContextualNumericProperty
-from libs.animation import AnimationBehavior
-from libs.uix.behaviors.tooltip import TooltipBehavior
+from kivy.properties import AliasProperty, BooleanProperty, NumericProperty
+from kivy.uix.widget import Widget
 
+from libs.animation import AnimationBehavior, StatefulColorProperty
+from libs.mouse_manager import cursor_manager
+from libs.properties import ContextualNumericProperty
+from libs.typecheck import RGBA, Number
+from libs.uix import colorscheme as uix_cs
+from libs.uix.behaviors.mouse import TouchMouseBehavior
+from libs.uix.behaviors.tooltip import TooltipBehavior
 
 Builder.load_string("""
 <Slider2D>:
@@ -39,7 +39,7 @@ Builder.load_string("""
 
 
 class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
-    dot_color = StatefulColorProperty(
+    dot_color: RGBA = StatefulColorProperty(
         normal=uix_cs.Slider2D.dot_color_normal,
         states={
             "disabled": uix_cs.Slider2D.dot_color_disabled,
@@ -47,7 +47,7 @@ class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
             "hover": uix_cs.Slider2D.dot_color_hover,
         }
     )
-    line_color = StatefulColorProperty(
+    line_color: RGBA = StatefulColorProperty(
         normal=uix_cs.Slider2D.line_color_normal,
         states={
             "disabled": uix_cs.Slider2D.line_color_disabled,
@@ -56,46 +56,46 @@ class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
         }
     )
 
-    focus = BooleanProperty(False)
+    focus: bool = BooleanProperty(False)
 
-    value_x_minimum = NumericProperty(0)
-    value_x_maximum = NumericProperty(255)
-    value_x = ContextualNumericProperty(
+    value_x_minimum: Number = NumericProperty(0)
+    value_x_maximum: Number = NumericProperty(255)
+    value_x: Number = ContextualNumericProperty(
         default=0,
         min_getter=lambda self: self.value_x_minimum,
         max_getter=lambda self: self.value_x_maximum,
         dependencies=("value_x_minimum", "value_x_maximum")
     )
 
-    value_y_minimum = NumericProperty(0)
-    value_y_maximum = NumericProperty(255)
-    value_y = ContextualNumericProperty(
+    value_y_minimum: Number = NumericProperty(0)
+    value_y_maximum: Number = NumericProperty(255)
+    value_y: Number = ContextualNumericProperty(
         default=0,
         min_getter=lambda self: self.value_y_minimum,
         max_getter=lambda self: self.value_y_maximum,
         dependencies=("value_y_minimum", "value_y_maximum")
     )
 
-    padding = NumericProperty(0)
+    padding: float = NumericProperty(0)
 
-    dot_radius = NumericProperty("10dp")
+    dot_radius: float = NumericProperty("10dp")
 
     def on_mouse_move(self, _):
         if self.hover and not self.disabled:
             cursor_manager.set_cursor("crosshair")
 
-    drag_enabled = BooleanProperty(True)
+    drag_enabled: bool = BooleanProperty(True)
 
-    def on_drag_start(self, touch):
+    def on_drag_start(self, touch) -> bool:
         self.focus = True
         self._set_from_touch(touch)
         return True
 
-    def on_drag(self, touch, delta_x, delta_y):
+    def on_drag(self, touch, delta_x: float, delta_y: float) -> bool:
         self._set_from_touch(touch)
         return True
 
-    def on_drag_end(self, touch):
+    def on_drag_end(self, touch) -> bool:
         self.focus = False
         return True
 
@@ -110,20 +110,20 @@ class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
         ydiff = (touch.y - (self.y + self.padding)) - self.dot_radius / 4
         self.value_y = self.value_y_minimum + ydiff / px_to_val_y
 
-    def _get_dot_x(self):
+    def _get_dot_x(self) -> float:
         diff = max(self.value_x_maximum - self.value_x_minimum, 1)
         xdiff = (self.value_x - self.value_x_minimum) / diff
         return (self.x + self.padding) + (self.width - 2 * self.padding) * xdiff - self.dot_radius / 2
-    dot_x = AliasProperty(_get_dot_x,
+    dot_x: float = AliasProperty(_get_dot_x,
                           bind=["pos", "size", "padding", "dot_radius",
                                 "value_x", "value_x_minimum", "value_x_maximum"],
                           cache=True)
 
-    def _get_dot_y(self):
+    def _get_dot_y(self) -> float:
         diff = max(self.value_y_maximum - self.value_y_minimum, 1)
         ydiff = (self.value_y - self.value_y_minimum) / diff
         return (self.y + self.padding) + (self.height - 2 * self.padding) * ydiff - self.dot_radius / 2
-    dot_y = AliasProperty(_get_dot_y,
+    dot_y: float = AliasProperty(_get_dot_y,
                           bind=["pos", "size", "padding", "dot_radius",
                                 "value_y", "value_y_minimum", "value_y_maximum"],
                           cache=True)

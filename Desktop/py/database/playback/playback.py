@@ -1,16 +1,19 @@
-from database.scene import SceneTableMixin, SceneRowMixin
+from typing import Tuple
+
 from database.playback.player import PlaybackPlayer
 from database.playback.renderer import PlaybackRenderer
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from libs.kivy_json_orm.fields import StringField, ListField, ColorField, NestedField
+from database.scene import SceneRowMixin, SceneTableMixin
+from libs.kivy_json_orm.fields import ColorField, ListField, NestedField, StringField
+from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
+from libs.typecheck import RGBA
 
 
 class RowPlayback(SceneRowMixin, DatabaseRow):
-    title = StringField("Без названия")
-    grid_pos = ListField([None, None])
-    color = ColorField((1, 1, 1, 1))
-    player = NestedField(PlaybackPlayer, default_factory=PlaybackPlayer, rebind=True)
-    renderer = NestedField(PlaybackRenderer, default_factory=PlaybackRenderer, rebind=True)
+    title: str = StringField("Без названия")
+    grid_pos: Tuple[int, int] = ListField([None, None])
+    color: RGBA = ColorField((1, 1, 1, 1))
+    player: PlaybackPlayer = NestedField(PlaybackPlayer, default_factory=PlaybackPlayer, rebind=True)
+    renderer: PlaybackRenderer = NestedField(PlaybackRenderer, default_factory=PlaybackRenderer, rebind=True)
 
     def on_player(self, _, player: PlaybackPlayer):
         player.parent_row = self

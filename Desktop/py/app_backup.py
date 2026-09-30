@@ -1,20 +1,22 @@
-from pathlib import Path
 import shutil
 import sys
+from pathlib import Path
+from typing import Any
+
 from kivy.app import App
-from kivy.lang import Builder
-from kivy.uix.boxlayout import BoxLayout
 from kivy.core.text import Label as CoreLabel
-from kivy.properties import StringProperty, ObjectProperty
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty, StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from typing_extensions import Self
+
 from libs import logger
+from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
-from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
-import libs.uix.filelist  # lazy kv import initialize
-import libs.uix.recycle_restricted_scrollview  # lazy kv import initialize
-from libs.sub_proc import exit_code
+from libs.sub_proc.exit_code import ExitCode
+from libs.uix.filelist import Filelist  # lazy kv import initialize
 from misc import constants
-
 
 Builder.load_string(
 """
@@ -47,17 +49,17 @@ Builder.load_string(
 
 
 class Root(BoxLayout):
-    error_msg = StringProperty("")
-    filelist = ObjectProperty()
+    error_msg: str = StringProperty("")
+    filelist: Filelist = ObjectProperty()
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         if constants.DATABASE_BACKUPS_PATH.is_dir():
             self.filelist.rootpath = constants.DATABASE_BACKUPS_PATH
             self.filelist.bind(on_submit=self.on_filelist_submit)
         else:
             self.error_msg = "Отсутствует директория с резервными копиями"
 
-    def on_filelist_submit(self, _, path: Path):
+    def on_filelist_submit(self, _: Filelist, path: Path):
         database_dir = constants.DATABASE_PATH
         if database_dir.is_dir():
             logger.info("Удаление текущей версии БД")
@@ -65,14 +67,14 @@ class Root(BoxLayout):
         logger.info(f"Распаковка архива БД {path}")
         shutil.unpack_archive(path, database_dir, constants.DATABASE_BACKUPS_ARCHIVE_FORMAT)
 
-        sys.exit(exit_code.EXIT_RESTART)
+        sys.exit(ExitCode.RESTART)
 
 
 class BackupApp(KeyboardBehavior, App):
     use_kivy_settings = False
-    root = ObjectProperty()
+    root: Root = ObjectProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         builder_sync.apply_patch()
         on_touch_double_tap.apply_patch()
@@ -83,7 +85,7 @@ class BackupApp(KeyboardBehavior, App):
         c = constants
         self.title = f"{c.APP_NAME} v.{c.VERSION}{c.SUB_VERSION} (BACKUP MODE)"
 
-    def build(self):
+    def build(self) -> Root:
         self.root = Root()
         return self.root
 
@@ -98,9 +100,9 @@ class BackupApp(KeyboardBehavior, App):
                 CoreLabel.register(name, (constants.FONTS_PATH / file).as_posix())
             except Exception:
                 logger.error(f"Failed to register font '{name}'", exc_info=True)
-                sys.exit(1)
+                sys.exit(ExitCode.FAILURE)
 
-    def open_settings(self, *largs):
+    def open_settings(self, *_):
         """
                 Отключение меню настроек на F1
         """

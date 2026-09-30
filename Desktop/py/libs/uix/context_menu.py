@@ -1,20 +1,22 @@
 from dataclasses import dataclass, field
-from typing import Optional
-from kivy.lang import Builder
-from kivy.properties import (
-    ObjectProperty, NumericProperty, ListProperty, BooleanProperty
-)
+from typing import Any, Callable, Dict, FrozenSet, List, Tuple, Type
+
 from kivy.clock import Clock
+from kivy.core.text import Label as CoreLabel
 from kivy.core.window import Window
 from kivy.graphics import Rectangle
-from kivy.core.text import Label as CoreLabel
-from kivy.uix.widget import Widget
+from kivy.graphics.texture import Texture
+from kivy.lang import Builder
 from kivy.metrics import dp
-from libs.uix.layouts import ModalBoxLayout
+from kivy.properties import BooleanProperty, ListProperty, NumericProperty, ObjectProperty
+from kivy.uix.widget import Widget
+from typing_extensions import Self
+
 from libs.sdl2_keyboard import hotkey_to_str
 from libs.uix.button import HoverButton
-from libs.uix.recycle_spinner import RecycleSpinner
 from libs.uix.label import RestrictedLabel
+from libs.uix.layouts import ModalBoxLayout
+from libs.uix.recycle_spinner import RecycleSpinner
 from libs.utils import merge_kwargs
 
 Builder.load_string("""
@@ -77,8 +79,8 @@ Builder.load_string("""
 
 @dataclass
 class ContextMenuItem:
-    widget_class: Widget
-    kwargs: dict = field(default_factory=dict)
+    widget_class: Type[Widget]
+    kwargs: Dict[str, Any] = field(default_factory=dict)
 
 
 class ContextMenuSeparator(Widget):
@@ -86,17 +88,17 @@ class ContextMenuSeparator(Widget):
 
 
 class ContextMenuBehavior:
-    focus = BooleanProperty(False)
+    focus: bool = BooleanProperty(False)
 
 
 class ContextMenuButton(ContextMenuBehavior, HoverButton):
-    hotkey = ObjectProperty(frozenset())
-    hotkey_font_size = NumericProperty("12sp")
+    hotkey: FrozenSet[str] = ObjectProperty(frozenset())
+    hotkey_font_size: float = NumericProperty("12sp")
     hotkey_label: CoreLabel = ObjectProperty()
-    hotkey_texture = ObjectProperty()
-    hotkey_texture_x = NumericProperty()
+    hotkey_texture: Texture = ObjectProperty()
+    hotkey_texture_x: float = NumericProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         if self.hotkey:
             self._update_trigger = Clock.create_trigger(
@@ -136,70 +138,23 @@ class ContextMenuButton(ContextMenuBehavior, HoverButton):
 class ContextMenuSpinner(ContextMenuBehavior, RecycleSpinner):
     pass
 
-
-class SubMenu(ContextMenuBehavior, RestrictedLabel):
-    menu = ObjectProperty()
-
-    def __init__(self, items: tuple, **kwargs):
-        super().__init__(**kwargs)
-        Window.bind(mouse_pos=self.on_mouse_pos)
-        self._open_submenu_trigger = Clock.create_trigger(
-            self.open_submenu, 1.0)
-        self.items = items
-
-    def on_mouse_pos(self, _, mouse_pos: tuple):
-        if self.collide_point(*mouse_pos):
-            self._open_submenu_trigger()
-        elif self._open_submenu_trigger.is_triggered:
-            self._open_submenu_trigger.cancel()
-
-    def open_submenu(self, _):
-        self.menu = ContextMenu(items=self.items)
-        self.menu.open(self, pos=(self.right, self.top))
-
-
-class ContextMenuTemplates:
-    @staticmethod
-    def button(**kwargs) -> ContextMenuItem:
-        return ContextMenuTemplates._apply_kwargs({
-            "widget_class": ContextMenuButton,
-        }, kwargs)
-
-    @staticmethod
-    def separator(**kwargs) -> ContextMenuItem:
-        return ContextMenuTemplates._apply_kwargs({
-            "widget_class": ContextMenuSeparator,
-        }, kwargs)
-
-    @staticmethod
-    def spinner(**kwargs) -> ContextMenuItem:
-        return ContextMenuTemplates._apply_kwargs({
-            "widget_class": ContextMenuSpinner,
-        }, kwargs)
-
-    @staticmethod
-    def _apply_kwargs(default_kwargs: dict, kwargs: dict) -> ContextMenuItem:
-        data = merge_kwargs(default_kwargs, kwargs)
-        widget_class = data.pop("widget_class")
-        return ContextMenuItem(widget_class=widget_class, kwargs=data)
-
-
 class ContextMenu(ModalBoxLayout):
-    content = ObjectProperty()
-    items = ListProperty()
+    items: Tuple[ContextMenuItem, ...] = ListProperty()
 
-    hotkeys = None
-    was_inited = False
-    def on_kv_post(self, _):
+    hotkeys: Dict[FrozenSet[str], Callable[[], None]]
+    button_list: List[ContextMenuButton]
+    hotkey_button_list: List[ContextMenuButton]
+    was_inited: bool = False
+    def on_kv_post(self, base_widget: Self):
         self.was_inited = True
         self.hotkeys = {}
         self.property("items").dispatch(self)
 
-    def on_items(self, _, items: list):
+    def on_items(self, _, items: Tuple[ContextMenuItem, ...]):
         if self.was_inited:
             self.parse_items(items)
 
-    def parse_items(self, items: tuple):
+    def parse_items(self, items: Tuple[ContextMenuItem, ...]):
         self.hotkey_button_list = []
         self.button_list = []
         for item in items:
@@ -255,8 +210,57 @@ class ContextMenu(ModalBoxLayout):
             self.update_keyboard_context()
 
     is_blocked_keyboard = True
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             **super().create_hotkeys(),
             **self.hotkeys
         }
+
+
+class SubMenu(ContextMenuBehavior, RestrictedLabel):
+    menu: ContextMenu = ObjectProperty()
+    items: Tuple[ContextMenuItem, ...]
+
+    def __init__(self, items: Tuple[ContextMenuItem, ...], **kwargs: Any):
+        super().__init__(**kwargs)
+        Window.bind(mouse_pos=self.on_mouse_pos)
+        self._open_submenu_trigger = Clock.create_trigger(
+            self.open_submenu, 1.0)
+        self.items = items
+
+    def on_mouse_pos(self, _, mouse_pos: Tuple[float, float]):
+        if self.collide_point(*mouse_pos):
+            self._open_submenu_trigger()
+        elif self._open_submenu_trigger.is_triggered:
+            self._open_submenu_trigger.cancel()
+
+    def open_submenu(self, _):
+        self.menu = ContextMenu(items=self.items)
+        self.menu.open(self, pos=(self.right, self.top))
+
+
+class ContextMenuTemplates:
+    @staticmethod
+    def button(**kwargs: Any) -> ContextMenuItem:
+        return ContextMenuTemplates._apply_kwargs({
+            "widget_class": ContextMenuButton,
+        }, kwargs)
+
+    @staticmethod
+    def separator(**kwargs: Any) -> ContextMenuItem:
+        return ContextMenuTemplates._apply_kwargs({
+            "widget_class": ContextMenuSeparator,
+        }, kwargs)
+
+    @staticmethod
+    def spinner(**kwargs: Any) -> ContextMenuItem:
+        return ContextMenuTemplates._apply_kwargs({
+            "widget_class": ContextMenuSpinner,
+        }, kwargs)
+
+    @staticmethod
+    def _apply_kwargs(default_kwargs: Dict[str, Any], kwargs: Dict[str, Any]) -> ContextMenuItem:
+        data = merge_kwargs(default_kwargs, kwargs)
+        widget_class = data.pop("widget_class")
+        return ContextMenuItem(widget_class=widget_class, kwargs=data)
+

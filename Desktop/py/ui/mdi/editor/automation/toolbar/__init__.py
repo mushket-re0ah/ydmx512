@@ -1,4 +1,4 @@
-from typing import List, Optional, Set
+from typing import Any, List, Optional, Set, Dict
 from kivy.properties import (
     ObjectProperty, NumericProperty, ListProperty, BooleanProperty, AliasProperty
 )
@@ -22,6 +22,7 @@ from database import db
 from database.phase_curve_type import RowPhaseCurveType
 from misc import colorscheme as cs
 from ui.mdi.editor.automation.tools import RowPhaseTool, DiscardAllTool, MoveDotsByNumericInputTool
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/editor/automation/toolbar/toolbar.kv")
@@ -74,18 +75,18 @@ class PhaseCurveTypeCreateMenuCanvas(Widget):
             with self.canvas.after:
                 SmoothEllipse(pos=(x_pos, y_pos), size=dot_size, group="dots")
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos):
             touch.grab(self)
             self.add_dot(touch)
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if touch.grab_current is self:
             self.add_dot(touch)
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
             return True
@@ -131,7 +132,7 @@ class PhaseCurveTypeOptionButton(OptionToggleButton):
         i = (i + direction) % len(keys)
         return db.phase_curve_type.rows[keys[i]]
 
-    def _make_state_menu_data(self, modal) -> list:
+    def _make_state_menu_data(self, modal: PhaseCurveTypeMenu) -> List[Dict[str, Any]]:
         return [{
             "text": curve.title,
             "modal": modal,
@@ -187,7 +188,7 @@ class AutomationToolbar(StencilBoxLayout):
         else:
             self.selected_master_row_phase_spec = None
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.automation.row_panel.bind(
             dots_selected=self.update_dots_data,
             master_selected_render_row=self._set_master_row_phase_spec
@@ -260,7 +261,7 @@ class AutomationToolbar(StencilBoxLayout):
     def discard_all(self):
         self.automation.set_tool(DiscardAllTool)
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if self.automation.check_tool(RowPhaseTool):
             self.automation.tool_action("finish")
         return super().on_touch_up(touch)

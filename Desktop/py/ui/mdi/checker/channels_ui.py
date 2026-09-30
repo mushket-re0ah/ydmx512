@@ -11,6 +11,7 @@ import libs.uix.slider  # lazy kv import initialize
 from database import db
 from misc import colorscheme as cs
 from misc import constants
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/checker/channels_ui.kv")
@@ -28,7 +29,7 @@ class CheckerSlider(BoxLayout):
 
     _write_allow = False
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         prop = self.numeric.property("border_color")
         prop.set_normal(self.numeric, cs.CheckerSlider.border_color_normal)
 
@@ -63,8 +64,8 @@ class CheckerChannelsUiList(ScrollLayout):
         self._trigger_update_faders = Clock.create_trigger(self._update_faders, -1)
         super().__init__(**kwargs)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.__create_faders()
         self.checker.bind(hidden=self._trigger_update_faders)
         self.checker.bind(universe_now=self.on_universe_now)
@@ -112,8 +113,8 @@ class CheckerOverlay(BoxLayout):
         self._trigger_update_patch_overlay = Clock.create_trigger(self.update_patch_overlay, 0)
         super().__init__(**kwargs)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.__create_address_titles()
         self.checker.bind(
             hidden=self._trigger_update_patch_overlay,

@@ -1,20 +1,34 @@
-from kivy.uix.widget import Widget
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Type
+
 from kivy.event import EventDispatcher
-from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
-from kivy.properties import (
-    ColorProperty, StringProperty, BooleanProperty, NumericProperty,
-    ReferenceListProperty, AliasProperty, OptionProperty, ObjectProperty
-)
 from kivy.lang import Builder
-from libs.uix.label import RestrictedLabel
-from libs.mouse_manager.hover import HoverBehavior
-from libs.animation import AnimationBehavior
-from libs.uix.behaviors.tooltip import TooltipBehavior
-from libs.uix import colorscheme as uix_cs
+from kivy.properties import (
+    AliasProperty,
+    BooleanProperty,
+    ColorProperty,
+    NumericProperty,
+    ObjectProperty,
+    OptionProperty,
+    ReferenceListProperty,
+    StringProperty,
+)
+from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
+from kivy.uix.widget import Widget
+from typing_extensions import Self
+
+from libs.animation import AnimationBehavior, StatefulColorProperty
 from libs.mouse_manager import cursor_manager
+from libs.mouse_manager.hover import HoverBehavior
+from libs.typecheck import RGBA
+from libs.uix import colorscheme as uix_cs
+from libs.uix.behaviors.tooltip import TooltipBehavior
+from libs.uix.label import RestrictedLabel
 from libs.uix.layouts import ModalBoxLayout
-from libs.animation import StatefulColorProperty
 from misc import imgs_path
+
+if TYPE_CHECKING:
+    from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
+    from libs.uix.scroll_layout import ScrollLayout
 
 
 Builder.load_string("""
@@ -160,21 +174,21 @@ Builder.load_string("""
 
 
 class ExpansiveButtonBehavior(ButtonBehavior):
-    is_down = AliasProperty(
+    is_down: bool = AliasProperty(
         lambda self: self.state == "down",
         lambda self, value: setattr(self, "state", "down" if value else "normal"),
         bind=["state"],
     )
-    pressed = BooleanProperty(False)
+    pressed: bool = BooleanProperty(False)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         pressed = super().on_touch_down(touch)
         if pressed:
             self.pressed = True
             self.is_down = True
         return pressed
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         self.is_down = False
         self.pressed = False
         if not self.collide_point(*touch.pos):
@@ -183,15 +197,15 @@ class ExpansiveButtonBehavior(ButtonBehavior):
 
 
 class ExpansiveToggleButtonBehavior(ToggleButtonBehavior):
-    is_down = AliasProperty(
+    is_down: bool = AliasProperty(
         lambda self: self.state == "down",
         lambda self, value: setattr(self, "state", "down" if value else "normal"),
         bind=["state"],
     )
-    always_release = BooleanProperty(False)
-    pressed = BooleanProperty(False)
-    discard_state_release = BooleanProperty(True)
-    _toggle_committed = BooleanProperty(False)
+    always_release: bool = BooleanProperty(False)
+    pressed: bool = BooleanProperty(False)
+    discard_state_release: bool = BooleanProperty(True)
+    _toggle_committed: bool = BooleanProperty(False)
 
     def _do_press(self):
         self.pressed = True
@@ -203,11 +217,11 @@ class ExpansiveToggleButtonBehavior(ToggleButtonBehavior):
         self.is_down = not self.is_down
         self._toggle_committed = True
 
-    def _do_release(self, *args):
+    def _do_release(self, *args: Any):
         self.pressed = False
         self._toggle_committed = False
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         self.pressed = False
         if self.collide_point(*touch.pos):
             # Бля да хуй знает на самом деле в чем был мой замысел с return False
@@ -216,8 +230,8 @@ class ExpansiveToggleButtonBehavior(ToggleButtonBehavior):
         return super().on_touch_up(touch)
 
 
-class _ButtonBase(AnimationBehavior, TooltipBehavior):
-    background_color = StatefulColorProperty(
+class ButtonBase(AnimationBehavior, TooltipBehavior):
+    background_color: RGBA = StatefulColorProperty(
         normal=uix_cs.HoverButton.background_color_normal,
         states={
             "disabled": uix_cs.HoverButton.background_color_disabled,
@@ -228,62 +242,58 @@ class _ButtonBase(AnimationBehavior, TooltipBehavior):
             "hover": uix_cs.HoverButton.background_color_hover,
         }
     )
-    background_normal = StringProperty(imgs_path.button_background_normal)
-    background_down = StringProperty(imgs_path.button_background_down)
+    background_normal: str = StringProperty(imgs_path.button_background_normal)
+    background_down: str = StringProperty(imgs_path.button_background_down)
 
     def on_mouse_move(self, _):
         if self.hover and not self.disabled:
             cursor_manager.set_cursor("hand")
 
 
-class ImageButton(_ButtonBase, ExpansiveButtonBehavior, Widget):
+class ImageButton(ButtonBase, ExpansiveButtonBehavior, Widget):
     pass
 
 
-class HoverButton(_ButtonBase, ExpansiveButtonBehavior, RestrictedLabel):
+class HoverButton(ButtonBase, ExpansiveButtonBehavior, RestrictedLabel):
     pass
 
 
-class ImageToggleButton(_ButtonBase, ExpansiveToggleButtonBehavior, Widget):
+class ImageToggleButton(ButtonBase, ExpansiveToggleButtonBehavior, Widget):
     pass
 
 
-class HoverToggleButton(_ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLabel):
+class HoverToggleButton(ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLabel):
     pass
 
 
 class OptionToggleButtonContextMenu(ModalBoxLayout):
-    option_cls = ObjectProperty()
-    scroll_layout = ObjectProperty()
-    scrollview = ObjectProperty()
-    title = StringProperty("")
+    option_cls: Type[ButtonBase] = ObjectProperty()
+    scroll_layout: "ScrollLayout" = ObjectProperty()
+    scrollview: "RecycleRestrictedScrollView" = ObjectProperty()
+    title: str = StringProperty("")
 
 
 class OptionToggleButtonContextMenuOption(HoverButton):
-    modal = ObjectProperty()
-    state_button = ObjectProperty()
-    state_button_state = ObjectProperty()
+    modal: OptionToggleButtonContextMenu = ObjectProperty()
+    state_button: "OptionToggleButton" = ObjectProperty()
+    state_button_state: Any = ObjectProperty()
 
     def on_release(self):
         self.state_button.state = self.state_button_state
         self.modal.dismiss()
 
 
-class OptionToggleButton(_ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLabel):
-    modal_cls = ObjectProperty(OptionToggleButtonContextMenu)
-    option_cls = ObjectProperty(OptionToggleButtonContextMenuOption)
-    state = OptionProperty(None, options=[None])  # переопределять в предке
-    state_to_str = None  # переопределять в предке
-    modal_state_text = None  # переопределять в предке
+class OptionToggleButton(ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLabel):
+    modal_cls: Type[OptionToggleButtonContextMenu] = ObjectProperty(OptionToggleButtonContextMenu)
+    option_cls: Type[OptionToggleButtonContextMenuOption] = ObjectProperty(OptionToggleButtonContextMenuOption)
+    state: Any = OptionProperty(None, options=[None])  # переопределять в предке
+    state_to_str: Dict[Any, str]
 
-    # clock_open_state_menu = None
-    # TIME_OPEN_STATE_MENU = 0.5
-
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.property("state").dispatch(self)
 
     last_touch = None
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         self.last_touch = touch
         if self.collide_point(*touch.pos) and not self.disabled:
             if touch.button == "scrollup":
@@ -295,14 +305,7 @@ class OptionToggleButton(_ButtonBase, ExpansiveToggleButtonBehavior, RestrictedL
             if touch.button == "middle":
                 self._open_state_menu()
                 return True
-
         return super().on_touch_down(touch)
-
-    # def on_touch_up(self, touch):
-    #     if self.clock_open_state_menu:
-    #         self.clock_open_state_menu.cancel()
-    #         self.clock_open_state_menu = None
-    #     return super().on_touch_up(touch)
 
     def on_state(self, _, state: str):
         self.text = self.state_to_str[state]
@@ -316,13 +319,11 @@ class OptionToggleButton(_ButtonBase, ExpansiveToggleButtonBehavior, RestrictedL
         self._release_group(self)
 
         direction = 1
-        # if self.last_touch.button == "middle":
-        #     self.clock_open_state_menu = Clock.schedule_once(self._open_state_menu, self.TIME_OPEN_STATE_MENU)
         if self.last_touch.button == "right":
             direction = -direction
         self.state = self.get_state_step(direction)
 
-    def _do_release(self, *args):
+    def _do_release(self, *args: Any):
         self.pressed = False
         if (not self.allow_no_selection and
                 self.group and self.is_down):
@@ -335,33 +336,30 @@ class OptionToggleButton(_ButtonBase, ExpansiveToggleButtonBehavior, RestrictedL
                 direction = -direction
             self.state = self.get_state_step(direction)
 
-    def get_state_step(self, direction):
-        lst = self.property("state").options
+    def get_state_step(self, direction: int) -> Any:
+        lst: List[Any] = self.property("state").options
         i = lst.index(self.state)
         i = (i + direction) % len(lst)
         return lst[i]
 
     def _open_state_menu(self):
-        # if self.clock_open_state_menu:
-        #     self.clock_open_state_menu.cancel()
-        #     self.clock_open_state_menu = None
         modal = self.modal_cls(option_cls=self.option_cls)
         modal.open(self)
         modal.scrollview.data = self._make_state_menu_data(modal)
 
-    def _make_state_menu_data(self, _modal) -> list:
-        return {}
+    def _make_state_menu_data(self, modal: OptionToggleButtonContextMenu) -> List[Dict[str, Any]]:
+        return []
 
 
-class ImageOptionToggleButtonBehavior(_ButtonBase, ExpansiveToggleButtonBehavior, Widget):
-    state = OptionProperty(None, options=[None])  # переопределять в предке
+class ImageOptionToggleButtonBehavior(ButtonBase, ExpansiveToggleButtonBehavior, Widget):
+    state: Any = OptionProperty(None, options=[None])  # переопределять в предке
 
 
 class ColorToggleButton(AnimationBehavior, HoverBehavior, ExpansiveToggleButtonBehavior, Widget):
-    color = ColorProperty()
-    source = StringProperty("")
+    color: RGBA = ColorProperty()
+    source: str = StringProperty("")
 
-    border_color = StatefulColorProperty(
+    border_color: RGBA = StatefulColorProperty(
         normal=uix_cs.ColorToggleButton.border_color_normal,
         states={
             ("is_down", "hover"): uix_cs.ColorToggleButton.border_color_hover,
@@ -372,7 +370,7 @@ class ColorToggleButton(AnimationBehavior, HoverBehavior, ExpansiveToggleButtonB
 
 
 class ArrowBehavior(EventDispatcher):
-    arrow_color = StatefulColorProperty(
+    arrow_color: RGBA = StatefulColorProperty(
         normal=uix_cs.ArrowToggleButton.arrow_color_normal,
         states={
             "disabled": uix_cs.ArrowToggleButton.arrow_color_disabled,
@@ -382,16 +380,16 @@ class ArrowBehavior(EventDispatcher):
         }
     )
 
-    reverse_arrow = BooleanProperty(False)
-    vertical_arrow = BooleanProperty(True)
-    do_show_arrow = BooleanProperty(True)
+    reverse_arrow: bool = BooleanProperty(False)
+    vertical_arrow: bool = BooleanProperty(True)
+    do_show_arrow: bool = BooleanProperty(True)
 
-    arrow_height = NumericProperty("8dp")
-    arrow_width = NumericProperty("8dp")
-    arrow_size = ReferenceListProperty(arrow_width, arrow_height)
-    arrow_offset_right = NumericProperty("4dp")
+    arrow_height: float = NumericProperty("8dp")
+    arrow_width: float = NumericProperty("8dp")
+    arrow_size: Tuple[float, float] = ReferenceListProperty(arrow_width, arrow_height)
+    arrow_offset_right: float = NumericProperty("4dp")
 
-    def _get_arrow_points(self):
+    def _get_arrow_points(self) -> Tuple[float, float, float, float, float]:
         y_padding = (self.height - self.arrow_height) / 2
         top = self.top - y_padding
         y = self.y + y_padding
@@ -401,14 +399,14 @@ class ArrowBehavior(EventDispatcher):
         if self.vertical_arrow:
             center_x = right - (self.arrow_width / 2)
             if self.reverse_arrow:
-                return [left, y, center_x, top, right, y]
-            return [left, top, right, top, center_x, y]
+                return (left, y, center_x, top, right, y)
+            return (left, top, right, top, center_x, y)
         center_y = self.center_y
         if self.reverse_arrow:
-            return [left, center_y, right, top, right, y]
-        return [right, center_y, left, top, left, y]
+            return (left, center_y, right, top, right, y)
+        return (right, center_y, left, top, left, y)
 
-    arrow_points = AliasProperty(
+    arrow_points: Tuple[float, float, float, float, float] = AliasProperty(
         _get_arrow_points,
         bind=[
             "vertical_arrow", "reverse_arrow",

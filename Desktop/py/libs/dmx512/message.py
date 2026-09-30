@@ -1,5 +1,5 @@
-from typing import List
 from enum import Enum
+from typing import List, Tuple
 
 
 def to_bytes(value: int, length: int) -> bytes:
@@ -42,8 +42,8 @@ def _make_metadata(
     - Байт 1 (младший): Биты 7-0 (часть размера)
     - Байт 2 (старший): Биты 15-8 (тип + флаг + часть размера)
     """
-    is_address_1_byte = 1 if is_address_1_byte else 0
-    metadata_int = ((message_type.value & 0x0F) << 12) | (is_address_1_byte << 11) | message_size
+    b_is_address_1_byte = 1 if is_address_1_byte else 0
+    metadata_int = ((message_type.value & 0x0F) << 12) | (b_is_address_1_byte << 11) | message_size
     metadata_bytes = to_bytes(metadata_int, 2)
 
     crc = _crc8(metadata_bytes)
@@ -61,15 +61,15 @@ def _create_message_standard(
     for address, value in zip(address_list, value_list):
         data.extend(to_bytes(address, addr_size))
         data.extend(to_bytes(value, 1))
-    return data
+    return bytes(data)
 
 
 def _group_sequential_addresses(address_list: List[int]) -> List[List[int]]:
     """
         Группирует адреса в последовательные блоки.
     """
-    groups = []
-    current_group = []
+    groups: List[List[int]] = []
+    current_group: List[int] = []
 
     for addr in address_list:
         if not current_group:
@@ -85,11 +85,11 @@ def _group_sequential_addresses(address_list: List[int]) -> List[List[int]]:
     return groups
 
 
-def _group_values_in_block(values: List[int]) -> List[List[int]]:
+def _group_values_in_block(values: List[int]) -> List[Tuple[int, int]]:
     """
         Группирует значения внутри одного блока адресов.
     """
-    groups = []
+    groups: List[Tuple[int, int]] = []
     if not values:
         return groups
 
@@ -100,10 +100,10 @@ def _group_values_in_block(values: List[int]) -> List[List[int]]:
         if value == current_value:
             count += 1
         else:
-            groups.append([count, current_value])
+            groups.append((count, current_value))
             current_value = value
             count = 1
-    groups.append([count, current_value])
+    groups.append((count, current_value))
 
     return groups
 
@@ -126,13 +126,13 @@ def _create_message_address_compress(
         data.extend(to_bytes(count, addr_size))
         data.extend(to_bytes(start_addr, addr_size))
         data.extend(values)
-    return data
+    return bytes(data)
 
 
 def _create_message_address_values_compress(
         address_list: List[int],
         value_list: List[int],
-        is_address_1_byte: bool) -> bytearray:
+        is_address_1_byte: bool) -> bytes:
     addr_size = 1 if is_address_1_byte else 2
 
     data = bytearray()
@@ -151,7 +151,7 @@ def _create_message_address_values_compress(
         for count, value in value_blocks:
             data.extend(to_bytes(count, addr_size))
             data.append(value)
-    return data
+    return bytes(data)
 
 
 def create_message(address_list: List[int], value_list: List[int]) -> bytes:

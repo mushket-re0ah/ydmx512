@@ -1,10 +1,14 @@
+from typing import Dict, Optional, Tuple
+
 from kivy.utils import boundary
-from misc.player.status import PlayerStatus
-from database.fixture_param import DIMMER_TITLE_ID, PAN_TITLE_ID, TILT_TITLE_ID
+
 from database import db
+from database.fixture_param import DIMMER_TITLE_ID, PAN_TITLE_ID, TILT_TITLE_ID
+from libs.typecheck import Number
+from misc.player.status import PlayerStatus
 
 
-def apply_dimmer(value: int, intensive: int = 100, virtual_dimmer: int = 100) -> int:
+def apply_dimmer(value: int, intensive: Number = 100, virtual_dimmer: Number = 100) -> int:
     dimmer_mod = db.scene.scene_now_dimmer / 100
     dimmer_mod *= intensive / 100
     if virtual_dimmer:
@@ -23,14 +27,14 @@ def apply_dynamic_param(value: int, invert_pan: bool, correction: int = 0) -> in
 
 def apply_value_modifiers(
         value: int,
-        param_title_id,
-        invert_pan,
-        invert_tilt,
-        all_params_intensive=False,
-        intensive=100,
-        virtual_dimmer=100,
-        correction_pan=0,
-        correction_tilt=0
+        param_title_id: Optional[str],
+        invert_pan: bool,
+        invert_tilt: bool,
+        all_params_intensive: bool=False,
+        intensive: Number=100,
+        virtual_dimmer: Number=100,
+        correction_pan: int=0,
+        correction_tilt: int=0
         ) -> int:
     if all_params_intensive and param_title_id != DIMMER_TITLE_ID:
         value = int(value * (intensive / 100))
@@ -46,31 +50,40 @@ def apply_value_modifiers(
 
 class SoftEffectsRenderer:
     def __init__(self):
-        self._attack_data = {}
-        self._release_data = {}
+        self._attack_data: Dict[str, Tuple[int, int, float]] = {}
+        self._release_data: Dict[str, Tuple[int, int, float]]  = {}
 
-    def init_attack_step(self, key, frame: int, total_frames: int,
+    def init_attack_step(self, key: str, frame: int, total_frames: int,
                          start_value: int, end_value: int):
         self._init_step(self._attack_data, key, frame, total_frames, start_value, end_value)
 
-    def get_attack_value(self, key, frame: int) -> int:
+    def get_attack_value(self, key: str, frame: int) -> Optional[int]:
         return self._get_value(self._attack_data, key, frame)
 
-    def init_release_step(self, key, frame: int, total_frames: int,
+    def init_release_step(self, key: str, frame: int, total_frames: int,
                           start_value: int, end_value: int):
         self._init_step(self._release_data, key, frame, total_frames, start_value, end_value)
 
-    def get_release_value(self, key, frame: int) -> int:
+    def get_release_value(self, key: str, frame: int) -> Optional[int]:
         return self._get_value(self._release_data, key, frame)
 
     @staticmethod
-    def _init_step(data, key, frame, total_frames, start_value, end_value):
+    def _init_step(
+            data: Dict[str, Tuple[int, int, float]],
+            key: str,
+            frame: int,
+            total_frames: int,
+            start_value: int,
+            end_value: int):
         remaining = total_frames - frame
         step = (end_value - start_value) / remaining if remaining > 0 else 0
         data[key] = (frame, start_value, step)
 
     @staticmethod
-    def _get_value(data, key, frame):
+    def _get_value(
+            data: Dict[str, Tuple[int, int, float]],
+            key: str,
+            frame: int) -> Optional[int]:
         if key not in data:
             return None
         nframe, start, step = data[key]
@@ -83,21 +96,21 @@ class SoftEffectsRenderer:
             self._attack_data.clear()
             self._release_data.clear()
 
-    def has_attack_data(self):
+    def has_attack_data(self) -> bool:
         return bool(self._attack_data)
 
-    def has_release_data(self):
+    def has_release_data(self) -> bool:
         return bool(self._release_data)
 
     def get_soft_value(
         self,
         is_attack: bool,
-        key,
+        key: str,
         frame: int,
         total_frames: int,
         live_value: int,      # текущее "живое" значение (для атаки — конечное, для релиза — fallback-начало)
         default_value: int    # значение по умолчанию (для атаки — начальное, для релиза — конечное)
-    ) -> int:
+    ) -> Optional[int]:
         """
         Возвращает интерполированное значение для ключа key.
         Если данных для данного ключа нет, автоматически инициализирует шаг.

@@ -1,11 +1,13 @@
+from typing import Optional
+
+from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.properties import StringProperty
 from kivy.lang import Builder
-from kivy.animation import Animation
-from libs.uix.label import RestrictedLabel
-from libs.mouse_manager.hover import HoverBehavior
+from kivy.properties import StringProperty
 
+from libs.mouse_manager.hover import HoverBehavior
+from libs.uix.label import RestrictedLabel
 
 Builder.load_string("""
 <TooltipLabel>:  # RestrictedLabel
@@ -32,11 +34,11 @@ class TooltipLabel(RestrictedLabel):
 
 
 class TooltipBehavior(HoverBehavior):
-    tooltip_text = StringProperty('')
+    tooltip_text: str = StringProperty('')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._tooltip = None
+        self._tooltip: Optional[TooltipLabel] = None
         self._scheduled_show = None
 
     def on_enter(self):

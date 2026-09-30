@@ -5,6 +5,7 @@ from libs.uix.button import HoverToggleButton
 from database.patch import RowPatch
 from ui.components.base_database_grid_item import BaseDatabaseGridItem
 from misc import colorscheme as cs
+from typing_extensions import Self
 
 
 Builder.load_file("ui/components/patch_ui/patch_ui.kv")
@@ -40,8 +41,8 @@ class BasePatchUi(BaseDatabaseGridItem):
     def __init__(self, **kwargs):
         super().__init__(bg=cs.PatchUi.bg, **kwargs)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self._create_pan_tilt_toggle()
 
     def _create_pan_tilt_toggle(self):

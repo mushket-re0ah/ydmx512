@@ -3,6 +3,7 @@ from kivy.lang import Builder
 from libs.uix.layouts import ModalBoxLayout
 import libs.uix.menu_components  # lazy kv import initialize
 from database.patch import RowPatch
+from typing_extensions import Self
 
 
 Builder.load_file("ui/components/patch_ui/patch_context_menu.kv")
@@ -20,7 +21,7 @@ class PatchContextMenu(ModalBoxLayout):
     input_correction_tilt = ObjectProperty()
     label_correction_tilt = ObjectProperty()
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         if not self.patch.fixture.is_dynamic:
             self.grid_box.remove_widget(self.toggle_invert_pan)
             self.grid_box.remove_widget(self.label_invert_pan)

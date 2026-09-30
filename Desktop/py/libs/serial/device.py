@@ -1,13 +1,16 @@
-from enum import Enum, auto
-from typing import Optional
-import time
 import queue
+import time
+from enum import Enum, auto
+from typing import Any, Callable, Optional
+
 import serial
-from serial.tools.list_ports_common import ListPortInfo
-from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, AliasProperty
 from kivy.event import EventDispatcher
-from libs.properties import EnumProperty
+from kivy.properties import AliasProperty, BooleanProperty, ObjectProperty, StringProperty
+from serial.tools.list_ports_common import ListPortInfo
+
 from libs import logger
+from libs.properties import EnumProperty
+from libs.typecheck import OptionalNumber
 
 
 class SerialState(Enum):
@@ -20,24 +23,24 @@ class SerialState(Enum):
 
 class SerialDevice(EventDispatcher):
     port_info: ListPortInfo = ObjectProperty()
-    product_name = StringProperty(allownone=True)
-    _state = EnumProperty(SerialState, SerialState.OFF, rebind=True)
+    product_name: Optional[str] = StringProperty(allownone=True)
+    _state: SerialState = EnumProperty(SerialState, SerialState.OFF, rebind=True)
     device: Optional[serial.Serial] = ObjectProperty(allownone=True)
-    handshake_msg = ObjectProperty(None, allownone=True)  # bytes
-    handshake_ack = ObjectProperty(None, allownone=True)  # bytes (one)
-    is_send_terminate_message = BooleanProperty(False)
+    handshake_msg: Optional[bytes] = ObjectProperty(None, allownone=True)
+    handshake_ack: Optional[bytes] = ObjectProperty(None, allownone=True)
+    is_send_terminate_message: bool = BooleanProperty(False)
 
-    HANDSHAKE_ACK_SETTLE_TIME = 0.05
-    _connection_down_time = None
-    _wait_handshake_time_start = None
-    _prev_handshake_time_send = None
-    def __init__(self, baudrate: int, try_connection_time: float=5.0, **kwargs):
-        self.baudrate = baudrate
-        self.try_connection_time = try_connection_time
-        self._command_queue = queue.Queue()
+    HANDSHAKE_ACK_SETTLE_TIME: float = 0.05
+    def __init__(self, baudrate: int=115200, try_connection_time: float=5.0, **kwargs: Any):
+        self._connection_down_time: OptionalNumber = None
+        self._wait_handshake_time_start: float = 0.0
+        self._prev_handshake_time_send: OptionalNumber = None
+        self.baudrate: int = baudrate
+        self.try_connection_time: float = try_connection_time
+        self._command_queue: queue.Queue[Callable[[], None]] = queue.Queue()
         super().__init__(**kwargs)
 
-    def _set_state(self, state: SerialState):
+    def _set_state(self, state: SerialState) -> bool:
         logger.info(f"_set_state: прошлый={self._state}, новый={state}")
         old_state = self._state
         if old_state is state:
@@ -58,7 +61,7 @@ class SerialDevice(EventDispatcher):
             logger.info("Соединение произошло успешно")
         self._state = state
         return True
-    state = AliasProperty(lambda self: self._state, _set_state, rebind=True)
+    state: SerialState = AliasProperty(lambda self: self._state, _set_state, rebind=True)
 
     def close_connection(self):
         def _close_connection_command():
@@ -138,6 +141,10 @@ class SerialDevice(EventDispatcher):
     # Это режим "хост отправляет, контроллер слушает"
     def _wait_device_handshake_msg(self) -> Optional[bool]:
         device = self.device
+        if device is None:
+            raise ValueError("device is None, why we in _wait_handshake_time_start?")
+        if self.handshake_msg is None:
+            raise ValueError("handshake_msg is None, why we in _wait_handshake_time_start?")
         if (time.monotonic() - self._wait_handshake_time_start) >= self.try_connection_time:
             return False
         try:
@@ -197,11 +204,19 @@ class SerialDevice(EventDispatcher):
                 break
 
     def _is_connected(self) -> bool:
-        return self.device and self.device.is_open and self.state is SerialState.CONNECTED
+        return bool(self.device is not None and self.device.is_open and self.state is SerialState.CONNECTED)
+
+    def _get_connected_device(self) -> Optional[serial.Serial]:
+        if not self._is_connected():
+            return None
+        return self.device
 
     def _check_connection_down_time(self):
-        if self.state is SerialState.DISCONNECTED and\
-            ((time.monotonic() - self._connection_down_time) > self.try_connection_time):
+        if (
+            self.state is SerialState.DISCONNECTED
+            and self._connection_down_time is not None
+            and (time.monotonic() - self._connection_down_time) > self.try_connection_time
+        ):
             self.state = SerialState.OFF
             self._connection_down_time = None
 
@@ -222,14 +237,19 @@ class SerialDevice(EventDispatcher):
             return False
 
     def _write(self, data: bytes):
-        self.device.write(data)
+        device = self._get_connected_device()
+        if not device:
+            logger.warning("Попытка записи в неподключенное устройство")
+            return None
+        device.write(data)
 
     def _read(self, count: int) -> Optional[bytes]:
-        if not self._is_connected():
+        device = self._get_connected_device()
+        if not device:
             logger.warning("Попытка чтения из неподключенного устройства")
             return None
         try:
-            return self.device.read(count)
+            return device.read(count)
         except (serial.SerialException, OSError):
             logger.warning("Ошибка чтения", exc_info=True)
             return None

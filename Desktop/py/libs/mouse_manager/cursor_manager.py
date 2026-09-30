@@ -1,9 +1,11 @@
-from typing import Optional, Dict, List
 from pathlib import Path
-from kivy.utils import platform
-from kivy.core.window import Window
+from typing import Callable, Dict, Optional, Tuple
+
 from kivy.clock import Clock
-from kivy.graphics import Rectangle, Color
+from kivy.core.window import Window
+from kivy.graphics import Color, Rectangle
+from kivy.utils import platform
+
 from libs.mouse_manager import register_mouse_observer
 
 # +------------+-----------+------------+-----------+---------------+
@@ -87,18 +89,21 @@ _system_cursor = {
 }
 
 
-_software_cursor = {}
+_software_cursor: Dict[str, Path] = {}
 _cursor: Optional[str] = None
 _force: bool = False
-_cursor_pos: list = [0, 0]
-_use_system_cursor_getter = lambda: True
+_cursor_pos: Tuple[float, float] = (0, 0)
 
-def register_software_cursor(**kwargs: Dict[str, Path]):
+def _default_system_cursor_getter() -> bool:
+    return True
+_use_system_cursor_getter: Callable[[], bool] = _default_system_cursor_getter
+
+def register_software_cursor(**kwargs: Path):
     global _software_cursor
     for key, path in kwargs.items():
         _software_cursor[key] = path
 
-def set_use_system_cursor_getter(getter):
+def set_use_system_cursor_getter(getter: Callable[[], bool]):
     global _use_system_cursor_getter
     _use_system_cursor_getter = getter
     _trigger_set_cursor()
@@ -115,7 +120,7 @@ def set_force(force: bool):
     _force = force
     _trigger_set_cursor()
 
-def set_cursor_pos(mouse_pos):
+def set_cursor_pos(mouse_pos: Tuple[float, float]):
     global _cursor_pos
     _cursor_pos = mouse_pos
     _trigger_set_cursor()
@@ -139,7 +144,7 @@ def _complete(_):
     else:
         _set_software_cursor(
             _cursor_pos,
-            _software_cursor[cursor_key]
+            _software_cursor[cursor_key].as_posix()
         )
     if not _force:
         _cursor = None
@@ -147,7 +152,7 @@ def _complete(_):
 _trigger_set_cursor = Clock.create_trigger(_complete, -1)
 
 _initialized = False
-def init(use_system_cursor_getter=None):
+def init(use_system_cursor_getter: Optional[Callable[[], bool]]=None):
     global _initialized
     if use_system_cursor_getter:
         set_use_system_cursor_getter(use_system_cursor_getter)
@@ -168,7 +173,7 @@ def _set_system_cursor(cursor: str):
         Window.canvas.after.remove(_software_cursor_color)
         Window.canvas.after.remove(_software_cursor_rect)
 
-def _set_software_cursor(pos: List[float], image: str):
+def _set_software_cursor(pos: Tuple[float, float], image: str):
     global _software_cursor_rect
     if Window.show_cursor:
         Window.show_cursor = False

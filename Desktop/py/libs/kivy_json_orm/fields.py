@@ -1,31 +1,62 @@
-from typing import Callable, Union
 from collections import defaultdict
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Type, Union
+
+from kivy.event import EventDispatcher
 from kivy.properties import (
-    NumericProperty, ObjectProperty, StringProperty, BooleanProperty, ListProperty,
-    OptionProperty, DictProperty, ColorProperty, VariableListProperty
+    BooleanProperty,
+    ColorProperty,
+    DictProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    OptionProperty,
+    StringProperty,
+    VariableListProperty,
+)
+from typing_extensions import TypeAlias
+
+from libs.properties import (
+    BindableObjectProperty,
+    ClampedNumericProperty,
+    ContextualNumericProperty,
+    EnumProperty,
 )
 from libs.serialize import (
-    SerializableMixinProperty, list_of_serializable_serializer,
-    list_of_serializable_deserializer, enum_serializer, enum_deserializer,
-    hex_color_serializer, nested_serializer, _SerializableType
+    Deserializer,
+    FallbackCb,
+    SerializableMixin,
+    SerializableMixinProperty,
+    Serializer,
+    enum_deserializer,
+    enum_serializer,
+    hex_color_serializer,
+    list_of_serializable_deserializer,
+    list_of_serializable_serializer,
+    nested_serializer,
 )
-from libs.properties import ClampedNumericProperty, EnumProperty, ContextualNumericProperty, BindableObjectProperty
+from libs.typecheck import KivyCallback
+
+if TYPE_CHECKING:
+    from libs.kivy_json_orm.table_implementation import BaseTable, DatabaseRow
+
+TableSource: TypeAlias = Union[str, Callable[[], "BaseTable"]]
 
 
-def _resolve_table(table_source: Union[str, Callable], obj=None):
+def _resolve_table(table_source: TableSource, obj:Optional[SerializableMixin]=None) -> "BaseTable":
     if isinstance(table_source, str):
         return obj.database.get(table_source)
     return table_source()
 
-def table_ref_serializer(id_attr: str = "_id"):
-    def serialize(_self, value):
+def table_ref_serializer(id_attr:str="_id") -> Serializer:
+    def serialize(_self: SerializableMixin, value: Optional["DatabaseRow"]) -> Optional[int]:
         if value is None:
             return None
         return getattr(value, id_attr)
     return serialize
 
-def table_ref_deserializer(table_source: Union[str, Callable], _id_attr: str = "_id", fallback_fn: Callable = None):
-    def deserialize(self, id_value):
+def table_ref_deserializer(table_source: TableSource, id_attr:str="_id", fallback_fn:Optional[FallbackCb]=None) -> Deserializer:
+    def deserialize(self: SerializableMixin, id_value: Optional[int]) -> Optional["DatabaseRow"]:
         if id_value is None:
             return (fallback_fn(self.database) if isinstance(table_source, str) else fallback_fn()) if fallback_fn else None
         table = _resolve_table(table_source, self)
@@ -37,15 +68,15 @@ def table_ref_deserializer(table_source: Union[str, Callable], _id_attr: str = "
         return None
     return deserialize
 
-def list_of_refs_serializer(id_attr="_id"):
-    def serialize(_self, value):
+def list_of_refs_serializer(id_attr:str="_id") -> Serializer:
+    def serialize(_self: SerializableMixin, value: List["DatabaseRow"]):
         return [getattr(item, id_attr) for item in value]
     return serialize
 
-def list_of_refs_deserializer(table_source: Union[str, Callable], _id_attr="_id", fallback_fn=None):
-    def deserialize(self, value):
+def list_of_refs_deserializer(table_source: TableSource, id_attr:str="_id", fallback_fn:Optional[FallbackCb]=None) -> Deserializer:
+    def deserialize(self: SerializableMixin, value: List[int]) -> List["DatabaseRow"]:
         table = _resolve_table(table_source, self)
-        result = []
+        result: List["DatabaseRow"] = []
         for id_val in value:
             row = table.get_row_by_id(id_val)
             if row is not None:
@@ -55,29 +86,9 @@ def list_of_refs_deserializer(table_source: Union[str, Callable], _id_attr="_id"
         return result
     return deserialize
 
-def dict_of_refs_set_serializer(id_attr="_id"):
-    def serialize(_self, value):
-        return {k: [getattr(obj, id_attr) for obj in v] for k, v in value.items()}
-    return serialize
-
-def dict_of_refs_set_deserializer(table_source: Union[str, Callable], _id_attr="_id", fallback_fn=None):
-    def deserialize(self, value):
-        table = _resolve_table(table_source, self)
-        data = defaultdict(set)
-        for k_str, id_list in value.items():
-            k = int(k_str)
-            for id_val in id_list:
-                row = table.get_row_by_id(id_val)
-                if row is not None:
-                    data[k].add(row)
-                elif fallback_fn:
-                    data[k].add(fallback_fn(self.database) if isinstance(table_source, str) else fallback_fn())
-        return data
-    return deserialize
-
 
 class FieldMixin(SerializableMixinProperty):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         """kivy не позволяет обращаться к полю force_dispatch из python.
         Это Cython поле. Так что ничего не остается, кроме как поймать его на
         этапе создания поля. Тогда надо и comparator сохранять
@@ -86,7 +97,7 @@ class FieldMixin(SerializableMixinProperty):
         self.comparator = kwargs.get("comparator", None)
         super().__init__(*args, **kwargs)
 
-    def set(self, obj, value):
+    def set(self, obj: Union["BaseTable", "DatabaseRow"], value: Any) -> Any:
         result = super().set(obj, value)
         if hasattr(obj, "_it_is_table"):
             is_loading = obj.is_loading
@@ -124,7 +135,7 @@ class ContextualNumericField(FieldMixin, ContextualNumericProperty):
     pass
 
 class ListNestedField(FieldMixin, ListProperty):
-    def __init__(self, nested_cls, *args, **kwargs):
+    def __init__(self, nested_cls: Type[SerializableMixin], *args: Any, **kwargs: Any):
         self.nested_cls = nested_cls
         self.serialize = list_of_serializable_serializer()
         self.deserialize = list_of_serializable_deserializer(nested_cls)
@@ -133,33 +144,33 @@ class ListNestedField(FieldMixin, ListProperty):
 class ListRefField(FieldMixin, ListProperty):
     is_ref = True
 
-    def __init__(self, table_source: Union[str, Callable], *args, **kwargs):
+    def __init__(self, table_source: TableSource, *args: Any, **kwargs: Any):
         self.serialize = list_of_refs_serializer()
         self.deserialize = list_of_refs_deserializer(table_source)
         super().__init__(*args, **kwargs)
 
 class EnumField(FieldMixin, EnumProperty):
-    def __init__(self, enum_cls, *args, **kwargs):
+    def __init__(self, enum_cls: Type[Enum], *args: Any, **kwargs: Any):
         self.serialize = enum_serializer()
         self.deserialize = enum_deserializer(enum_cls)
         super().__init__(enum_cls, *args, **kwargs)
 
 class ColorField(FieldMixin, ColorProperty):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         self.serialize = hex_color_serializer()
         super().__init__(*args, **kwargs)
 
 class RefField(FieldMixin, ObjectProperty):
     is_ref = True
 
-    def __init__(self, table_source: Union[str, Callable], *args, **kwargs):
+    def __init__(self, table_source: TableSource, *args: Any, **kwargs: Any):
         self.serialize = table_ref_serializer()
         self.deserialize = table_ref_deserializer(table_source, fallback_fn=kwargs.get("fallback_fn", None))
         super().__init__(*args, **kwargs)
 
 
-def _nested_deserializer(prop) -> Callable[[dict], _SerializableType]:
-    def deserialize(self, value):
+def _nested_deserializer(prop: "NestedField") -> Deserializer:
+    def deserialize(self: SerializableMixin, value: Optional[Dict[str, Any]]):
         if value is None:
             return None
         current = getattr(self, prop.name, None)
@@ -170,13 +181,13 @@ def _nested_deserializer(prop) -> Callable[[dict], _SerializableType]:
         return prop.nested_cls.from_data(value) if value is not None else None
     return deserialize
 class NestedField(FieldMixin, ObjectProperty):
-    def __init__(self, nested_cls, *args, **kwargs):
+    def __init__(self, nested_cls: Type[SerializableMixin], *args: Any, **kwargs: Any):
         self.nested_cls = nested_cls
         self.serialize = nested_serializer()
         self.deserialize = _nested_deserializer(self)
         super().__init__(*args, **kwargs)
 
-    def set(self, obj, value):
+    def set(self, obj: SerializableMixin, value: Optional[SerializableMixin]) -> Any:
         if value is not None and hasattr(obj, "_table"):
             value._table = obj._table
         return super().set(obj, value)
@@ -185,7 +196,13 @@ class NestedField(FieldMixin, ObjectProperty):
 class BindableObjectRefField(FieldMixin, BindableObjectProperty):
     is_ref = True
 
-    def __init__(self, table_source: Union[str, Callable], *args, bind=None, on_set=None, **kwargs):
+    def __init__(
+            self,
+            table_source: TableSource,
+            *args: Any,
+            bind:Dict[str, Union[str, KivyCallback]]=None,
+            on_set:Optional[Union[str, Callable[[EventDispatcher], Any]]]=None,
+            **kwargs: Any):
         self.serialize = table_ref_serializer()
         self.deserialize = table_ref_deserializer(table_source, fallback_fn=kwargs.get("fallback_fn", None))
         super().__init__(*args, bind=bind, on_set=on_set, **kwargs)

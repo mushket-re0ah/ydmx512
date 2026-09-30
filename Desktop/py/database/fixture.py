@@ -1,14 +1,22 @@
 from collections import defaultdict
-from typing import NamedTuple, List, Tuple, Dict
+from typing import Dict, List, NamedTuple, Optional, Tuple
+
 from kivy.properties import AliasProperty
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from libs.serialize import SerializableMixin
-from libs.kivy_json_orm.fields import (
-    StringField, RefField, NumericField, ListRefField, BooleanField,
-    ClampedNumericField, ListNestedField
-)
-from database.fixture_param import RowFixtureParam
+
 from database import db
+from database.brand import RowBrand
+from database.fixture_param import RowFixtureParam
+from libs.kivy_json_orm.fields import (
+    BooleanField,
+    ClampedNumericField,
+    ListNestedField,
+    ListRefField,
+    NumericField,
+    RefField,
+    StringField,
+)
+from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
+from libs.serialize import SerializableMixin
 from misc import constants
 
 
@@ -18,36 +26,36 @@ class FixtureParamMapKey(NamedTuple):
 
 
 class FixtureChannelsGroup(SerializableMixin):
-    title = StringField()
-    repeat_count = NumericField(1)
-    linear = BooleanField(False)
-    param_list = ListRefField(lambda: db.fixture_param)
+    title: str = StringField()
+    repeat_count: int = NumericField(1)
+    linear: bool = BooleanField(False)
+    param_list: List[RowFixtureParam] = ListRefField(lambda: db.fixture_param)
 
 
 class RowFixture(DatabaseRow):
-    title = StringField("Noname")
-    note = StringField("")
-    brand = RefField("brand", default_factory=lambda: db.brand.get_default_row())
-    icon = StringField("none.png", allownone=True)
-    temp_dependence = ClampedNumericField(
+    title: str = StringField("Noname")
+    note: str = StringField("")
+    brand: RowBrand = RefField("brand", default_factory=lambda: db.brand.get_default_row())
+    icon: Optional[str] = StringField("none.png", allownone=True)
+    temp_dependence: int = ClampedNumericField(
         constants.FIXTURE_TEMP_DEPENDENCE_DEFAULT,
         constants.FIXTURE_TEMP_DEPENDENCE_MIN,
         constants.FIXTURE_TEMP_DEPENDENCE_MAX
     )
     channels_groups: List[FixtureChannelsGroup] = ListNestedField(FixtureChannelsGroup)
 
-    def get_param_list_unpacked(self) -> Tuple[RowFixtureParam]:
-        param_list_unpacked = []
+    def get_param_list_unpacked(self) -> Tuple[RowFixtureParam, ...]:
+        param_list_unpacked: List[RowFixtureParam] = []
         for group in self.channels_groups:
             param_list_unpacked += group.param_list * group.repeat_count
         return tuple(param_list_unpacked)
-    param_list_unpacked = AliasProperty(
+    param_list_unpacked: Tuple[RowFixtureParam, ...] = AliasProperty(
         get_param_list_unpacked, None,
         bind=["channels_groups"], cache=True
     )
 
-    def get_param_map(self) -> Dict[RowFixtureParam, List[int]]:
-        param_map = defaultdict(list)
+    def get_param_map(self) -> Dict[FixtureParamMapKey, List[int]]:
+        param_map: Dict[FixtureParamMapKey, List[int]] = defaultdict(list)
         index = 0
         for group in self.channels_groups:
             for _ in range(group.repeat_count):
@@ -56,14 +64,14 @@ class RowFixture(DatabaseRow):
                     param_map[param_key].append(index)
                     index += 1
         return param_map
-    param_map = AliasProperty(
+    param_map: Dict[FixtureParamMapKey, List[int]] = AliasProperty(
         get_param_map,
         bind=["channels_groups"], cache=True
     )
 
     def get_is_dynamic(self) -> bool:
         return any(param.is_dynamic for param in self.param_list_unpacked)
-    is_dynamic = AliasProperty(
+    is_dynamic: bool = AliasProperty(
         get_is_dynamic, None,
         bind=["param_list_unpacked"], cache=True
     )

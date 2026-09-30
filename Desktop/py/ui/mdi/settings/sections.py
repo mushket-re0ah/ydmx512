@@ -2,6 +2,7 @@ from kivy.properties import ObjectProperty, StringProperty
 from kivy.lang import Builder
 from libs.uix.scroll_layout import ScrollLayout
 from libs.uix.button import HoverToggleButton
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/settings/sections.kv")
@@ -18,8 +19,8 @@ class SettingsSectionToggle(HoverToggleButton):
 class SettingsSections(ScrollLayout):
     settings = ObjectProperty()
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.scrollview.data = [
             {
                 "text": "Резервные копии",

@@ -1,45 +1,51 @@
+from typing import List
+
 from kivy.event import EventDispatcher
-from kivy.properties import NumericProperty, AliasProperty
+from kivy.properties import AliasProperty, NumericProperty
+
 from libs.properties import ClampedNumericProperty
 
 
-BeatCounter = None
-loop = None
+def _raise_error(*args, **kwargs):
+    raise RuntimeError("beat_counter module is not initialized")
+BeatCounter = _raise_error
+loop = _raise_error
 def init(TEMP_MINIMUM: int, TEMP_MAXIMUM: int, BEATS_COUNT_MINIMUM: int, BEATS_COUNT_MAXIMUM: int, FRAMES_IN_BEAT: int):
     global BeatCounter
-    if BeatCounter is not None:
+    if BeatCounter is not _raise_error:
         raise Exception("beat_counter module already initialized")
     FRAMES_IN_HALFBEAT = FRAMES_IN_BEAT // 2
 
     class BeatCounter(EventDispatcher):
-        temp = ClampedNumericProperty(120, TEMP_MINIMUM, TEMP_MAXIMUM)
-        beats_count = ClampedNumericProperty(4, BEATS_COUNT_MINIMUM, BEATS_COUNT_MAXIMUM)
-        _beat_now = NumericProperty(0)
-        _frame_now = NumericProperty(0)
+        temp: float = ClampedNumericProperty(120, TEMP_MINIMUM, TEMP_MAXIMUM)
+        beats_count: int = ClampedNumericProperty(4, BEATS_COUNT_MINIMUM, BEATS_COUNT_MAXIMUM)
+        _beat_now: int = NumericProperty(0)
+        _frame_now: int = NumericProperty(0)
 
-        _frame_counter = 0.0
+        _frame_counter: float = 0.0
 
         __events__ = ("on_halfbeat", "on_downbeat",)
 
-        frames_per_seconds = AliasProperty(
+        frames_per_seconds: float = AliasProperty(
             lambda self: (self.temp / 60) * FRAMES_IN_BEAT, None,
             bind=("temp",), cache=True
         )
 
-        def set_beat_now(self, beat_now: int):
+        def set_beat_now(self, beat_now: int) -> bool:
             self.was_halfbeat = False
             if beat_now >= self.beats_count:
                 self._beat_now = beat_now % self.beats_count
                 self.dispatch("on_downbeat")
             else:
                 self._beat_now = beat_now
-        beat_now = AliasProperty(
+            return True
+        beat_now: int = AliasProperty(
             lambda self: self._beat_now, set_beat_now,
             bind=("_beat_now",)
         )
 
-        was_halfbeat = False
-        def set_frame_now(self, frame_now: int):
+        was_halfbeat: bool = False
+        def set_frame_now(self, frame_now: int) -> bool:
             if (frame_now // (FRAMES_IN_BEAT * (self.beat_now + 1))) > 0:
                 self.beat_now += (frame_now - self._frame_now) // FRAMES_IN_BEAT + 1
             self._frame_now = frame_now % (
@@ -47,7 +53,8 @@ def init(TEMP_MINIMUM: int, TEMP_MAXIMUM: int, BEATS_COUNT_MINIMUM: int, BEATS_C
             if not self.was_halfbeat:
                 if (frame_now % FRAMES_IN_BEAT) >= FRAMES_IN_HALFBEAT:
                     self.dispatch("on_halfbeat")
-        frame_now = AliasProperty(
+            return True
+        frame_now: int = AliasProperty(
             lambda self: self._frame_now, set_frame_now,
             bind=("_frame_now",)
         )
@@ -80,7 +87,7 @@ def init(TEMP_MINIMUM: int, TEMP_MAXIMUM: int, BEATS_COUNT_MINIMUM: int, BEATS_C
         def unlink(self):
             _remove_beat_counter(self)
 
-    _beat_counter_list = []
+    _beat_counter_list: List[BeatCounter] = []
     def loop(time_diff: float):
         for beat_counter in _beat_counter_list[:]:
             beat_counter.tick(time_diff)

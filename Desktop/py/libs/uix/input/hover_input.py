@@ -1,12 +1,14 @@
+from typing import Any, List, Tuple
+
+from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import BooleanProperty
-from kivy.clock import Clock
-from libs.uix.input.textinput import CentralizedHotkeyTextInput
-from libs.uix.context_menu import (
-    ContextMenu, ContextMenuTemplates
-)
-from libs.uix import colorscheme as uix_cs
+
 from libs.animation import StatefulColorProperty
+from libs.typecheck import RGBA
+from libs.uix import colorscheme as uix_cs
+from libs.uix.context_menu import ContextMenu, ContextMenuItem, ContextMenuTemplates
+from libs.uix.input.textinput import CentralizedHotkeyTextInput
 
 Builder.load_string("""
 <-HoverInput>:  # CentralizedHotkeyTextInput
@@ -25,9 +27,9 @@ Builder.load_string("""
 
 
 class HoverInput(CentralizedHotkeyTextInput):
-    visible_focus = BooleanProperty(False)
+    visible_focus: bool = BooleanProperty(False)
 
-    background_color = StatefulColorProperty(
+    background_color: RGBA = StatefulColorProperty(
         normal=uix_cs.HoverInput.background_color_normal,
         states={
             "disabled": uix_cs.HoverInput.background_color_disabled,
@@ -35,7 +37,7 @@ class HoverInput(CentralizedHotkeyTextInput):
             "hover": uix_cs.HoverInput.background_color_hover,
         }
     )
-    foreground_color = StatefulColorProperty(
+    foreground_color: RGBA = StatefulColorProperty(
         normal=uix_cs.HoverInput.foreground_color_normal,
         states={
             "disabled": uix_cs.HoverInput.foreground_color_disabled,
@@ -43,7 +45,7 @@ class HoverInput(CentralizedHotkeyTextInput):
             "hover": uix_cs.HoverInput.foreground_color_hover,
         }
     )
-    border_color = StatefulColorProperty(
+    border_color: RGBA = StatefulColorProperty(
         normal=uix_cs.HoverInput.border_color_normal,
         states={
             "disabled": uix_cs.HoverInput.border_color_disabled,
@@ -52,20 +54,20 @@ class HoverInput(CentralizedHotkeyTextInput):
         }
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self.bind(focus=self.focus_set_global)
 
-    def focus_set_global(self, _, value):
-        self.visible_focus = value
+    def focus_set_global(self, _, focus: bool):
+        self.visible_focus = focus
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos) and touch.button == "right":
             self.open_context_menu(touch.pos)
             return True
         return super().on_touch_down(touch)
 
-    def open_context_menu(self, pos: tuple):
+    def open_context_menu(self, pos: Tuple[float, float]):
         if self.disabled:
             return
         selection_start = self.selection_from
@@ -87,7 +89,7 @@ class HoverInput(CentralizedHotkeyTextInput):
     def _create_context_menu(self) -> ContextMenu:
         return ContextMenu(items=self._create_context_menu_items(clean_btn=True))
 
-    def _create_context_menu_items(self, clean_btn=False) -> ContextMenu:
+    def _create_context_menu_items(self, clean_btn:bool=False) -> List[ContextMenuItem]:
         items = [
             ContextMenuTemplates.button(
                 text="Отменить",

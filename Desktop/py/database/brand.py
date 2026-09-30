@@ -1,9 +1,9 @@
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
 from libs.kivy_json_orm.fields import StringField
+from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 
 
 class RowBrand(DatabaseRow):
-    title = StringField("Без названия")
+    title: str = StringField("Без названия")
 
 
 class TableBrand(DatabaseTable):

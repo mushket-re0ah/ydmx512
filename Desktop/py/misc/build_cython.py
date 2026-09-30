@@ -1,6 +1,6 @@
 def clean_build():
-    import os
     import glob
+    import os
     import shutil
     if os.path.exists("build"):
         shutil.rmtree("build")
@@ -12,8 +12,9 @@ def clean_build():
 def do_cythonize():
     import os
     import sys
-    from setuptools import Extension, setup
+
     from Cython.Build import cythonize
+    from setuptools import Extension, setup
 
     # работаем от корня проекта независимо от того, откуда запущен скрипт
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

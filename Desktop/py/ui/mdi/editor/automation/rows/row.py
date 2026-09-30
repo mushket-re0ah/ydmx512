@@ -16,7 +16,7 @@ from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
 from libs.mouse_manager.hover import HoverBehavior
 from libs.animation import AnimationBehavior
 from libs.dmx512.misc import FullAddress
-from libs.kivy_utils import AutoUnbindBehavior
+from libs.kivy_mixins import AutoUnbindBehavior
 from libs.animation import StatefulColorProperty
 from libs.uix.layouts import ModalBoxLayout
 from libs.mouse_manager import cursor_manager
@@ -28,6 +28,7 @@ from ui.mdi.editor.automation.tools import (
     InterpatchPhaseTool, SetRowActiveTool
 )
 from ui.mdi.editor.automation.rows.row_data import RowParamData
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/editor/automation/rows/row_param.kv")
@@ -112,7 +113,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
     LINE_DETECTION_PRECISION = 10
     line_under_cursor = False
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         draw_ev = Clock.create_trigger(self.draw, -1)
         self.draw_ev = draw_ev
         self.bind(
@@ -334,7 +335,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             self.remove_widget(self.selector)
             self.selector = None
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos):
             self.focus = True
             self.row_panel.select_one_row(self.row_param.data_row)
@@ -359,12 +360,12 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             self.automation.tool_action("on_touch_down", touch, self)
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if self.focus:
             self.automation.tool_action("on_touch_move", touch, self)
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if self.focus:
             self.focus = False
             self.automation.tool_action("on_touch_up", touch, self)
@@ -399,7 +400,7 @@ class FixtureParamToggle(HoverToggleButton):
     def _do_press(self, *_):
         return
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos) and touch.button == "right":
             self.open_context_menu()
             return False
@@ -452,7 +453,7 @@ class AddressListBoxContextMenu(ModalBoxLayout):
     address_list = ObjectProperty()
     box = ObjectProperty()
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         for fulladdress in self.address_list:
             toggle = RowParamAddressToggle(
                 row_param=self.row_param,
@@ -465,7 +466,7 @@ class AddressListBoxContextMenu(ModalBoxLayout):
 class AddressListBox(RecycleRestrictedScrollView):
     address_list = ObjectProperty()
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos) and touch.button == "right" and not self.disabled:
             self.open_context_menu()
             return False
@@ -562,7 +563,7 @@ class RowParam(RecycleDataViewBehavior, AutoUnbindBehavior, BoxLayout):
         else:
             self._input_set_interpatch_x(False)
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if self.automation.check_tool(InterpatchPhaseTool):
             self.automation.tool_action("finish")
         return super().on_touch_up(touch)

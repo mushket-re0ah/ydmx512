@@ -1,14 +1,16 @@
-from typing import Optional
+from typing import Optional, Type
+
+from kivy.lang import Builder
 from kivy.properties import NumericProperty, ObjectProperty
 from kivy.uix.widget import Widget
-from kivy.lang import Builder
-from libs.uix.workspace_manager import WorkspaceManager, WorkspaceBehavior
+from typing_extensions import Self
+
+from libs.kivy_mixins import AutoUnbindBehavior
 from libs.uix.button import HoverToggleButton
-from libs.uix.mdi.layout_mode import TilingLayoutMode, FloatingLayoutMode
+from libs.uix.mdi.layout_mode import FloatingLayoutMode, TilingLayoutMode
 from libs.uix.mdi.mdi_window import MDIWindow
 from libs.uix.mdi.workspace_mdi_container import WorkspaceMDIContainer
-from libs.kivy_utils import AutoUnbindBehavior
-
+from libs.uix.workspace_manager import WorkspaceBehavior, WorkspaceManager
 
 Builder.load_string("""
 #:import TilingLayoutMode libs.uix.mdi.layout_mode.TilingLayoutMode
@@ -34,7 +36,7 @@ Builder.load_string("""
 )
 
 class LayoutModeSwitcher(HoverToggleButton):
-    mdi_manager = ObjectProperty(rebind=True)
+    mdi_manager: "WorkspaceMDIContainerManager" = ObjectProperty(rebind=True)
 
     def on_press(self):
         workspace = self.mdi_manager.workspace_now
@@ -45,17 +47,17 @@ class LayoutModeSwitcher(HoverToggleButton):
         self.mdi_manager.refresh_menu()
 
 class TilingOrientationSwitcher(HoverToggleButton):
-    mdi_manager = ObjectProperty(rebind=True)
+    mdi_manager: "WorkspaceMDIContainerManager" = ObjectProperty(rebind=True)
 
 
 class WorkspaceMDIContainerManager(AutoUnbindBehavior, WorkspaceManager):
-    workspace_cls = ObjectProperty(WorkspaceMDIContainer)
-    workspace_count = NumericProperty(9)
-    window_switcher = ObjectProperty()
-    orientation_switcher = ObjectProperty(allownone=True)
+    workspace_cls: Type[WorkspaceMDIContainer] = ObjectProperty(WorkspaceMDIContainer)
+    workspace_count: int = NumericProperty(9)
+    window_switcher: LayoutModeSwitcher = ObjectProperty()
+    orientation_switcher: TilingOrientationSwitcher = ObjectProperty(allownone=True)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.menu.add_widget(Widget(size_hint=(1, 1)))
         self.window_switcher = LayoutModeSwitcher(mdi_manager=self)
         self.menu.add_widget(self.window_switcher)
@@ -193,7 +195,7 @@ class WorkspaceMDIContainerManager(AutoUnbindBehavior, WorkspaceManager):
 #         mdi_toggle_3 = ObjectProperty()
 #         mdi_toggle_4 = ObjectProperty()
 
-#         def on_kv_post(self, _):
+#         def on_kv_post(self, base_widget: Self):
 #             self.mdi_1 = TestMDIWindow(title="test#1", hidden=True)
 #             self.mdi_2 = TestMDIWindow(title="test#2", hidden=True)
 #             self.mdi_3 = TestMDIWindow(title="test#3", hidden=True)

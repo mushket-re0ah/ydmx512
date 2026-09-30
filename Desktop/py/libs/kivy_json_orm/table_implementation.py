@@ -1,20 +1,27 @@
-from typing import Optional, Type
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
+
 from kivy.properties import NumericProperty
-from libs.serialize import SerializableMixin
+
 from libs.file_utils import atomic_json_save, json_load
-from libs.kivy_utils import atomic_setattrs, AutoUnbindBehavior
-from libs.kivy_json_orm.fields import NumericField, DictField
+from libs.kivy_json_orm.fields import DictField, NumericField
+from libs.kivy_mixins import AutoUnbindBehavior
+from libs.kivy_utils import atomic_setattrs
+from libs.serialize import SerializableMixin
+
+if TYPE_CHECKING:
+    from libs.kivy_json_orm.database import Database
 
 
 class BaseTable(SerializableMixin):
-    name = None
-    filename = None
-    filepath = None
-    _save_flag = False
-    _events_block = True
-    is_loading = True
-    database = None
-    _it_is_table = True
+    name: Optional[str] = None
+    filename: Optional[str] = None
+    filepath: Optional[Path] = None
+    _save_flag: bool = False
+    _events_block: bool = True
+    is_loading: bool = True
+    database: Optional["Database"] = None
+    _it_is_table: bool = True
 
     def init(self):
         self.filepath = self._make_filepath()
@@ -29,24 +36,30 @@ class BaseTable(SerializableMixin):
         if self._save_flag:
             self._save()
 
-    def edit(self, **kwargs):
+    def edit(self, **kwargs: Any):
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.save()
 
-    def _make_filepath(self):
+    def _make_filepath(self) -> Path:
+        if self.database is None:
+            raise ValueError("table is not registered")
         return self.database.root_dir / self.filename
 
     def _save(self):
+        if self.filepath is None:
+            raise ValueError("table is not registered")
         atomic_json_save(self.filepath, self.serialize())
         self._save_flag = False
 
     def _load(self):
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
 class ConfigTable(BaseTable):
     def _load(self):
+        if self.filepath is None:
+            raise ValueError("table is not registered")
         self.is_loading = True
         json_data = json_load(self.filepath)
         if json_data:
@@ -56,11 +69,11 @@ class ConfigTable(BaseTable):
 
 class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
     _id: int = NumericProperty()
-    _table = None
+    _table: "DatabaseTable"
 
     __events__ = ("on_remove",)
 
-    def __init__(self, _id: int, table, **kwargs):
+    def __init__(self, _id: int, table: "DatabaseTable", **kwargs: Any):
         self._id = _id
         self._table = table
         super().__init__(**kwargs)
@@ -68,7 +81,7 @@ class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
     def on_remove(self):
         pass
 
-    def edit(self, **kwargs):
+    def edit(self, **kwargs: Any):
         if len(kwargs) == 1:
             for key, value in kwargs.items():
                 setattr(self, key, value)
@@ -79,7 +92,7 @@ class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
     def save(self):
         self._table.save()
 
-    def copy(self, **kwargs) -> "DatabaseRow":
+    def copy(self, **kwargs: Any) -> "DatabaseRow":
         return self._table.add_row(
             **{attr: kwargs[attr] if attr in kwargs else getattr(self, attr)
                                   for attr in self.serialization_keys}
@@ -90,7 +103,7 @@ class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
         self.dispatch("on_remove")
 
     @property
-    def database(self):
+    def database(self) -> "Database":
         return self._table.database
 
     def __repr__(self):
@@ -100,22 +113,22 @@ class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
 
 class DatabaseTable(BaseTable):
     cls_row: Type[DatabaseRow]
-    counter_id = NumericField(1)
+    counter_id: int = NumericField(1)
 
-    def deserialize_rows(self, rows):
-        result = {}
+    def deserialize_rows(self, rows: Dict[int, Dict[str, Any]]) -> Dict[int, DatabaseRow]:
+        result: Dict[int, DatabaseRow] = {}
         for _id, row_data in rows.items():
             row = self.cls_row(int(_id), self)
             row.deserialize(row_data)
             result[int(_id)] = row
         return result
 
-    rows = DictField(
+    rows: Dict[int, DatabaseRow] = DictField(
         serialize=lambda self, rs: {_id: r.serialize() for _id, r in rs.items()},
         deserialize=deserialize_rows
     )
 
-    default_rows = []  # Должен быть переопределен
+    default_rows: List[Dict[str, Any]] = []  # Должен быть переопределен
 
     __events__ = ("on_add_row", "on_remove_row")
 
@@ -125,7 +138,7 @@ class DatabaseTable(BaseTable):
     def on_remove_row(self, removed_row: DatabaseRow):
         pass
 
-    def add_row(self, **kwargs) -> DatabaseRow:
+    def add_row(self, **kwargs: Any) -> DatabaseRow:
         _id = self._get_next_id()
         row = self.cls_row(_id, self)
         self.rows[_id] = row
@@ -149,11 +162,13 @@ class DatabaseTable(BaseTable):
 
     def get_row_by_attribute(self,
                              attr: str,
-                             value: any) -> Optional[DatabaseRow]:
+                             value: Any) -> Optional[DatabaseRow]:
         return next((i for i in self.rows.values() if
                      getattr(i, attr) == value), None)
 
     def _load(self):
+        if self.filepath is None:
+            raise ValueError("table is not registered")
         self.is_loading = True
         json_data = json_load(self.filepath)
         self.counter_id = 1
@@ -173,7 +188,7 @@ class DatabaseTable(BaseTable):
         for kwargs in self.default_rows:
             self.add_row(**kwargs)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Optional[DatabaseRow]:
         if name.startswith('by_'):
             attr = name[3:]
             return lambda val: self.get_row_by_attribute(attr, val)

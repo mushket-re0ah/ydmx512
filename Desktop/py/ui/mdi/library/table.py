@@ -1,5 +1,6 @@
 from kivy.properties import ObjectProperty
 from libs.uix.database_table import DatabaseTableUi
+from typing_extensions import Self
 
 
 class LibraryTable(DatabaseTableUi):
@@ -17,8 +18,8 @@ class LibraryTable(DatabaseTableUi):
             **kwargs
         )
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.bind(selected_rows=self.save_context)
         self.scroll_layout.scrollview.scroll_y = self.context.scroll_y
         self.scroll_layout.scrollview.bind(_scroll_y=self.save_context)

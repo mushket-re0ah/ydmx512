@@ -1,9 +1,18 @@
-from kivy.properties import ObjectProperty, StringProperty, ColorProperty
+from typing import Type
+
+from kivy.lang import Builder
+from kivy.properties import ColorProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
-from libs.uix.device_list_panel import DeviceUi, DeviceListPanel
-from libs.uix.button import HoverToggleButton
+from typing_extensions import Self
+
+from libs.serial.observer import SerialObserver
 from libs.serial.observer import observer as serial_observer
+from libs.typecheck import RGBA
+from libs.uix.button import HoverToggleButton
+from libs.uix.device_list_panel import DeviceListPanel, DeviceUi
 from misc import colorscheme
+
+Builder.load_file("ui/main_ribbon/serial_devices.kv")
 
 
 class SerialUi(DeviceUi):
@@ -19,16 +28,18 @@ class TitleFilterSerialDeviceBox(BoxLayout):
 
 
 class SerialDevices(DeviceListPanel):
-    device_cls = ObjectProperty(SerialUi)
-    observer = ObjectProperty(serial_observer)
+    device_cls: Type[DeviceUi] = ObjectProperty(SerialUi)
+    observer: SerialObserver = ObjectProperty(serial_observer)
 
-    title = StringProperty("DMX устройства")
-    bg_scrollview = ColorProperty(colorscheme.SerialDevices.bg)
+    title: str = StringProperty("DMX устройства")
+    bg_scrollview: RGBA = ColorProperty(colorscheme.SerialDevices.bg)
+    title_filter_device_box: TitleFilterSerialDeviceBox = ObjectProperty()
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.remove_widget(self.section_label)
         box = TitleFilterSerialDeviceBox()
+        self.title_filter_device_box = box
         box.add_widget(self.section_label)
         box.add_widget(SerialDevicesNameFilterToggle())
         self.add_widget(box, 1)

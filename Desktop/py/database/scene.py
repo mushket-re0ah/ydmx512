@@ -1,25 +1,27 @@
 import time
 from pathlib import Path
+from typing import Any, Optional, Tuple
+
 from kivy.clock import Clock
 from kivy.properties import AliasProperty
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from libs.midi import midi
+
 from libs.beat_counter import BeatCounter
-from libs.kivy_json_orm.fields import (
-    StringField, NumericField, ClampedNumericField, RefField
-)
+from libs.kivy_json_orm.fields import ClampedNumericField, NumericField, RefField, StringField
+from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 from libs.kivy_utils import detach_event_dispatcher
+from libs.midi import midi
+from libs.typecheck import Number, OptionalNumber
 from misc import constants
 
 
 class RowScene(DatabaseRow):
-    title = StringField("default")
-    note = StringField("")
-    date_add = NumericField()
-    date_edit = NumericField()
-    temp = ClampedNumericField(120, constants.TEMP_MINIMUM, constants.TEMP_MAXIMUM)
-    dimmer = ClampedNumericField(100, constants.DIMMER_MINIMUM, constants.DIMMER_MAXIMUM)
-    beats_count = ClampedNumericField(4, constants.BEATS_COUNT_MINIMIUM, constants.BEATS_COUNT_MAXIMUM)
+    title: str = StringField("default")
+    note: str = StringField("")
+    date_add: float = NumericField()
+    date_edit: float = NumericField()
+    temp: Number = ClampedNumericField(120, constants.TEMP_MINIMUM, constants.TEMP_MAXIMUM)
+    dimmer: Number = ClampedNumericField(100, constants.DIMMER_MINIMUM, constants.DIMMER_MAXIMUM)
+    beats_count: int = ClampedNumericField(4, constants.BEATS_COUNT_MINIMIUM, constants.BEATS_COUNT_MAXIMUM)
 
     def on_temp(self, _, temp: int):
         if self._table.scene_now is self:
@@ -33,7 +35,7 @@ class RowScene(DatabaseRow):
         if self._table.scene_now is self:
             self._table.scene_now_beats_count = beats_count
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.date_add = time.time()
         self.date_edit = time.time()
@@ -43,7 +45,7 @@ class TableScene(DatabaseTable):
     cls_row = RowScene
     filename = "scene.json"
 
-    scene_now = RefField(
+    scene_now: RowScene = RefField(
         table_source="scene",
         deserialize=lambda self, scene_now_id: (
             self.get_row_by_id(scene_now_id)
@@ -52,8 +54,8 @@ class TableScene(DatabaseTable):
     )
     __events__ = ("on_scene_change",)
 
-    scene_now_bc = None
-    def __init__(self, scene_tables_order: tuple, **kwargs):
+    scene_now_bc: Optional[BeatCounter] = None
+    def __init__(self, scene_tables_order: Tuple[str, ...], **kwargs: Any):
         self.SCENE_TABLES_ORDER = scene_tables_order
         super().__init__(**kwargs)
         self.cache_channel_126 = 0
@@ -80,7 +82,7 @@ class TableScene(DatabaseTable):
         self.scene_now_bc = scene_now_bc
 
     def on_midi_set_global_temp(self, _, channel:int, intensive:int):
-        res = None
+        res: OptionalNumber = None
         if channel == 126:
             intensive = int(max(0, intensive))
             cache_channel_126 = intensive
@@ -95,8 +97,10 @@ class TableScene(DatabaseTable):
             self.cache_channel_127 = cache_channel_127
             res = cache_channel_126 + cache_channel_127 if cache_channel_126 + cache_channel_127 > 0 else 1
         def set_temp(_):
+            if res is None:
+                raise ValueError("how?")
             self.scene_now_temp = int(res)
-        if res:
+        if res is not None:
             Clock.schedule_once(set_temp, -1)
 
     def change_scene(self, new_scene: RowScene):
@@ -112,11 +116,11 @@ class TableScene(DatabaseTable):
     def get_scene_now_temp(self) -> float:
         return self.scene_now.temp
 
-    def set_scene_now_temp(self, temp: float):
+    def set_scene_now_temp(self, temp: float) -> bool:
         if self.scene_now.temp != temp:
             self.scene_now.edit(temp=temp)
         return True
-    scene_now_temp = AliasProperty(
+    scene_now_temp: Number = AliasProperty(
         lambda self: self.scene_now.temp, set_scene_now_temp,
         bind=["scene_now"]
     )
@@ -125,7 +129,7 @@ class TableScene(DatabaseTable):
         if self.scene_now.dimmer != dimmer:
             self.scene_now.edit(dimmer=dimmer)
         return True
-    scene_now_dimmer = AliasProperty(
+    scene_now_dimmer: Number = AliasProperty(
         lambda self: self.scene_now.dimmer, set_scene_now_dimmer,
         bind=["scene_now"]
     )
@@ -134,7 +138,7 @@ class TableScene(DatabaseTable):
         if self.scene_now.beats_count != beats_count:
             self.scene_now.edit(beats_count=beats_count)
         return True
-    scene_now_beats_count = AliasProperty(
+    scene_now_beats_count: int = AliasProperty(
         lambda self: self.scene_now.beats_count, set_scene_now_beats_count,
         bind=["scene_now"]
     )
@@ -149,7 +153,7 @@ class SceneTableMixin:
     Наследник может переопределить on_scene_change для пост-обработки
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.register_event_type("on_scene_change")
 
@@ -175,7 +179,7 @@ class SceneRowMixin:
     """Строка сценозависимой таблицы. При выгрузке сцены снимает бинды.
     Требует дополнительного наследования от AutoUnbindBehavior.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.register_event_type("on_unload")
 

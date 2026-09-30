@@ -1,32 +1,47 @@
-from typing import Optional, List
-from libs.dmx512_render import render_interpolation
-from libs.dmx512_render.misc import XYGrid, DMXRenderDot, InterpolationType
+from typing import Callable, List, Optional
+
+from typing_extensions import TypeAlias
+
 from libs import logger
+from libs.dmx512_render import render_interpolation
+from libs.dmx512_render.misc import (
+    DenormalizedDMXRenderDot,
+    DMXRenderDot,
+    InterpolationType,
+    XYGrid,
+)
+
+DotsPrePipelineCb: TypeAlias = Callable[[List[DMXRenderDot]], List[DMXRenderDot]]
+DotsPostPipelineCb: TypeAlias = Callable[[List[DenormalizedDMXRenderDot]], List[DenormalizedDMXRenderDot]]
+RenderPipelineCb: TypeAlias = Callable[[bytes], bytes]
 
 
 class RenderPipeline:
+    _pre_process_dots_pipeline: List[DotsPrePipelineCb]
+    _post_process_dots_pipeline: List[DotsPostPipelineCb]
+    _post_process_render_pipeline: List[RenderPipelineCb]
     def __init__(
         self,
         xy_grid: Optional[XYGrid]=None,
-        pre_process_dots_pipeline=None,
-        post_process_dots_pipeline=None,
-        post_process_render_pipeline=None,
+        pre_process_dots_pipeline: Optional[List[DotsPrePipelineCb]]=None,
+        post_process_dots_pipeline: Optional[List[DotsPostPipelineCb]]=None,
+        post_process_render_pipeline: Optional[List[RenderPipelineCb]]=None,
     ):
         self.xy_grid = xy_grid
         self._pre_process_dots_pipeline = pre_process_dots_pipeline or []
         self._post_process_dots_pipeline = post_process_dots_pipeline or []
         self._post_process_render_pipeline = post_process_render_pipeline or []
 
-    def set_pre_process_dots_pipeline(self, pipeline):
+    def set_pre_process_dots_pipeline(self, pipeline: List[DotsPrePipelineCb]):
         self._pre_process_dots_pipeline = pipeline
 
-    def set_post_process_dots_pipeline(self, pipeline):
+    def set_post_process_dots_pipeline(self, pipeline: List[DotsPostPipelineCb]):
         self._post_process_dots_pipeline = pipeline
 
-    def set_post_process_render_pipeline(self, pipeline):
+    def set_post_process_render_pipeline(self, pipeline: List[RenderPipelineCb]):
         self._post_process_render_pipeline = pipeline
 
-    def processing(self, dots: List[DMXRenderDot], default_value: int, xy_grid: XYGrid=None) -> bytes:
+    def processing(self, dots: List[DMXRenderDot], default_value: int, xy_grid: Optional[XYGrid]=None) -> bytes:
         if not xy_grid:
             xy_grid = self.xy_grid
         if not xy_grid:
@@ -40,13 +55,13 @@ class RenderPipeline:
         if not dots:
             return self._empty_dots_render(xy_grid, default_value)
         dots = self._pre_process_dots(dots)
-        dots = self._denormalize_dots(xy_grid, dots)
-        dots = self._post_process_dots(dots)
-        if len(dots) == 1:
-            return self._fill_bound_render(x_size, dots[0].y)
-        render = self._render(dots)
-        render = self._fill_bound_render(dots[0].x, dots[0].y) + render
-        render = render + self._fill_bound_render(xy_grid.size_x_getter() - 1 - dots[-1].x, dots[-1].y)
+        denorm_dots = self._denormalize_dots(xy_grid, dots)
+        denorm_dots = self._post_process_dots(denorm_dots)
+        if len(denorm_dots) == 1:
+            return self._fill_bound_render(x_size, denorm_dots[0].y)
+        render = self._render(denorm_dots)
+        render = self._fill_bound_render(denorm_dots[0].x, denorm_dots[0].y) + render
+        render = render + self._fill_bound_render(xy_grid.size_x_getter() - 1 - denorm_dots[-1].x, denorm_dots[-1].y)
         render = self._post_process_render(render)
         return render
 
@@ -55,7 +70,7 @@ class RenderPipeline:
             dots = pipe(dots)
         return dots
 
-    def _post_process_dots(self, dots: List[DMXRenderDot]) -> List[DMXRenderDot]:
+    def _post_process_dots(self, dots: List[DenormalizedDMXRenderDot]) -> List[DenormalizedDMXRenderDot]:
         for pipe in self._post_process_dots_pipeline:
             dots = pipe(dots)
         return dots
@@ -68,13 +83,13 @@ class RenderPipeline:
     def _fill_bound_render(self, count: int, value: int) -> bytes:
         return bytes([value]) * count
 
-    def _denormalize_dots(self, xy_grid: XYGrid, dots: List[DMXRenderDot]):
-        return [DMXRenderDot(xy_grid.to_frame_x(dot.x), xy_grid.to_frame_y(dot.y), dot.dot_type) for dot in dots]
+    def _denormalize_dots(self, xy_grid: XYGrid, dots: List[DMXRenderDot]) -> List[DenormalizedDMXRenderDot]:
+        return [DenormalizedDMXRenderDot(xy_grid.to_frame_x(dot.x), xy_grid.to_frame_y(dot.y), dot.dot_type) for dot in dots]
 
     def _empty_dots_render(self, xy_grid: XYGrid, default_value: int) -> bytes:
         return bytes([default_value]) * xy_grid.size_x_getter()
 
-    def _render(self, dots: List[DMXRenderDot]) -> bytes:
+    def _render(self, dots: List[DenormalizedDMXRenderDot]) -> bytes:
         render = bytearray()
 
         LINETYPE = InterpolationType.LINEAR

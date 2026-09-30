@@ -1,20 +1,38 @@
 import bisect
-from typing import Optional, List, Iterable
-from kivy.properties import ObjectProperty, NumericProperty, AliasProperty
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
+
+from kivy.properties import AliasProperty, NumericProperty, ObjectProperty
 from kivy.utils import boundary
+
 from database import db
+from database.fixture import RowFixture
+from database.fixture_param import RowFixtureParam
+from database.patch import RowPatch
+from database.phase_curve_type import RowPhaseCurveType
+from libs.dmx512_render import (
+    DMXRenderDot,
+    InterpolationType,
+    RenderPipeline,
+    XYGrid,
+    apply_cycle_shift,
+)
 from libs.kivy_json_orm.fields import (
-    ListField, RefField, DictField, ObjectField, BooleanField,
-    ClampedNumericField
+    BooleanField,
+    ClampedNumericField,
+    DictField,
+    ListField,
+    ObjectField,
+    RefField,
 )
 from libs.serialize import SerializableMixin
-from libs.dmx512_render import (
-    DMXRenderDot, InterpolationType, XYGrid, apply_cycle_shift, RenderPipeline
-)
+
+if TYPE_CHECKING:
+    from database.playback import RowPlayback
+    from database.playback.renderer import PlaybackRenderer
 
 
-class RenderDots(list):
-    def __new__(cls, dots: Iterable[DMXRenderDot]):
+class RenderDots(List[DMXRenderDot]):
+    def __new__(cls, dots: Iterable[DMXRenderDot]) -> "RenderDots":
         obj = super().__new__(cls, sorted(dots, key=lambda d: d.x))
         return obj
 
@@ -95,12 +113,12 @@ class RenderDots(list):
 
 
 class RowPhaseSpec(SerializableMixin):
-    patch = ObjectProperty()  # RowPatch
-    indices = ListField()  # упорядоченный список fixture_index
-    amount = ClampedNumericField(0.0, -1.0, 1.0)
-    curve = RefField(lambda: db.phase_curve_type, default_factory=lambda: db.phase_curve_type.get_default_row())
-    inverted = BooleanField(False)
-    dots = ObjectField(
+    patch: RowPatch = ObjectProperty()
+    indices: List[int] = ListField()  # упорядоченный список fixture_index
+    amount: float = ClampedNumericField(0.0, -1.0, 1.0)
+    curve: RowPhaseCurveType = RefField(lambda: db.phase_curve_type, default_factory=lambda: db.phase_curve_type.get_default_row())
+    inverted: bool = BooleanField(False)
+    dots: RenderDots = ObjectField(
         default_factory=lambda: RenderDots([]),
         serialize=lambda self, value: [[dot.x, dot.y, dot.dot_type.value] for dot in value],
         deserialize=lambda self, value: RenderDots([
@@ -110,21 +128,21 @@ class RowPhaseSpec(SerializableMixin):
 
 
 class InterpatchSpec(SerializableMixin):
-    ordered_patches = ListField(  # упорядоченный список RowPatch
+    ordered_patches: List[RowPatch] = ListField(  # упорядоченный список RowPatch
         serialize=lambda self, value: [patch._id for patch in value],
         deserialize=lambda self, value: [db.patch.get_row_by_id(pid) for pid in value]
     )
-    linked_shifts = DictField(
+    linked_shifts: Dict[int, float] = DictField(
         serialize=lambda self, value: {str(k): v for k, v in value.items()},
         deserialize=lambda self, value: {int(k): v for k, v in value.items()}
     )
 
-    master_patch = AliasProperty(lambda self: self.ordered_patches[0])
+    master_patch: RowPatch = AliasProperty(lambda self: self.ordered_patches[0])
 
 
 class PlaybackRenderRow(SerializableMixin):
-    active = BooleanField(False)
-    _dots = ObjectField(
+    active: bool = BooleanField(False)
+    _dots: RenderDots = ObjectField(
         serialize=lambda self, value: (
             [[dot.x, dot.y, dot.dot_type.value] for dot in value]
             if value is not None else []
@@ -137,39 +155,39 @@ class PlaybackRenderRow(SerializableMixin):
         force_dispatch=True
     )
 
-    fixture_index = NumericProperty()
-    patch = ObjectProperty()
-    renderer = ObjectProperty()
-    playback = AliasProperty(lambda self: self.renderer.playback)
-    fixture = AliasProperty(lambda self: self.patch.fixture)
-    fixture_param = AliasProperty(
+    fixture_index: int = NumericProperty()
+    patch: RowPatch = ObjectProperty()
+    renderer: "PlaybackRenderer" = ObjectProperty()
+    playback: "RowPlayback" = AliasProperty(lambda self: self.renderer.playback)
+    fixture: RowFixture = AliasProperty(lambda self: self.patch.fixture)
+    fixture_param: RowFixtureParam = AliasProperty(
         lambda self: self.fixture.param_list_unpacked[self.fixture_index]
     )
-    row_phase_spec = AliasProperty(
+    row_phase_spec: RowPhaseSpec = AliasProperty(
         lambda self: self.renderer.get_row_phase_spec(self.patch, self.fixture_index),
         bind=("patch", "fixture_index")
     )
-    interpatch_spec = AliasProperty(
+    interpatch_spec: InterpatchSpec = AliasProperty(
         lambda self: self.renderer.get_interpatch_spec(self.patch, self.fixture_index),
         bind=("patch", "fixture_index")
     )
 
-    def get_dots(self):
+    def get_dots(self) -> RenderDots:
         if self.row_phase_spec:
             return self.row_phase_spec.dots
         return self._dots
     def set_dots(self, dots: RenderDots):
         self.renderer.set_dots_for_row(self, dots)
 
-    dots = AliasProperty(get_dots, set_dots)
+    dots: RenderDots = AliasProperty(get_dots, set_dots)
 
     def on__dots(self, *_):
         self.invalidate_render()
 
     _render: Optional[bytes] = ObjectProperty(None, allownone=True)
-    has_data = AliasProperty(lambda self: bool(self.get_render()), bind=["_render"])
+    has_data: bool = AliasProperty(lambda self: bool(self.get_render()), bind=["_render"])
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self.render_pipeline = RenderPipeline()
 
@@ -180,7 +198,7 @@ class PlaybackRenderRow(SerializableMixin):
     def invalidate_render(self):
         self._render = None
 
-    def get_render(self):
+    def get_render(self) -> bytes:
         if self._render:
             return self._render
         if not self.active:

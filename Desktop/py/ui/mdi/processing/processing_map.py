@@ -8,6 +8,7 @@ from database.scene import RowScene
 from database import db
 from database.playback import RowPlayback
 from ui.mdi.processing.playback_ui import PlaybackUiProcessing
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/processing/processing_map.kv")
@@ -39,8 +40,8 @@ class PlaybackMap(MapLayout):
             if player.is_moment:
                 player.stop()
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         self.__init_map()
         db.playback.bind(on_add_row=self.on_add_playback)
         db.playback.bind(on_remove_row=self.on_remove_playback)

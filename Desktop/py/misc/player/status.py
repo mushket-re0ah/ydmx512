@@ -1,11 +1,13 @@
-from typing import NamedTuple
 from enum import Enum
+from typing import NamedTuple
+
+from libs.typecheck import RGBA
 from misc import colorscheme as cs
 from misc import imgs_path
 
 
 class _PlayerStatusValue(NamedTuple):
-    bg: list  # rgba
+    bg: RGBA
     img: str
 
 

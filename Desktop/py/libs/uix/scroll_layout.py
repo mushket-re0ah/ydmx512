@@ -1,12 +1,16 @@
-from typing import Tuple
+from typing import Any, Callable, List, Optional, Tuple, Type, Union
+
 from kivy.clock import Clock
-from kivy.properties import (
-    ObjectProperty, NumericProperty, AliasProperty, BooleanProperty
-)
-from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 from kivy.metrics import dp
+from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.widget import Widget
+from typing_extensions import Self
 
+from libs.uix.button import ImageButton
+from libs.uix.restricted_scrollview import RestrictedScrollView
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -62,38 +66,38 @@ Builder.load_string("""
 
 
 class ScrollBar(BoxLayout):
-    layout_cursor = ObjectProperty()
-    cursor = ObjectProperty()
-    scrollview = ObjectProperty()
+    layout_cursor: RelativeLayout = ObjectProperty()
+    cursor: ImageButton = ObjectProperty()
+    scrollview: RestrictedScrollView = ObjectProperty()
 
-    btn_scroll = NumericProperty("100dp")
-    scroll_at_start = BooleanProperty(False)
-    scroll_at_end = BooleanProperty(False)
+    btn_scroll: float = NumericProperty("100dp")
+    scroll_at_start: bool = BooleanProperty(False)
+    scroll_at_end: bool = BooleanProperty(False)
 
     _clock_btn_press = None
-    _start_pos = None
-    _start_scroll = None
-    _scroll_by_cursor_layout = False
+    _start_pos: Optional[float] = None
+    _start_scroll: Optional[float] = None
+    _scroll_by_cursor_layout: bool = False
 
-    _scrollview_bar_attr = None
-    _size_hint_attr = None
-    _size_attr = None
-    _pos_attr = None
-    _scroll_attr = None
-    _btn_scroll_dimension_orientation = None
-    _convert_distance_to_scroll = None
-    _processing_scrollup = None
-    _processing_scrolldown = None
+    _scrollview_bar_attr: str
+    _size_hint_attr: str
+    _size_attr: str
+    _pos_attr: str
+    _scroll_attr: str
+    _btn_scroll_dimension_orientation: int
+    _convert_distance_to_scroll: Callable[[float], float]
+    _processing_scrollup: Callable[[float], None]
+    _processing_scrolldown: Callable[[float], None]
 
-    _btn_scroll_start = 0
-    _btn_scroll_diff = 0
+    _btn_scroll_start: float = 0.0
+    _btn_scroll_diff: float = 0.0
 
-    _DEFAULT_WIDTH_NUMERIC = 20
-    _DEFAULT_HEIGHT_NUMERIC = 20
-    _default_width  = NumericProperty(f"{_DEFAULT_WIDTH_NUMERIC}dp")
-    _default_height = NumericProperty(f"{_DEFAULT_HEIGHT_NUMERIC}dp")
+    _DEFAULT_WIDTH_NUMERIC: float = 20.0
+    DEFAULT_HEIGHT_NUMERIC: float = 20.0
+    _default_width: float = NumericProperty(f"{_DEFAULT_WIDTH_NUMERIC}dp")
+    _default_height: float = NumericProperty(f"{DEFAULT_HEIGHT_NUMERIC}dp")
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         sv = self.scrollview
         if_vertical = self.orientation == "vertical"
         self.if_vertical = if_vertical
@@ -149,7 +153,7 @@ class ScrollBar(BoxLayout):
         else:
             self.__inc_scroll(self._btn_scroll_diff / 10)
 
-    def _scroll_by_diff(self, diff):
+    def _scroll_by_diff(self, diff: float):
         if self.orientation == "vertical":
             if diff > 0:
                 self.scrollview.scroll_y_up(abs(diff))
@@ -161,7 +165,7 @@ class ScrollBar(BoxLayout):
             else:
                 self.scrollview.scroll_x_right(abs(diff))
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self._do_mouse_scroll(touch):
             return True
         if self._do_cursor(touch):
@@ -173,7 +177,7 @@ class ScrollBar(BoxLayout):
             return True
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if self._start_pos:
             self.__do_scroll_by_cursor(touch)
             return True
@@ -182,7 +186,7 @@ class ScrollBar(BoxLayout):
             return True
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
         self._start_pos = None
@@ -264,7 +268,7 @@ class ScrollBar(BoxLayout):
         else:
             self.__set_scroll(self._btn_scroll_start + self._btn_scroll_diff)
 
-    def get_scroll_at_start(self):
+    def get_scroll_at_start(self) -> bool:
         sv = self.scrollview
         if not sv:
             return True
@@ -276,7 +280,7 @@ class ScrollBar(BoxLayout):
             return sv._scroll_y <= 0.0
         return sv._scroll_x <= 0.0
 
-    def get_scroll_at_end(self):
+    def get_scroll_at_end(self) -> bool:
         sv = self.scrollview
         if not sv:
             return True
@@ -300,23 +304,22 @@ class ScrollBar(BoxLayout):
 
 
 class ScrollLayout(BoxLayout):
-    scrollview = ObjectProperty()
-    scrollbar_vertical = ObjectProperty(allownone=True)
-    scrollbar_horizontal = ObjectProperty(allownone=True)
-    box_vertical = ObjectProperty()
+    scrollview: RestrictedScrollView = ObjectProperty()
+    scrollbar_vertical: Optional[ScrollBar] = ObjectProperty(allownone=True)
+    scrollbar_horizontal: Optional[ScrollBar] = ObjectProperty(allownone=True)
+    box_vertical: BoxLayout = ObjectProperty()
 
-    trigger_on_scrollview_hbar = None
-    trigger_on_scrollview_vbar = None
-    def __init__(self, **kwargs):
+    _setter_scrollview_attrs_list: Optional[List[Tuple[str, Any]]]
+    def __init__(self, **kwargs: Any):
         self.trigger_on_scrollview_bar = Clock.create_trigger(self.on_scrollview_bar, -1)
         self._setter_scrollview_attrs_list = []
         super().__init__(**kwargs)
 
     # Параметры scrollview
-    def _alias_get_scrollview_attr(self, attr: str) -> any:
+    def _alias_get_scrollview_attr(self, attr: str) -> Any:
         return getattr(self.scrollview, attr)
 
-    def _alias_set_scrollview_attr(self, attr: str, value: any):
+    def _alias_set_scrollview_attr(self, attr: str, value: Any) -> bool:
         sv = self.scrollview
         if sv is None:
             self._setter_scrollview_attrs_list.append((attr, value))
@@ -326,48 +329,48 @@ class ScrollLayout(BoxLayout):
         setattr(sv, attr, value)
         return True
 
-    viewclass = AliasProperty(
+    viewclass: Union[str, Type[Widget]] = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("viewclass"),
         lambda x, value: x._alias_set_scrollview_attr("viewclass", value),
     )
-    scroll_by_content = AliasProperty(
+    scroll_by_content: bool = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("scroll_by_content"),
         lambda x, value: x._alias_set_scrollview_attr("scroll_by_content", value),
     )
-    do_scroll_by_element = AliasProperty(
+    do_scroll_by_element: bool = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("do_scroll_by_element"),
         lambda x, value: x._alias_set_scrollview_attr("do_scroll_by_element", value),
     )
-    scroll_element = AliasProperty(
+    scroll_element: int = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("scroll_element"),
         lambda x, value: x._alias_set_scrollview_attr("scroll_element", value),
     )
-    scroll_wheel_distance = AliasProperty(
+    scroll_wheel_distance: float = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("scroll_wheel_distance"),
         lambda x, value: x._alias_set_scrollview_attr("scroll_wheel_distance", value),
     )
-    scroll_x = AliasProperty(
+    scroll_x: float = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("scroll_x"),
         lambda x, value: x._alias_set_scrollview_attr("scroll_x", value),
     )
-    scroll_y = AliasProperty(
+    scroll_y: float = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("scroll_y"),
         lambda x, value: x._alias_set_scrollview_attr("scroll_y", value),
     )
-    do_scroll_x = AliasProperty(
+    do_scroll_x: bool = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("do_scroll_x"),
         lambda x, value: x._alias_set_scrollview_attr("do_scroll_x", value),
     )
-    do_scroll_y = AliasProperty(
+    do_scroll_y: bool = AliasProperty(
         lambda x: x._alias_get_scrollview_attr("do_scroll_y"),
         lambda x, value: x._alias_set_scrollview_attr("do_scroll_y", value),
     )
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.remove_widget(self.scrollview)
         self.box_vertical.add_widget(self.scrollview)
 
-    def on_scrollview(self, _, scrollview):
+    def on_scrollview(self, _, scrollview: RestrictedScrollView):
         self.original_add_widget = self.add_widget
         self.add_widget = self.patch_add_widget
         for attr, value in self._setter_scrollview_attrs_list:
@@ -380,7 +383,7 @@ class ScrollLayout(BoxLayout):
         )
         self.trigger_on_scrollview_bar()
 
-    def patch_add_widget(self, widget, index=0, canvas=None):
+    def patch_add_widget(self, widget: Widget, index:int=0, canvas=None):
         if isinstance(widget, ScrollBar) and (
                 widget.orientation == "horizontal"):
             self.original_add_widget(widget)
@@ -405,12 +408,12 @@ class ScrollLayout(BoxLayout):
         self._set_scrollbar_horizontal(need_h)
         self._set_scrollbar_vertical(need_v)
 
-    def _get_hbar_thickness(self):
+    def _get_hbar_thickness(self) -> float:
         if self.scrollbar_horizontal:
             return self.scrollbar_horizontal.height
-        return dp(ScrollBar._DEFAULT_HEIGHT_NUMERIC)
+        return dp(ScrollBar.DEFAULT_HEIGHT_NUMERIC)
 
-    def _set_scrollbar_horizontal(self, needed):
+    def _set_scrollbar_horizontal(self, needed: bool):
         if needed:
             if self.scrollbar_horizontal is None and self.do_scroll_x:
                 self.scrollbar_horizontal = ScrollBar(
@@ -422,7 +425,7 @@ class ScrollLayout(BoxLayout):
                 self.remove_widget(self.scrollbar_horizontal)
                 self.scrollbar_horizontal = None
 
-    def _set_scrollbar_vertical(self, needed):
+    def _set_scrollbar_vertical(self, needed: bool):
         if needed:
             if self.scrollbar_vertical is None and self.do_scroll_y:
                 self.scrollbar_vertical = ScrollBar(

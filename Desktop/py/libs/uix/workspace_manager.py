@@ -1,14 +1,16 @@
-from typing import Dict, Optional
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import (
-    ObjectProperty, BooleanProperty, NumericProperty, AliasProperty
-)
+from typing import Any, Dict, List, Optional, Type
+
 from kivy.lang import Builder
-from libs.uix.button import HoverToggleButton
-from libs.uix.behaviors.mouse import TouchMouseBehavior
-from libs.properties import ContextualNumericProperty
+from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
+from typing_extensions import Self
+
 from libs.animation import StatefulColorProperty
+from libs.properties import ContextualNumericProperty
+from libs.typecheck import RGBA
 from libs.uix import colorscheme as uix_cs
+from libs.uix.behaviors.mouse import TouchMouseBehavior
+from libs.uix.button import HoverToggleButton
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -48,13 +50,13 @@ Builder.load_string("""
 
 
 class WorkspaceToggleButton(HoverToggleButton):
-    workspace_manager = ObjectProperty()
-    workspace_index = NumericProperty()
-    workspace = ObjectProperty(rebind=True, allownone=True)
-    is_workspace_not_contain = BooleanProperty()
+    workspace_manager: "WorkspaceManager" = ObjectProperty()
+    workspace_index: int = NumericProperty()
+    workspace: "WorkspaceBehavior" = ObjectProperty(rebind=True, allownone=True)
+    is_workspace_not_contain: bool = BooleanProperty()
 
     animation_time = 0.14
-    color = StatefulColorProperty(
+    color: RGBA = StatefulColorProperty(
         normal=uix_cs.WorkspaceToggleButton.color_if_contain,
         states={
             "is_workspace_not_contain": uix_cs.WorkspaceToggleButton.color_if_not_contain,
@@ -63,7 +65,7 @@ class WorkspaceToggleButton(HoverToggleButton):
     def set_workspace_contain(self, *_):
         self.is_workspace_not_contain = self.workspace is None or not self.workspace.if_contain
 
-    def on_workspace(self, _, workspace):
+    def on_workspace(self, _, workspace: "WorkspaceBehavior"):
         if workspace:
             workspace.bind(if_contain=self.set_workspace_contain)
         self.set_workspace_contain()
@@ -74,14 +76,14 @@ class WorkspaceToggleButton(HoverToggleButton):
 
 
 class WorkspaceSwitcherMenu(TouchMouseBehavior, BoxLayout):
-    workspace_manager = ObjectProperty()
-    toggle_list = None
+    workspace_manager: "WorkspaceManager" = ObjectProperty()
+    toggle_list: List[WorkspaceToggleButton]
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self.toggle_list = []
         super().__init__(**kwargs)
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         for i in range(self.workspace_manager.workspace_count):
             self._add_toggle(i)
 
@@ -93,42 +95,43 @@ class WorkspaceSwitcherMenu(TouchMouseBehavior, BoxLayout):
         self.toggle_list.append(toggle)
         self.add_widget(toggle)
 
-    def get_toggle(self, toggle_id:  Optional[int]) -> HoverToggleButton:
+    def get_toggle(self, toggle_id: int) -> HoverToggleButton:
         return self.toggle_list[toggle_id]
 
-    def switch_toggle(self, toggle_id: Optional[int]) -> None:
+    def switch_toggle(self, toggle_id: int) -> None:
         self.get_toggle(toggle_id or 0).trigger_action(0)
 
-    def on_scroll_up(self, touch):
+    def on_scroll_up(self, touch) -> bool:
         self.switch_toggle(min(self.workspace_manager.workspace_now_index + 1, len(self.toggle_list) - 1))
         return False
 
-    def on_scroll_down(self, touch):
+    def on_scroll_down(self, touch) -> bool:
         self.switch_toggle(max(self.workspace_manager.workspace_now_index - 1, 0))
         return False
 
 
 class WorkspaceBehavior:
-    if_contain = BooleanProperty(False)
-    showed = BooleanProperty(False)
-    index = NumericProperty()
+    if_contain: bool = BooleanProperty(False)
+    showed: bool = BooleanProperty(False)
+    index: int = NumericProperty()
 
 
 class WorkspaceManager(BoxLayout):
-    menu = ObjectProperty()
+    menu: WorkspaceSwitcherMenu = ObjectProperty()
 
-    workspace_cls = ObjectProperty()
-    workspace_count = NumericProperty(9)
+    workspace_cls: Type[WorkspaceBehavior] = ObjectProperty()
+    workspace_count: int = NumericProperty(9)
 
     workspaces: Dict[int, WorkspaceBehavior] = None
-    workspace_now_index = ContextualNumericProperty(
+    workspace_now_index: int = ContextualNumericProperty(
         default=0,
         min_getter=lambda self: 0,
         max_getter=lambda self: self.workspace_count - 1,
-        dependencies=["workspace_count"]
+        dependencies=("workspace_count",)
     )
 
-    def __init__(self, **kwargs):
+    workspaces: Dict[int, Optional[WorkspaceBehavior]]
+    def __init__(self, **kwargs: Any):
         self.register_event_type("on_workspace_opened")
         self.register_event_type("on_workspace_closed")
         self.register_event_type("on_workspace_created")
@@ -148,7 +151,7 @@ class WorkspaceManager(BoxLayout):
     def on_workspace_removed(self, workspace_index: int, workspace: WorkspaceBehavior):
         pass
 
-    def on_kv_post(self, _) -> None:
+    def on_kv_post(self, base_widget: Self):
         if self.workspace_cls is None:
             raise ValueError(f"{self}: workspace_cls not defined")
         initial = self.workspace_now_index
@@ -157,7 +160,7 @@ class WorkspaceManager(BoxLayout):
         if initial == prop.defaultvalue:
             prop.dispatch(self)
 
-    def set_workspace(self, workspace_index: int) -> None:
+    def set_workspace(self, workspace_index: int):
         self.workspace_now_index = workspace_index
 
     def create_workspace(self, workspace_index: int) -> WorkspaceBehavior:
@@ -172,7 +175,7 @@ class WorkspaceManager(BoxLayout):
     def _create_workspace_instance(self, workspace_index: int) -> WorkspaceBehavior:
         return self.workspace_cls(index=workspace_index)
 
-    def _hide_workspace(self, index: int) -> None:
+    def _hide_workspace(self, index: Optional[int]) -> None:
         if index is None:
             return
         workspace_now = self.workspaces[index]
@@ -194,7 +197,7 @@ class WorkspaceManager(BoxLayout):
         self.menu.switch_toggle(workspace_index)
         self.dispatch("on_workspace_opened", workspace_index, workspace)
 
-    workspace_now = AliasProperty(
+    workspace_now: WorkspaceBehavior = AliasProperty(
         lambda self: self.create_workspace(self.workspace_now_index),
         bind=["workspace_now_index"], rebind=True
     )

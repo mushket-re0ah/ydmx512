@@ -3,6 +3,7 @@ from kivy.lang import Builder
 from libs.uix.layouts import ModalBoxLayout
 from libs.uix.button import HoverButton
 from database import db
+from typing_extensions import Self
 
 
 Builder.load_file("ui/mdi/patch_list/map_context_menu.kv")
@@ -24,7 +25,7 @@ class PatchMapContextMenu(ModalBoxLayout):
     patch_map = ObjectProperty()
     scroll_layout = ObjectProperty()
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.scroll_layout.scrollview.data = [
             {"fixture": fixture, "patch_map": self.patch_map}
             for fixture in db.fixture.rows.values()

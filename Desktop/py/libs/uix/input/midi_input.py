@@ -1,11 +1,13 @@
-from kivy.properties import NumericProperty
+from typing import Any, List
+
 from kivy.lang import Builder
-from libs.midi.notes import MIDI_NOTES
-from libs.uix.input.numeric_input import NumericInput
-from libs.uix.context_menu import (
-    ContextMenu, ContextMenuTemplates
-)
+from kivy.properties import NumericProperty
+
 from database import db
+from libs.midi.notes import MIDI_NOTES
+from libs.typecheck import OptionalNumber
+from libs.uix.context_menu import ContextMenu, ContextMenuItem, ContextMenuTemplates
+from libs.uix.input.numeric_input import NumericInput
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -19,15 +21,15 @@ Builder.load_string("""
 
 
 class MidiInput(NumericInput):
-    minimum = NumericProperty(0)
-    maximum = NumericProperty(127)
+    minimum: int = NumericProperty(0)
+    maximum: int = NumericProperty(127)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.input_filter = None
         self.input_type = "text"
 
-    def _str_to_value(self, text: str) -> bool:
+    def _str_to_value(self, text: str) -> OptionalNumber:
         if text in ("", "-"):
             if self.allow_empty:
                 return None
@@ -59,7 +61,7 @@ class MidiInput(NumericInput):
     def _create_context_menu(self) -> ContextMenu:
         return ContextMenu(items=self._create_context_menu_items(clean_btn=False))
 
-    def _create_context_menu_items(self, clean_btn=False) -> ContextMenu:
+    def _create_context_menu_items(self, clean_btn:bool=False) -> List[ContextMenuItem]:
         items = super()._create_context_menu_items()
         midi_notes = db.misc.midi_notes
         if midi_notes != "NUMERIC":

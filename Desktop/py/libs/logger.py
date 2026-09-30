@@ -3,95 +3,89 @@
 процесса и не позволяет внутри одного процесса иметь несколько потоков
 логгирования.
 """
-from datetime import datetime
-from pathlib import Path
 import logging
 import os
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Optional
 
+from misc import constants
 
-LEVEL = logging.DEBUG
-DIR = None
-MAX_LOG_FILES = None
-FILEPATH = None
-LOG = None
-
-def init(logs_dir: Path, max_log_files=10, session_env_key: str=None):
-    if not isinstance(session_env_key, str):
-        raise ValueError("session_env_key is not str")
-    global FILEPATH
-    global LEVEL
-    global DIR
-    global MAX_LOG_FILES
-    global LOG
-    DIR = logs_dir
-    MAX_LOG_FILES = max_log_files
-
+_logger: Optional[logging.Logger] = None
+def init(logs_dir: Path, max_log_files: int, session_env_key: str):
+    global _logger
     logs_dir.mkdir(exist_ok=True)
-    clean_old_logs()
+    clean_old_logs(logs_dir, max_log_files)
 
-    if LOG:
-        for handler in LOG.handlers[:]:
+    if _logger is not None:
+        for handler in _logger.handlers[:]:
             handler.close()
-            LOG.removeHandler(handler)
+            _logger.removeHandler(handler)
 
-    log_filepath_env = os.environ.get(session_env_key)
-    if log_filepath_env:
-        FILEPATH = logs_dir / log_filepath_env
-        info_msg = f"Продолжение сеанса logging в {log_filepath_env}"
-    else:
+    log_filepath_env = os.environ.get(session_env_key, None)
+    if log_filepath_env is None:
         filename = datetime.now().strftime("%d-%m-%Y_%H.%M.%S.log")
         os.environ[session_env_key] = filename
-        FILEPATH = logs_dir / filename
+        filepath = logs_dir / filename
         info_msg = f"Новый сеанс logging в {filename}"
+    else:
+        filepath = logs_dir / log_filepath_env
+        info_msg = f"Продолжение сеанса logging в {log_filepath_env}"
 
-    LOG = logging.getLogger()
-    LOG.setLevel(LEVEL)
-    LOG.propagate = False
+    _logger = logging.getLogger()
+    _logger.setLevel(constants.LOG_LEVEL)
+    _logger.propagate = False
 
-    file_handler = logging.FileHandler(FILEPATH, mode="a", encoding="utf-8", delay=False)
+    file_handler = logging.FileHandler(filepath, mode="a", encoding="utf-8", delay=False)
     formatter = logging.Formatter("%(asctime)s : [%(levelname)s] : %(message)s")
     file_handler.setFormatter(formatter)
-    LOG.addHandler(file_handler)
+    _logger.addHandler(file_handler)
 
     stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(LEVEL)
+    stream_handler.setLevel(constants.LOG_LEVEL)
     stream_handler.setFormatter(formatter)
-    LOG.addHandler(stream_handler)
+    _logger.addHandler(stream_handler)
 
-    LOG.info(info_msg)
+    _logger.info(info_msg)
 
 
-def clean_old_logs():
-    log_files = sorted(DIR.glob("*.log"),
+def clean_old_logs(logs_dir: Path, max_log_files: int):
+    log_files = sorted(logs_dir.glob("*.log"),
                        key=lambda f: f.stat().st_mtime)
-    if len(log_files) > MAX_LOG_FILES:
-        files_to_remove = log_files[:len(log_files) - MAX_LOG_FILES]
+    if len(log_files) > max_log_files:
+        files_to_remove = log_files[:len(log_files) - max_log_files]
         for file in files_to_remove:
             try:
-                file.unlink()
-            except BaseException:
+                file.unlink(missing_ok=True)
+            except OSError:
                 pass
 
 
 def set_level(level: int):
-    LOG.setLevel(level)
+    _get_logger().setLevel(level)
 
 
-def debug(*args):
-    LOG.debug(", ".join([str(i) for i in args]))
+def debug(*args: Any) -> None:
+    _get_logger().debug(", ".join(str(i) for i in args))
 
 
-def info(*args):
-    LOG.info(", ".join([str(i) for i in args]))
+def info(*args: Any) -> None:
+    _get_logger().info(", ".join(str(i) for i in args))
 
 
-def warning(*args, exc_info=None):
-    LOG.warning(", ".join([str(i) for i in args]), exc_info=exc_info)
+def warning(*args: Any, exc_info:bool=False) -> None:
+    _get_logger().warning(", ".join(str(i) for i in args), exc_info=exc_info)
 
 
-def error(*args, exc_info=None):
-    LOG.error(", ".join([str(i) for i in args]), exc_info=exc_info)
+def error(*args: Any, exc_info:bool=False) -> None:
+    _get_logger().error(", ".join(str(i) for i in args), exc_info=exc_info)
 
 
-def critical(*args, exc_info=None):
-    LOG.critical(", ".join([str(i) for i in args]), exc_info=exc_info)
+def critical(*args: Any, exc_info:bool=False) -> None:
+    _get_logger().critical(", ".join(str(i) for i in args), exc_info=exc_info)
+
+
+def _get_logger() -> logging.Logger:
+    if _logger is None:
+        raise RuntimeError("Logging is not initialized")
+    return _logger

@@ -1,56 +1,65 @@
-from typing import Optional, List, Tuple
-from kivy.event import EventDispatcher
+from typing import TYPE_CHECKING, Callable, Dict, FrozenSet, List, Optional, Tuple
+
 from kivy.clock import Clock
-from libs.uix.mdi.mdi_window import MDIWindow
-from libs.kivy_utils import WidgetSide, AutoUnbindBehavior, WIDGET_SIDE_CURSOR, get_cursor_zone
-from libs.sdl2_keyboard import KeyboardBehavior
+from kivy.event import EventDispatcher
+
+from libs.kivy_mixins import AutoUnbindBehavior
+from libs.kivy_utils import WIDGET_SIDE_CURSOR, WidgetSide, get_cursor_zone
 from libs.mouse_manager import cursor_manager
-from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
-from libs.uix.mdi.mdi_button import MDIButtonLock, MDIButtonExpand, MDIButtonClose
+from libs.sdl2_keyboard import KeyboardBehavior
+from libs.uix.context_menu import ContextMenu, ContextMenuItem, ContextMenuTemplates
+from libs.uix.mdi.mdi_button import MDIButtonClose, MDIButtonExpand, MDIButtonLock
+from libs.uix.mdi.mdi_window import MDIWindow
+
+if TYPE_CHECKING:
+    from libs.uix.mdi.mdi_container import MDIContainer
 
 
 class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
-    layout_state_key = None
-    title = None
-    mdi_container = None
+    layout_state_key: str
+    title: str
+    mdi_container: "MDIContainer"
 
-    def __init__(self, mdi_container: "MDIContainer",
-                 from_layout_mode: Optional["ILayoutMode"]):
+    def __init__(
+            self,
+            mdi_container: "MDIContainer",
+            from_layout_mode: Optional["ILayoutMode"]
+        ):
         super().__init__()
         self.register_event_type("on_layout_changed")
         self.mdi_container = mdi_container
 
-        self._resizing = False
-        self._moving = False
-        self._resize_side = None
-        self._start_mdi_pos = (0, 0)
-        self._start_mouse_pos = (0, 0)
-        self._last_mouse_pos = (0, 0)
+        self._resizing: bool = False
+        self._moving: bool = False
+        self._resize_side: Optional[WidgetSide] = None
+        self._start_mdi_pos: Tuple[float, float] = (0, 0)
+        self._start_mouse_pos: Tuple[float, float] = (0, 0)
+        self._last_mouse_pos: Tuple[float, float] = (0, 0)
         self._trigger_resize = Clock.create_trigger(self._apply_resize, -1)
         self._trigger_move = Clock.create_trigger(self._apply_move, -1)
 
         self._mdi_on_cursor: Optional[MDIWindow] = None
-        self._widget_side_now = WidgetSide.VOID
+        self._widget_side_now: WidgetSide = WidgetSide.VOID
         self._prev_mdi_on_cursor: Optional[MDIWindow] = None
 
         if from_layout_mode:
             self._transform_to_that_layout_mode(from_layout_mode)
 
-    def sync_mdi_list_showed(self, _mdi_list_showed: List[MDIWindow]):
+    def sync_mdi_list_showed(self, mdi_list_showed: List[MDIWindow]):
         self.dispatch("on_layout_changed", self.get_layout())
 
-    def on_layout_changed(self, layout):
+    def on_layout_changed(self, layout: List[MDIWindow]):
         pass
 
-    def get_layout(self):
+    def get_layout(self) -> List[MDIWindow]:
         return list(reversed(self.mdi_container.mdi_list_showed))
 
-    def load_layout(self, layout):
+    def load_layout(self, layout: List[MDIWindow]):
         self.mdi_container.clear_widgets()
         for mdi in layout:
             self.mdi_container.add_widget(mdi)
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             frozenset({"tab"}): self.mdi_container.switch_focus,
         }
@@ -72,7 +81,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
     def get_title_buttons(self) -> List[str]:
         return []
 
-    def mdi_invert_locked(self, mdi=None):
+    def mdi_invert_locked(self, mdi: Optional[MDIWindow]=None):
         if not mdi:
             mdi = self._focused_mdi()
         if mdi is None:
@@ -82,13 +91,13 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         if not locked:
             self.on_mdi_focus(mdi)
 
-    def mdi_close(self, mdi=None):
+    def mdi_close(self, mdi: Optional[MDIWindow]=None):
         if not mdi:
             mdi = self._focused_mdi()
         if mdi is not None:
             self.mdi_container.remove_widget(mdi)
 
-    def mdi_invert_expanded(self, mdi=None):
+    def mdi_invert_expanded(self, mdi: Optional[MDIWindow]=None):
         if not mdi:
             mdi = self._focused_mdi()
         if mdi is None:
@@ -99,7 +108,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             expanded=not mdi.get_layout_state("expanded", False)
         )
 
-    def mdi_do_expand(self, mdi=None):
+    def mdi_do_expand(self, mdi: Optional[MDIWindow]=None):
         if not mdi:
             mdi = self._focused_mdi()
         if mdi is None:
@@ -108,7 +117,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             return
         mdi.set_layout_state(expanded=True)
 
-    def mdi_do_unexpand(self, mdi=None):
+    def mdi_do_unexpand(self, mdi: Optional[MDIWindow]=None):
         if not mdi:
             mdi = self._focused_mdi()
         if mdi is None:
@@ -173,7 +182,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             return self._mdi_on_cursor.dispatch("on_touch_up", touch)
         return False
 
-    def handle_mouse_move(self, pos: Tuple[float, float]) -> None:
+    def handle_mouse_move(self, pos: Tuple[float, float]):
         self._update_cursor_zone(pos)
         self._set_cursor()
 
@@ -189,7 +198,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
                 self._mdi_on_cursor.focus_selected = True
             self._prev_mdi_on_cursor = self._mdi_on_cursor
 
-    def find_mdi_at_pos(self, pos: Tuple[float, float]):
+    def find_mdi_at_pos(self, pos: Tuple[float, float]) -> Optional[MDIWindow]:
         return next((mdi for mdi in reversed(self.mdi_container.mdi_list_showed) if mdi.collide_point(*pos)), None)
 
     def _set_cursor(self):
@@ -205,16 +214,16 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         return (mdi.title_bar_label.collide_point(*touch.pos) or
                 self._widget_side_now != WidgetSide.VOID)
 
-    def _on_double_tap(self, _touch, _mdi: MDIWindow) -> bool:
+    def _on_double_tap(self, touch, mdi: MDIWindow) -> bool:
         return True
 
     def _on_title_right_click(self, touch, mdi: MDIWindow) -> bool:
         self._mdi_open_context_menu(mdi, touch.pos)
         return True
 
-    def _mdi_open_context_menu(self, mdi, pos: Tuple[float, float]):
+    def _mdi_open_context_menu(self, mdi: MDIWindow, pos: Tuple[float, float]):
         buttons = self.get_title_buttons()
-        items = []
+        items: List[ContextMenuItem] = []
 
         if "lock" in buttons:
             items.append(self._create_context_menu_lock_btn(mdi))
@@ -225,14 +234,14 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
 
         ContextMenu(items=items).open(mdi, pos=pos)
 
-    def _create_context_menu_lock_btn(self, mdi: MDIWindow):
+    def _create_context_menu_lock_btn(self, mdi: MDIWindow) -> ContextMenuItem:
         return ContextMenuTemplates.button(
             text="Разблокировать" if mdi.get_layout_state("locked", False) else "Заблокировать",
             on_release=lambda _: self.mdi_invert_locked(mdi),
             hotkey=frozenset({"ctrl", "shift", "l"}),
         )
 
-    def _create_context_menu_expand_btn(self, mdi: MDIWindow):
+    def _create_context_menu_expand_btn(self, mdi: MDIWindow) -> ContextMenuItem:
         return ContextMenuTemplates.button(
             text="Свернуть" if mdi.get_layout_state("expanded", False) else "Развернуть",
             on_release=lambda _: self.mdi_invert_expanded(mdi),
@@ -240,7 +249,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             disabled=mdi.get_layout_state("locked", False)
         )
 
-    def _create_context_menu_close_btn(self, mdi: MDIWindow):
+    def _create_context_menu_close_btn(self, mdi: MDIWindow) -> ContextMenuItem:
         return ContextMenuTemplates.button(
             text="Закрыть",
             on_release=lambda _: self.mdi_close(mdi),
@@ -255,7 +264,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             return self._start_move(touch, mdi, side)
         return False
 
-    def _start_resize(self, touch, mdi: MDIWindow, side) -> bool:
+    def _start_resize(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
         self._resizing = True
         self._resize_side = side
         self._last_mouse_pos = touch.pos
@@ -264,7 +273,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         cursor_manager.set_force(True)
         return True
 
-    def _start_move(self, touch, mdi: MDIWindow, _side) -> bool:
+    def _start_move(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
         self._moving = True
         self._start_mouse_pos = touch.pos
         self._start_mdi_pos = mdi.pos[:]
@@ -274,10 +283,10 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         cursor_manager.set_force(True)
         return True
 
-    def _can_start_resize(self, _touch, _mdi, _side) -> bool:
+    def _can_start_resize(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
         return False
 
-    def _can_start_move(self, _touch, _mdi, _side) -> bool:
+    def _can_start_move(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
         return False
 
     def _apply_resize(self, _):
@@ -290,24 +299,25 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         if mdi and self._moving:
             self.move_mdi(mdi, self._start_mdi_pos, self._start_mouse_pos, self._last_mouse_pos)
 
-    def on_start_resize(self, mdi): return
-    def on_stop_resize(self, mdi): return
-    def on_start_move(self, mdi): return
-    def on_stop_move(self, mdi): return
+    def on_start_resize(self, mdi: MDIWindow): return
+    def on_stop_resize(self, mdi: MDIWindow): return
+    def on_start_move(self, mdi: MDIWindow): return
+    def on_stop_move(self, mdi: MDIWindow): return
 
-    def show_mdi(self, mdi):
+    def show_mdi(self, mdi: MDIWindow):
         state = mdi.state.get("layout_state", {})
 
         if state.get("layout") != self.layout_state_key:
             mdi.clear_layout_state()
             mdi.set_layout_state(layout=self.layout_state_key)
 
-    def hide_mdi(self, mdi): return
-    def move_mdi(self, mdi, start_mdi_pos, start_mouse_pos, now_mouse_pos): return
-    def resize_mdi(self, side, mdi_now, mouse_pos): return
-    def on_mdi_focus(self, mdi): return
+    def hide_mdi(self, mdi: Optional[MDIWindow]): return
+    def move_mdi(self, mdi: MDIWindow, start_mdi_pos: Tuple[float, float],
+                 start_mouse_pos: Tuple[float, float], now_mouse_pos: Tuple[float, float]): return
+    def resize_mdi(self, side: WidgetSide, mdi: MDIWindow, mouse_pos: Tuple[float, float]): return
+    def on_mdi_focus(self, mdi: MDIWindow): return
 
-    def _transform_to_that_layout_mode(self, _from_layout_mode):
+    def _transform_to_that_layout_mode(self, from_layout_mode: "ILayoutMode"):
         self.mdi_container.clear_widgets()
 
     def _focused_mdi(self) -> Optional[MDIWindow]:

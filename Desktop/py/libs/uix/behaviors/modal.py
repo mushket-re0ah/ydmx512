@@ -1,18 +1,21 @@
-from typing import Optional
-from kivy.clock import Clock
-from kivy.properties import ObjectProperty, NumericProperty
-from kivy.core.window import Window
+from typing import Callable, Dict, FrozenSet, Optional, Tuple
+
 from kivy.animation import Animation
+from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.properties import NumericProperty, ObjectProperty
+from kivy.uix.widget import Widget
+
+from libs.kivy_mixins import AutoUnbindBehavior
 from libs.sdl2_keyboard import KeyboardBehavior
-from libs.kivy_utils import AutoUnbindBehavior
 
 
 class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
-    attach_to = ObjectProperty(None, allownone=True)
-    opacity_animation_duration = NumericProperty(0.2)
-    dismiss_on_attach_click = True
-    pos_fix = None
-    is_blocked_keyboard = True
+    attach_to: Optional[Widget] = ObjectProperty(None, allownone=True)
+    opacity_animation_duration: float = NumericProperty(0.2)
+    dismiss_on_attach_click: bool = True
+    pos_fix: Optional[Tuple[float, float]] = None
+    is_blocked_keyboard: bool = True
 
     __events__ = ("on_open", "on_dismiss")
     def __init__(self, **kwargs):
@@ -20,12 +23,12 @@ class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
         self.bind(size=self._trigger_reposition, pos=self._trigger_reposition)
         super().__init__(**kwargs)
 
-    def create_hotkeys(self) -> Optional[dict]:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             frozenset({"esc"}): self.dismiss,
         }
 
-    def open(self, widget=None, pos=None):
+    def open(self, widget: Optional[Widget]=None, pos:Optional[Tuple[float, float]]=None):
         self.register_keyboard_context()
         if self.attach_to:
             self.dismiss()
@@ -59,13 +62,13 @@ class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
     def on_dismiss(self):
         pass
 
-    def _clamp_to_window(self, x, y):
+    def _clamp_to_window(self, x: float, y: float):
         win = Window
         x = max(0, min(x, win.width - self.width))
         y = max(0, min(y, win.height - self.height))
         return x, y
 
-    def _reposition(self, *_):
+    def _reposition(self, *_:Any):
         if self.pos_fix is not None:
             wx, wy = self.pos_fix
             wy -= self.height
@@ -79,7 +82,7 @@ class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
         wx, wy = widget.to_window(*widget.pos)
         self.pos = self._clamp_to_window(wx, wy)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos):
             super().on_touch_down(touch)
             return True

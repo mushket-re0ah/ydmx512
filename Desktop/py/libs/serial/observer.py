@@ -1,17 +1,20 @@
-from typing import List
-from serial.tools import list_ports
+from typing import FrozenSet, List, Optional, Tuple, Type
+
 from kivy.event import EventDispatcher
-from kivy.properties import ListProperty, BooleanProperty, ObjectProperty
-from libs.serial.get_name_serial_usb import get_product_name_by_port
-from libs.serial.device import SerialState, SerialDevice
+from kivy.properties import BooleanProperty, ListProperty, ObjectProperty
+from serial.tools import list_ports
+from serial.tools.list_ports_common import ListPortInfo
+
 from libs import logger
+from libs.serial.device import SerialDevice, SerialState
+from libs.serial.get_name_serial_usb import get_product_name_by_port
 
 
 class SerialObserver(EventDispatcher):
     devices: List[SerialDevice] = ListProperty()
-    do_filter_devices = BooleanProperty(False)
-    filter_name_list = ObjectProperty()  # set of str
-    device_cls = ObjectProperty(SerialDevice)
+    do_filter_devices: bool = BooleanProperty(False)
+    filter_name_list: FrozenSet[str] = ObjectProperty()  # set of str
+    device_cls: Type[SerialDevice] = ObjectProperty(SerialDevice)
 
     __events__ = ("on_new_device", "on_remove_device")
 
@@ -43,8 +46,8 @@ class SerialObserver(EventDispatcher):
                     self.devices.remove(device)
                     self.dispatch("on_remove_device", device)
 
-    def _get_list_ports(self) -> List["list_ports.comports"]:
-        result = []
+    def _get_list_ports(self) -> List[Tuple[ListPortInfo, Optional[str]]]:
+        result: List[Tuple[ListPortInfo, Optional[str]]] = []
         for port in list_ports.comports():
             product_name = get_product_name_by_port(port)
             if self.do_filter_devices:

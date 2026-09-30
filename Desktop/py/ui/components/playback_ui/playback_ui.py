@@ -8,6 +8,7 @@ from database.playback import RowPlayback, PlaybackPlayer
 from misc import colorscheme as cs
 from misc.player.status import PlayerStatus
 from ui.components.base_database_grid_item import BaseDatabaseGridItem
+from typing_extensions import Self
 
 
 Builder.load_file("ui/components/playback_ui/playback_ui.kv")
@@ -58,8 +59,8 @@ class BasePlaybackUi(BaseDatabaseGridItem):
     def __init__(self, **kwargs):
         super().__init__(bg=cs.PlaybackUi.bg_stop_normal, **kwargs)
 
-    def on_kv_post(self, _):
-        super().on_kv_post(_)
+    def on_kv_post(self, base_widget: Self):
+        super().on_kv_post(base_widget)
         playback = self.playback
         playback.player.bind(status=self.on_player_status)
         self.on_player_status(playback.player, playback.player.status)

@@ -1,21 +1,25 @@
-from kivy.uix.recycleview import RecycleViewBehavior
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
+
 from kivy.properties import AliasProperty
-from kivy.utils import boundary
-from kivy.uix.recycleview.layout import RecycleLayoutManagerBehavior
-from kivy.uix.recycleview.views import RecycleDataAdapter
+from kivy.uix.recycleview import RecycleViewBehavior
 from kivy.uix.recycleview.datamodel import RecycleDataModel
+from kivy.uix.recycleview.layout import LayoutChangeException, RecycleLayoutManagerBehavior
+from kivy.uix.recycleview.views import RecycleDataAdapter
+from kivy.uix.widget import Widget
+from kivy.utils import boundary
+
 from libs.uix.restricted_scrollview import RestrictedScrollView
 
 
 class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
-    def __init__(self, **kwargs):
+    data: List[Dict[str, Any]]
+    def __init__(self, **kwargs: Any):
         if self.data_model is None:
             kwargs.setdefault('data_model', RecycleDataModel())
         if self.view_adapter is None:
             kwargs.setdefault('view_adapter', RecycleDataAdapter())
         super().__init__(**kwargs)
 
-        fbind = self.fbind
         self.bind(
             _scroll_x=self.refresh_from_viewport,
             _scroll_y=self.refresh_from_viewport,
@@ -23,7 +27,7 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
         )
         self.refresh_from_data()
 
-    def refresh_views(self, *largs):
+    def refresh_views(self, *largs: Any):
         lm = self.layout_manager
         flags = self._refresh_flags
         if lm is None or self.view_adapter is None or self.data_model is None:
@@ -71,7 +75,7 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
             self._last_indices = indices
             lm.set_visible_views(indices, data, viewport)
 
-    def _convert_sv_to_lm(self, x, y):
+    def _convert_sv_to_lm(self, x: float, y: float) -> Tuple[float, float]:
         lm = self.layout_manager
         tree = [lm]
         parent = lm.parent
@@ -82,14 +86,14 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
         if parent is not self:
             raise Exception(
                 'The layout manager must be a sub child of the recycleview. '
-                'Could not find {} in the parent tree of {}'.format(self, lm))
+                f'Could not find {self} in the parent tree of {lm}')
 
         for widget in reversed(tree):
             x, y = widget.to_local(x, y)
 
         return x, y
 
-    def get_viewport(self):
+    def get_viewport(self) -> Tuple[float, float, float, float]:
         lm = self.layout_manager
         lm_w, lm_h = lm.size
         w, h = self.size
@@ -113,13 +117,13 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
     def restore_viewport(self):
         pass
 
-    def add_widget(self, widget, *args, **kwargs):
+    def add_widget(self, widget: Widget, *args: Any, **kwargs: Any):
         super().add_widget(widget, *args, **kwargs)
         if (isinstance(widget, RecycleLayoutManagerBehavior) and
                 not self.layout_manager):
             self.layout_manager = widget
 
-    def remove_widget(self, widget, *args, **kwargs):
+    def remove_widget(self, widget: Widget, *args: Any, **kwargs: Any):
         super().remove_widget(widget, *args, **kwargs)
         if self.layout_manager == widget:
             self.layout_manager = None
@@ -193,48 +197,39 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
 
         return boundary(scroll_element, 0, max_scroll_element)
 
-    def scroll_to(self, index: int):
+    def scroll_to(self, index: int) -> None:
         lm = self.layout_manager
         if not lm:
-            return False
+            return
         if not lm._rv_positions:
-            return False
+            return
         rv_positions = lm._rv_positions
-        if index is None:
-            if self.do_scroll_x:
-                self.set_scroll_element_by_scroll_x(self.scroll_x)
-            elif self.do_scroll_y:
-                self.set_scroll_element_by_scroll_y(self.scroll_y)
-            index = self.scroll_element
-        if index is None:
-            self.scroll_element = 0
-            return False
         if (index < 0) or (index >= len(rv_positions)):
-            return False
+            return
 
         if self.do_scroll_x:
             available_width = lm.width - self.width
             if available_width <= 0:
-                return False
+                return
             self._scroll_x = lm._rv_positions[index] / available_width
         elif self.do_scroll_y:
             available_height = lm.height - self.height
             if available_height <= 0:
-                return False
+                return
             self._scroll_y = lm._rv_positions[index] / available_height
         self.update_from_scroll()
 
     # or easier way to use
-    def _get_data(self):
+    def _get_data(self) -> List[Dict[str, Any]]:
         d = self.data_model
         return d and d.data
 
-    def _set_data(self, value):
+    def _set_data(self, value: List[Dict[str, Any]]):
         d = self.data_model
         if d is not None:
             d.data = value
 
-    data = AliasProperty(_get_data, _set_data, bind=["data_model"])
+    data: List[Dict[str, Any]] = AliasProperty(_get_data, _set_data, bind=["data_model"])
     """
     The data used by the current view adapter. This is a list of dicts whose
     keys map to the corresponding property names of the
@@ -244,16 +239,16 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
     data used to generate the views.
     """
 
-    def _get_viewclass(self):
+    def _get_viewclass(self) -> Union[str, Type[Widget]]:
         a = self.layout_manager
         return a and a.viewclass
 
-    def _set_viewclass(self, value):
+    def _set_viewclass(self, value: Union[str, Type[Widget]]):
         a = self.layout_manager
         if a:
             a.viewclass = value
 
-    viewclass = AliasProperty(_get_viewclass, _set_viewclass,
+    viewclass: Union[str, Type[Widget]] = AliasProperty(_get_viewclass, _set_viewclass,
                               bind=["layout_manager"])
     """
     The viewclass used by the current layout_manager.
@@ -262,16 +257,16 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
     the class used to generate the individual items presented in the view.
     """
 
-    def _get_key_viewclass(self):
+    def _get_key_viewclass(self) -> Optional[str]:
         a = self.layout_manager
         return a and a.key_viewclass
 
-    def _set_key_viewclass(self, value):
+    def _set_key_viewclass(self, value: Optional[str]):
         a = self.layout_manager
         if a:
             a.key_viewclass = value
 
-    key_viewclass = AliasProperty(_get_key_viewclass, _set_key_viewclass,
+    key_viewclass: Optional[str] = AliasProperty(_get_key_viewclass, _set_key_viewclass,
                                   bind=["layout_manager"])
     """
     key_viewclass is an :class:`~kivy.properties.AliasProperty` that gets and

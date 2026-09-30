@@ -1,15 +1,16 @@
-from libs.kivy_json_orm.table_implementation import DatabaseTable, DatabaseRow
-from libs.kivy_json_orm.fields import (
-    StringField, BooleanField, ColorField, NumericField
-)
+from typing import Optional
+
+from libs.kivy_json_orm.fields import BooleanField, ColorField, NumericField, StringField
+from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
+from libs.typecheck import RGBA
 
 
 class RowFixtureParam(DatabaseRow):
-    title_id = StringField(allownone=True)  # None - пользовательский
-    title = StringField("Без названия")
-    is_dynamic = BooleanField(False)
-    color = ColorField("#1AA2A7FF")
-    default_value = NumericField(0)
+    title_id: Optional[str] = StringField(allownone=True)  # None - пользовательский
+    title: str = StringField("Без названия")
+    is_dynamic: bool = BooleanField(False)
+    color: RGBA = ColorField("#1AA2A7FF")
+    default_value: int = NumericField(0)
 
 
 PAN_TITLE_ID = "pan"

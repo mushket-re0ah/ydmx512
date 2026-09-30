@@ -1,12 +1,13 @@
-from typing import Dict
 import importlib
+from types import ModuleType
+from typing import Dict
 
 
 class PatchedLoader(importlib.abc.Loader):
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
 
-    def exec_module(self, module):
+    def exec_module(self, module: ModuleType):
         loader = importlib.machinery.SourceFileLoader(
             module.__name__,
             self.path
@@ -17,9 +18,9 @@ class PatchedLoader(importlib.abc.Loader):
 class PatchFinder(importlib.abc.MetaPathFinder):
     def __init__(self, patches: Dict[str, str]):
         # {"имя_модуля": "путь_к_файлу"}
-        self.patches = patches
+        self.patches: Dict[str, str] = patches
 
-    def find_spec(self, fullname):
+    def find_spec(self, fullname: str) -> importlib.machinery.ModuleSpec:
         patch = self.patches.get(fullname)
         if patch is None:
             return None

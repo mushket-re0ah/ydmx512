@@ -1,4 +1,4 @@
-def init(backup_mode=False):
+def init(backup_mode:bool=False):
     import os
 
     os.environ["KIVY_WINDOW"] = "sdl2"
@@ -16,6 +16,7 @@ def init(backup_mode=False):
 # os.environ["KIVY_METRICS_DENSITY"] = str(config.graphics.scale)
 # os.environ["KIVY_METRICS_FONTSCALE"] = str(config.graphics.scale_fonts)
     from kivy.config import Config
+
     from misc import imgs_path
     # from kivy_process.database.db_table import colorscheme_table as cs
     # Config.set("kivy", "desktop", config.misc.desktop)
@@ -27,8 +28,9 @@ def init(backup_mode=False):
     Config.set("graphics", "minimum_width", "800")
     Config.set("graphics", "minimum_height", "600")
 
-    from misc import constants
     import json
+
+    from misc import constants
     data = {}
     try:
         with open(constants.DATABASE_PATH / "misc.json", "r", encoding="utf8") as fptr:
@@ -65,6 +67,6 @@ def init(backup_mode=False):
     # Отключает появление меток при нажатии правой кнопкой мыши
     Config.set("input", "mouse", "mouse,multitouch_on_demand")
 
-    from kivy.logger import Logger, LOG_LEVELS
+    from kivy.logger import LOG_LEVELS, Logger
     Logger.setLevel(LOG_LEVELS["error"])
     Logger.propagate = False

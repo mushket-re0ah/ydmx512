@@ -5,7 +5,7 @@ from kivy.properties import (
     NumericProperty, DictProperty
 )
 from kivy.clock import Clock
-from libs.kivy_utils import AutoUnbindBehavior
+from libs.kivy_mixins import AutoUnbindBehavior
 from database.playback import PlaybackRenderRow
 
 

@@ -36,7 +36,7 @@ from libs.animation import AnimationBehavior
 from libs.uix.behaviors.tooltip import TooltipBehavior
 from libs.sdl2_keyboard import KeyboardBehavior, KeyboardInputContext
 from libs.sdl2_keyboard.scancodes import *
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict, FrozenSet, Callable
 from libs.mouse_manager import cursor_manager
 from kivy.lang import Builder
 Builder.load_string("""
@@ -1571,7 +1571,7 @@ class CentralizedHotkeyTextInput(KeyboardBehavior, AnimationBehavior, TooltipBeh
         '''
         Clock.schedule_once(lambda dt: self.select_all())
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.disabled:
             return
 
@@ -1651,7 +1651,7 @@ class CentralizedHotkeyTextInput(KeyboardBehavior, AnimationBehavior, TooltipBeh
             self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch) -> bool:
         if touch.grab_current is not self:
             return
         if not self.focus:
@@ -1666,7 +1666,7 @@ class CentralizedHotkeyTextInput(KeyboardBehavior, AnimationBehavior, TooltipBeh
             self._update_selection()
             return True
 
-    def on_touch_up(self, touch):
+    def on_touch_up(self, touch) -> bool:
         if touch.grab_current is not self:
             return
         touch.ungrab(self)
@@ -2212,7 +2212,7 @@ class CentralizedHotkeyTextInput(KeyboardBehavior, AnimationBehavior, TooltipBeh
             self.unregister_keyboard_context()
 
     is_blocked_keyboard = True
-    # def create_hotkeys(self) -> dict:
+    # def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
     #     return {
     #         frozenset({"esc"}): self.discard_focus,
 
@@ -2365,7 +2365,7 @@ class CentralizedHotkeyTextInput(KeyboardBehavior, AnimationBehavior, TooltipBeh
     #     self._alt_l = False
     #     self._alt_r = False
 
-    def create_hotkeys(self) -> dict:
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {
             frozenset({"ctrl", "a"}): self.select_all,
             frozenset({"ctrl", "c"}): self.copy,

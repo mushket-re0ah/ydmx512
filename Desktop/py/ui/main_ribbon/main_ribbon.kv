@@ -1,7 +1,3 @@
-#:include ui/main_ribbon/scene_dimmer.kv
-#:include ui/main_ribbon/scene_temp/scene_temp.kv
-#:include ui/main_ribbon/serial_devices.kv
-#:include ui/main_ribbon/midi_devices.kv
 #:import uix_cs libs.uix.colorscheme
 
 
@@ -20,7 +16,7 @@
     spacing: "2dp"
 
 
-<MDIMenuRibbon@SectionPanel>:
+<MDIMenuRibbon>:  # SectionPanel
     box: box
     title_text: "рабочий стол"
     size_hint: (1, 1)

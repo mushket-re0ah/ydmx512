@@ -1,9 +1,12 @@
 from enum import IntEnum
+from typing import Any
+
 import serial
 from kivy.properties import NumericProperty
+
 from libs import logger
-from libs.serial.device import SerialDevice
 from libs.dmx512 import message
+from libs.serial.device import SerialDevice
 
 
 class DMXResultCode(IntEnum):
@@ -21,9 +24,9 @@ class DMXResultCode(IntEnum):
 
 
 class DMXSerialDevice(SerialDevice):
-    universe = NumericProperty()
+    universe: int = NumericProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         from libs.dmx512 import dmx512
         self._timeout = dmx512.SERIAL_TIMEOUT
         super().__init__(
@@ -52,6 +55,8 @@ class DMXSerialDevice(SerialDevice):
 
     def _process_pending_input(self):
         from libs.dmx512 import dmx512
+        if self.device is None:
+            raise ValueError("device is None")
         if self.device.in_waiting > 0:
             raw = self.device.read(1)
             if not raw:
@@ -74,6 +79,8 @@ class DMXSerialDevice(SerialDevice):
 
     def _write(self, data: bytes):
         from libs.dmx512 import dmx512
+        if self.device is None:
+            raise ValueError("device is None")
         self.device.write(data)
         raw = self.device.read(1)
         if not raw:

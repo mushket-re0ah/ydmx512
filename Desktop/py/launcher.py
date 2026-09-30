@@ -1,25 +1,16 @@
+import os
 import subprocess
+import sys
 import threading
 import time
-import sys
-import os
-from pathlib import Path
-from misc import constants
-from libs.sub_proc import exit_code
+from typing import TextIO
+
 from libs import logger
-
-# Определяем директорию, где находится скрипт или исполняемый файл
-if getattr(sys, "frozen", False):
-    # Для Nuitka или PyInstaller
-    SCRIPT_DIR = Path(sys.executable).parent
-else:
-    # Для обычного Python-скрипта
-    SCRIPT_DIR = Path(__file__).parent
-
-APP_FILENAME = SCRIPT_DIR / "app_start.py"
+from libs.sub_proc.exit_code import ExitCode
+from misc import constants
 
 
-def print_output(pipe):
+def print_output(pipe: TextIO):
     for line in iter(pipe.readline, ''):
         if line:
             line = line.rstrip()  # Убираем \n
@@ -28,14 +19,14 @@ def print_output(pipe):
                 sys.stdout.flush()
 
 
-def run_kivy_app(do_exec_backup_menu: bool):
+def run_kivy_app(do_exec_backup_menu: bool) -> int:
     env = os.environ.copy()
     if do_exec_backup_menu:
         env[constants.BACKUP_MENU_ENV_KEY] = constants.BACKUP_MENU_ENV_KEY_TRUE
     else:
         env[constants.BACKUP_MENU_ENV_KEY] = constants.BACKUP_MENU_ENV_KEY_FALSE
     with subprocess.Popen(
-        [sys.executable, "-u", APP_FILENAME],
+        [sys.executable, "-u", constants.APP_FILENAME],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         bufsize=1,
@@ -54,22 +45,21 @@ def run_kivy_app(do_exec_backup_menu: bool):
 
 if __name__ == "__main__":
     logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES, constants.SESSION_LOG_ENV_KEY)
-    logger.info("Лаунчер запущен")
     exec_backup_menu = False
     while True:
         try:
             logger.info("Запуск kivy...")
             kivy_exit_code = run_kivy_app(exec_backup_menu)
             logger.info(f"Процесс kivy завершен с кодом {kivy_exit_code}")
-            if kivy_exit_code == exit_code.EXIT_FAILURE and exec_backup_menu:
-                logger.info(f"Крах Backup Menu (exit code: {kivy_exit_code}. Смерть через 3 секунды.")
+            if kivy_exit_code == ExitCode.FAILURE and exec_backup_menu:
+                logger.info(f"Крах Backup Menu (exit code: {kivy_exit_code}.")
                 time.sleep(3)
-                sys.exit(exit_code.EXIT_FAILURE)
+                sys.exit(ExitCode.FAILURE)
             exec_backup_menu = False
-            if kivy_exit_code == exit_code.EXIT_SUCCESS:
+            if kivy_exit_code == ExitCode.SUCCESS:
                 logger.info("Процесс kivy успешно завершен")
-                sys.exit(exit_code.EXIT_SUCCESS)
-            elif kivy_exit_code == exit_code.EXIT_RESTART:
+                sys.exit(ExitCode.SUCCESS)
+            elif kivy_exit_code == ExitCode.RESTART:
                 logger.info("Перезапуск kivy")
             else:
                 logger.info(f"Крах Kivy (exit code: {kivy_exit_code})")
@@ -77,4 +67,4 @@ if __name__ == "__main__":
         except Exception as e:
             logger.info(f"Ошибка в лаунчере: {e}. Смерть через 3 секунды.")
             time.sleep(3)
-            sys.exit(exit_code.EXIT_FAILURE)
+            sys.exit(ExitCode.FAILURE)

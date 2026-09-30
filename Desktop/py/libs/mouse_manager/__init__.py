@@ -1,10 +1,12 @@
-from kivy.core.window import Window
+from typing import Callable, List, Tuple
+
 from kivy.clock import Clock
+from kivy.core.window import Window
 
 _initialized = False
-_callback_list = []
+_callback_list: List[Callable[[Tuple[float, float]], None]] = []
 
-def register_mouse_observer(callback):
+def register_mouse_observer(callback: Callable[[Tuple[float, float]], None]):
     global _initialized
     global _callback_list
     if not _initialized:

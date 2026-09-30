@@ -1,13 +1,14 @@
-from threading import Thread
 import time
+from threading import Thread
+from typing import Any, Callable, List
+
 from database import db
 from database.playback.player import master_player as playback_master_player
-from libs.utils import ThrottledCall
-from libs import beat_counter
+from libs import beat_counter, logger
 from libs.dmx512 import dmx512
-from libs.serial.observer import observer as serial_observer
 from libs.midi.observer import observer as midi_observer
-from libs import logger
+from libs.serial.observer import observer as serial_observer
+from libs.utils import ThrottledCall
 from misc import constants
 
 
@@ -39,7 +40,7 @@ midi_monitor_connections = ThrottledCall(
 
 # если где-то ошибка то цикл не пойдет дальше, последующие системы не отработают
 # поэтому нужен list
-_callback_list = [
+_callback_list: List[Callable[[float], Any]] = [
     db.save_throttled,
     db.backup_throttled,
     serial_monitor_connections,

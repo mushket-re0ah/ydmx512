@@ -1,66 +1,54 @@
-from typing import Optional
-import sys
 import os
+import sys
+
 from libs import logger
-from libs.sub_proc import exit_code
+from libs.sub_proc.exit_code import ExitCode
 from misc import constants
 
 
-def import_cython_files() -> int:
-    try:
-        import libs.dmx512_render.render_interpolation
-        import libs.uix.color_selector.colorpicker_utils
-    except ModuleNotFoundError:
+def kivy_execute() -> ExitCode:
+    def init_config_kivy() -> ExitCode:
         try:
-            logger.info("cythonized files don't exist: try to create them")
-            from misc.build_cython import do_cythonize
-            try:
-                do_cythonize()
-            except Exception:
-                logger.error(exc_info=True)
-                return exit_code.EXIT_FAILURE
-            logger.info("cythonized successful")
-            import libs.dmx512_render.render_interpolation
-            import libs.uix.color_selector.colorpicker_utils
+            from misc import config_kivy
+            config_kivy.init()
         except Exception:
             logger.error(exc_info=True)
-            return exit_code.EXIT_FAILURE
-    return exit_code.EXIT_SUCCESS
+            return ExitCode.FAILURE
+        return ExitCode.SUCCESS
 
+    def import_cython_files() -> ExitCode:
+        try:
+            import libs.dmx512_render.render_interpolation
+            import libs.uix.color_selector.colorpicker_utils
+        except ModuleNotFoundError:
+            try:
+                logger.info("cythonized files don't exist: try to create them")
+                from misc.build_cython import do_cythonize
+                try:
+                    do_cythonize()
+                except Exception:
+                    logger.error(exc_info=True)
+                    return ExitCode.FAILURE
+                logger.info("cythonized successful")
+                import libs.dmx512_render.render_interpolation
+                import libs.uix.color_selector.colorpicker_utils
+            except Exception:
+                logger.error(exc_info=True)
+                return ExitCode.FAILURE
+        return ExitCode.SUCCESS
 
-def init_config_kivy() -> int:
-    try:
-        from misc import config_kivy
-        config_kivy.init()
-    except Exception:
-        logger.error(exc_info=True)
-        return exit_code.EXIT_FAILURE
-    return exit_code.EXIT_SUCCESS
+    def init_database() -> ExitCode:
+        try:
+            import database
+            database.create_database()
+        except SystemExit as e:
+            logger.error(exc_info=True)
+            return ExitCode(e.code)
+        except Exception:
+            logger.error(exc_info=True)
+            return ExitCode.FAILURE
+        return ExitCode.SUCCESS
 
-
-def init_database() -> int:
-    try:
-        import database
-        database.create_database()
-    except SystemExit as e:
-        logger.error(exc_info=True)
-        return e.code
-    except Exception:
-        logger.error(exc_info=True)
-        return exit_code.EXIT_FAILURE
-    return exit_code.EXIT_SUCCESS
-
-
-def create_app() -> Optional["DesktopApp"]:
-    try:
-        from app import DesktopApp
-        return DesktopApp()
-    except Exception:
-        logger.error(exc_info=True)
-        return None
-
-
-def kivy_execute() -> int:
     logger.info("==== Запуск kivy приложения... ====")
 
     if constants.PROFILING_CPU:
@@ -70,10 +58,11 @@ def kivy_execute() -> int:
         # from scalene import scalene_profiler
         # scalene_profiler.start()
 
-    if init_config_kivy() == exit_code.EXIT_FAILURE:
-        return exit_code.EXIT_FAILURE
-    if import_cython_files() == exit_code.EXIT_FAILURE:
-        return exit_code.EXIT_FAILURE
+    if init_config_kivy() == ExitCode.FAILURE:
+        return ExitCode.FAILURE
+
+    if import_cython_files() == ExitCode.FAILURE:
+        return ExitCode.FAILURE
 
     from libs import sdl2_keyboard
     sdl2_keyboard.init()
@@ -99,35 +88,40 @@ def kivy_execute() -> int:
     )
 
     init_database_status = init_database()
-    if init_database_status != exit_code.EXIT_SUCCESS:
+    if init_database_status != ExitCode.SUCCESS:
         return init_database_status
-    application = create_app()
-    if not application:
-        return exit_code.EXIT_FAILURE
 
-    exit_status = exit_code.EXIT_SUCCESS
+
+    try:
+        from app import DesktopApp
+        application = DesktopApp()
+    except Exception:
+        logger.error(exc_info=True)
+        return ExitCode.FAILURE
+
+    exit_status = ExitCode.SUCCESS
     try:
         application.run()
     except SystemExit as e:  # ловим sys.exit
-        exit_status = e.code
+        exit_status = ExitCode(e.code)
         raise
     except Exception:
         logger.error(exc_info=True)
-        exit_status = exit_code.EXIT_FAILURE
+        exit_status = ExitCode.FAILURE
     finally:
         try:
             from database import db
             db.save_all()
         except Exception:
             logger.error(exc_info=True)
-            if exit_status == exit_code.EXIT_SUCCESS:
-                exit_status = exit_code.EXIT_FAILURE
+            if exit_status == ExitCode.SUCCESS:
+                exit_status = ExitCode.FAILURE
 
     return exit_status
 
 
-def backup_menu_execute():
-    exit_status = exit_code.EXIT_SUCCESS
+def backup_menu_execute() -> ExitCode:
+    exit_status = ExitCode.SUCCESS
     logger.info("==== Запуск backup menu приложения... ====")
 
     from misc import config_kivy
@@ -141,15 +135,15 @@ def backup_menu_execute():
         app = BackupApp()
         app.run()
     except SystemExit as e:
-        exit_status = e.code
+        exit_status = ExitCode(e.code)
         raise
     except Exception:
         logger.error(exc_info=True)
-        exit_status = exit_code.EXIT_FAILURE
+        exit_status = ExitCode.FAILURE
     return exit_status
 
 
-def main():
+def main() -> ExitCode:
     try:
         import faulthandler
         import signal
@@ -166,23 +160,23 @@ def main():
     exec_backup_menu = os.environ.get(constants.BACKUP_MENU_ENV_KEY)
     exec_backup_menu = exec_backup_menu == constants.BACKUP_MENU_ENV_KEY_TRUE
 
-    exit_status = exit_code.EXIT_SUCCESS
+    exit_status = ExitCode.SUCCESS
     if exec_backup_menu:
         try:
             exit_status = backup_menu_execute()
         except Exception:
-            exit_status = exit_code.EXIT_FAILURE
+            exit_status = ExitCode.FAILURE
             logger.error(exc_info=True)
         logger.info("==== Завершение backup menu приложения... ====")
     else:
         try:
             exit_status = kivy_execute()
         except Exception:
-            exit_status = exit_code.EXIT_FAILURE
+            exit_status = ExitCode.FAILURE
             logger.error(exc_info=True)
         logger.info("==== Завершение kivy приложения... ====")
 
-    sys.exit(exit_status)
+    return exit_status
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

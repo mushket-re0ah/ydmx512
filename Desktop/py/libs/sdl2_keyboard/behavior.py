@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Callable, Dict, FrozenSet
+
 from libs.sdl2_keyboard.manager import KeyboardInputContext, register_context, unregister_context
 
 
@@ -26,11 +27,11 @@ class KeyboardBehavior:
     def on_key_up(self, scancode: int, keycode: str):
         pass
 
-    def create_hotkeys(self) -> Optional[dict]:
-        raise NotImplementedError()
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
+        return {}
 
-    def create_hotkeys_up(self) -> Optional[dict]:
-        return None
+    def create_hotkeys_up(self) -> Dict[FrozenSet[str], Callable[[], None]]:
+        return {}
 
     def unregister_keyboard_context(self):
         if self.keyboard_context:

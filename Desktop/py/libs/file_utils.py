@@ -1,7 +1,8 @@
 import json
-from typing import Any, Dict, Optional
-from pathlib import Path
 import os
+from pathlib import Path
+from typing import Any, Dict, Optional
+
 from libs import logger
 
 
@@ -16,7 +17,7 @@ def json_save(
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(json_str)
     except Exception as e:
-        logger.critical(f"Ошибка сохранения файла {filepath}", exc_info=e)
+        logger.critical(f"Ошибка сохранения файла {filepath}", exc_info=True)
         raise e
 
 
@@ -41,11 +42,11 @@ def atomic_json_save(
     except Exception as e:
         if tmp_filepath.exists():
             tmp_filepath.unlink()
-        logger.critical(f"Ошибка сохранения файла {filepath}", exc_info=e)
+        logger.critical(f"Ошибка сохранения файла {filepath}", exc_info=True)
         raise e
 
 
-def json_load(filepath: Path) -> Optional[dict]:
+def json_load(filepath: Path) -> Optional[Dict[str, Any]]:
     data = None
     try:
         with open(filepath, "r", encoding="utf8") as fptr:

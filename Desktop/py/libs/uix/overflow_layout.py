@@ -1,13 +1,14 @@
-from typing import List
-from kivy.core.window import Window
-from kivy.uix.widget import Widget
-from kivy.properties import ObjectProperty, ListProperty
-from kivy.clock import Clock
-from kivy.lang import Builder
-from kivy.uix.boxlayout import BoxLayout
-from libs.uix.layouts import ModalBoxLayout
-from libs.mouse_manager.hover import NestedHoverBehavior
+from typing import Any, List, Tuple
 
+from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.properties import ListProperty, ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
+
+from libs.mouse_manager.hover import NestedHoverBehavior
+from libs.uix.layouts import ModalBoxLayout
 
 Builder.load_string("""
 <OverflowLayout>:  # BoxLayout
@@ -19,11 +20,11 @@ Builder.load_string("""
 
 
 class OverflowLayoutModal(ModalBoxLayout):
-    allow_hover_outside = True
+    allow_hover_outside: bool = True
 
-    overflow_layout = ObjectProperty()
+    overflow_layout: "OverflowLayout" = ObjectProperty()
 
-    def open(self, *args, **kwargs):
+    def open(self, *args: Any, **kwargs: Any):
         super().open(*args, **kwargs)
         self.bind_to(Window, mouse_pos=self.check_mouse_pos)
 
@@ -31,18 +32,18 @@ class OverflowLayoutModal(ModalBoxLayout):
         self.clear_widgets()
         self.unbind_from(Window)
 
-    def check_mouse_pos(self, _, mouse_pos: tuple):
+    def check_mouse_pos(self, _, mouse_pos: Tuple[float, float]):
         if not (self.overflow_layout.collide_point(*mouse_pos) or\
                 self.collide_point(*mouse_pos)):
             self.dismiss()
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         return Widget.on_touch_down(self, touch)
 
 
 class OverflowLayout(NestedHoverBehavior, BoxLayout):
-    widget_list = ListProperty()
-    modal = ObjectProperty(allownone=True)
+    widget_list: List[Widget] = ListProperty()
+    modal: OverflowLayoutModal = ObjectProperty(allownone=True)
 
     def __init__(self, **kwargs):
         self.trigger_update_overflow = Clock.create_trigger(self.update_overflow, -1)
@@ -53,7 +54,7 @@ class OverflowLayout(NestedHoverBehavior, BoxLayout):
         )
         super().__init__(**kwargs)
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget: Widget, index:int=0, canvas=None):
         self.widget_list.append(widget)
 
     def update_overflow(self, _):
@@ -84,7 +85,7 @@ class OverflowLayout(NestedHoverBehavior, BoxLayout):
         self.modal = modal
 
     def calc_widget_fit(self) -> List[Widget]:
-        widget_fits = []
+        widget_fits: List[Widget] = []
         for widget in self.widget_list:
             if widget.right < self.right:
                 widget_fits.append(widget)

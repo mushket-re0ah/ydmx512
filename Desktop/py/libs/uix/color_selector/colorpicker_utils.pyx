@@ -78,7 +78,7 @@ cdef void hsl_to_rgb(double h, double s, double l, double* r, double* g, double*
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_color_data(int width, int height, double lightness):
+def get_color_data(int width, int height, double lightness) -> bytes:
     cdef:
         int x, y
         double hue, saturation

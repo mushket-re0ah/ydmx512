@@ -1,22 +1,25 @@
+from typing import Literal, Tuple
+
+from kivy.lang import Builder
 from kivy.properties import (
-    NumericProperty, BooleanProperty, OptionProperty,
-    StringProperty, AliasProperty
+    AliasProperty,
+    BooleanProperty,
+    NumericProperty,
+    OptionProperty,
+    StringProperty,
 )
 from kivy.uix.widget import Widget
-from kivy.uix.boxlayout import BoxLayout
-from kivy.lang import Builder
-from libs.mouse_manager import cursor_manager
-from libs.animation import StatefulColorProperty
-from libs.properties import ContextualNumericProperty
-from libs.uix.behaviors.mouse import TouchMouseBehavior
-from libs.uix.restricted_scrollview import RestrictedScrollView
-from libs.uix import colorscheme as uix_cs
-from libs.animation import AnimationBehavior
-from libs.uix.behaviors.tooltip import TooltipBehavior
-from libs.uix.context_menu import (
-    ContextMenu, ContextMenuTemplates
-)
+from typing_extensions import Self
 
+from libs.animation import AnimationBehavior, StatefulColorProperty
+from libs.mouse_manager import cursor_manager
+from libs.properties import ContextualNumericProperty
+from libs.typecheck import RGBA, Number
+from libs.uix import colorscheme as uix_cs
+from libs.uix.behaviors.mouse import TouchMouseBehavior
+from libs.uix.behaviors.tooltip import TooltipBehavior
+from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
+from libs.uix.restricted_scrollview import RestrictedScrollView
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -54,49 +57,12 @@ Builder.load_string("""
         size: (root.cursor_width, root.cursor_height)
         -background_normal: root.cursor_image
         on_hover: root.hover = self.hover
-
-
-<TitleNumericHoverSlider>:  # BoxLayout
-    numeric: numeric
-    slider: slider
-
-    size_hint: (None, None)
-    orientation: "vertical"
-    RestrictedLabel:
-        size_hint: (1, None)
-        height: "20dp"
-        text: root.index
-        font_size: "12sp"
-        canvas.before:
-            Color:
-                rgba: uix_cs.TitleNumericSlider.title_bg
-            Rectangle:
-                pos: self.pos
-                size: self.size
-    HoverSlider:
-        id: slider
-        size_hint: (1, 1)
-        minimum: root.minimum
-        maximum: root.maximum
-        value: root.value
-        on_value: root.value = self.value
-        on_hover: numeric.hover = self.hover
-        on_focus: numeric.visible_focus = self.focus
-    NumericInput:
-        size_hint: (1, None)
-        id: numeric
-        minimum: root.minimum
-        maximum: root.maximum
-        value: root.value
-        on_value: root.value = self.value
-        on_hover: slider.hover = self.hover
-        on_visible_focus: slider.focus = self.visible_focus
 """
 )
 
 
 class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget):
-    value_track_color = StatefulColorProperty(
+    value_track_color: RGBA = StatefulColorProperty(
         normal=uix_cs.HoverSlider.value_track_color_normal,
         states={
             "focus": uix_cs.HoverSlider.value_track_color_focused,
@@ -104,7 +70,7 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
             "hover": uix_cs.HoverSlider.value_track_color_hover,
         }
     )
-    background_color = StatefulColorProperty(
+    background_color: RGBA = StatefulColorProperty(
         normal=uix_cs.HoverSlider.background_color_normal,
         states={
             "focus": uix_cs.HoverSlider.background_color_focused,
@@ -113,10 +79,10 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
         }
     )
 
-    minimum = NumericProperty(0)
-    maximum = NumericProperty(100)
-    decimals = NumericProperty(0)
-    value = ContextualNumericProperty(
+    minimum: Number = NumericProperty(0)
+    maximum: Number = NumericProperty(100)
+    decimals: int = NumericProperty(0)
+    value: Number = ContextualNumericProperty(
         default=0,
         min_getter=lambda self: self.minimum,
         max_getter=lambda self: self.maximum,
@@ -124,42 +90,44 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
         dependencies=("minimum", "maximum", "decimals")
     )
 
-    default_value = NumericProperty(0)
-    step_mouse_scroll = NumericProperty(1)
+    default_value: Number = NumericProperty(0)
+    step_mouse_scroll: Number = NumericProperty(1)
 
-    focus = BooleanProperty(False)
+    focus: bool = BooleanProperty(False)
 
-    padding = NumericProperty("16sp")
-    orientation = OptionProperty("horizontal", options=(
-        "vertical", "horizontal"))
+    padding: float = NumericProperty("16sp")
+    orientation: Literal["vertical", "horizontal"] = OptionProperty("horizontal",
+                options=("vertical", "horizontal"))
 
-    background_image = StringProperty()
-    background_width = NumericProperty("36sp")
+    background_image: str = StringProperty()
+    background_width: float = NumericProperty("36sp")
 
-    cursor_image = StringProperty()
-    cursor_width = NumericProperty("32sp")
-    cursor_height = NumericProperty("32sp")
+    cursor_image: str = StringProperty()
+    cursor_width: float = NumericProperty("32sp")
+    cursor_height: float = NumericProperty("32sp")
 
-    value_track_width = NumericProperty("3dp")
+    value_track_width: float = NumericProperty("3dp")
 
-    drag_enabled = BooleanProperty(True)
+    drag_enabled: bool = BooleanProperty(True)
 
-    def on_kv_post(self, _):
+    def on_kv_post(self, base_widget: Self):
         self.default_value = self.value
 
-    def on_drag_start(self, touch):
+    def on_drag_start(self, touch) -> bool:
         self.focus = True
         self._set_value_from_pos(*touch.pos)
         return True
 
-    def on_drag(self, touch, delta_x, delta_y):
+    def on_drag(self, touch, delta_x: float, delta_y: float) -> bool:
         # дельты не используем, берём абсолютную позицию касания
         self._set_value_from_pos(*touch.pos)
+        return False
 
-    def on_drag_end(self, touch):
+    def on_drag_end(self, touch) -> bool:
         self.focus = False
+        return False
 
-    def _set_value_from_pos(self, x, y):
+    def _set_value_from_pos(self, x: float, y: float):
         padding = self.padding
         if self.orientation == 'horizontal':
             x = min(self.right - padding, max(x, self.x + padding))
@@ -175,20 +143,20 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
                 normalized = 0
         self.value = self.minimum + normalized * (self.maximum - self.minimum)
 
-    def on_scroll_up(self, touch):
+    def on_scroll_up(self, touch) -> bool:
         self.value -= self.step_mouse_scroll
         return True
 
-    def on_scroll_down(self, touch):
+    def on_scroll_down(self, touch) -> bool:
         self.value += self.step_mouse_scroll
         return True
 
-    def on_right_click(self, touch):
+    def on_right_click(self, touch) -> bool:
         self.open_context_menu(touch.pos)
         return True
 
-    # --- позиция курсора (только для визуального отображения) ---
-    def get_value_pos(self):
+    def get_value_pos(self) -> Tuple[float, float]:
+        """позиция курсора (только для визуального отображения)"""
         nval = (self.value - self.minimum) / max(self.maximum - self.minimum, 1)
         if self.orientation == 'horizontal':
             x = self.x + self.padding + nval * (self.width - 2 * self.padding)
@@ -196,17 +164,17 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
         y = self.y + self.padding + nval * (self.height - 2 * self.padding)
         return (self.x + self.width / 2, y)
 
-    value_pos = AliasProperty(get_value_pos,
+    value_pos: Tuple[float, float] = AliasProperty(get_value_pos,
                               bind=['pos', 'size', 'minimum', 'maximum',
                                     'padding', 'value', 'orientation'],
                               cache=True)
 
-    def open_context_menu(self, pos):
+    def open_context_menu(self, pos: Tuple[float, float]):
         if self.disabled:
             return
         self._create_context_menu().open(self, pos=pos)
 
-    def _create_context_menu(self):
+    def _create_context_menu(self) -> ContextMenu:
         return ContextMenu(items=[
             ContextMenuTemplates.button(
                 text="Установить по-умолчанию",
@@ -226,11 +194,5 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
         if self.hover and not self.disabled:
             cursor_manager.set_cursor("hand")
 
-
-class TitleNumericHoverSlider(BoxLayout):
-    index = StringProperty()
-    minimum = NumericProperty(0)
-    maximum = NumericProperty(100)
-    value = NumericProperty()
 
 RestrictedScrollView.register_scrollable_widget_class(HoverSlider)

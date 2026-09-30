@@ -1,27 +1,31 @@
+from typing import Type
+
+from kivy.clock import Clock
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.behaviors import FocusBehavior
-from kivy.clock import Clock
-from libs.uix.input import HoverInput
+
 from libs.uix.behaviors.recycle_dropdown import RecycleDropdownBehavior
-from libs.uix.recycle_spinner import SpinnerHoverButton
+from libs.uix.button import HoverButton
+from libs.uix.input import HoverInput
 from libs.uix.recycle_dropdown import RecycleDropdown
+from libs.uix.recycle_spinner import SpinnerHoverButton
 
 
 class SnippetDropdown(RecycleDropdown):
-    is_blocked_keyboard = False
-    allow_hover_outside = True
-    dismiss_on_attach_click = False
+    is_blocked_keyboard: bool = False
+    allow_hover_outside: bool = True
+    dismiss_on_attach_click: bool = False
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
         if self.collide_point(*touch.pos):
             FocusBehavior.ignored_touch.append(touch)
         return super().on_touch_down(touch)
 
 
 class Snippet(RecycleDropdownBehavior, HoverInput):
-    host_attr = StringProperty("text")
-    viewclass = ObjectProperty(SpinnerHoverButton)
-    dropdown_cls = ObjectProperty(SnippetDropdown)
+    host_attr: str = StringProperty("text")
+    viewclass: Type[HoverButton] = ObjectProperty(SpinnerHoverButton)
+    dropdown_cls: Type[RecycleDropdown] = ObjectProperty(SnippetDropdown)
 
     def on_focus(self, _, focus: bool):
         super().on_focus(_, focus)
@@ -34,9 +38,9 @@ class Snippet(RecycleDropdownBehavior, HoverInput):
             # к touch её transform). Откладываем закрытие на кадр.
             Clock.schedule_once(self._close_dropdown_if_unfocused, 0)
 
-    def _close_dropdown_if_unfocused(self, _dt):
+    def _close_dropdown_if_unfocused(self, dt: float):
         if self.opened and not self.focus:
             self.opened = False
 
-    def on_text(self, _, _text: str):
+    def on_text(self, _, text: str):
         self._update_filtered_values()
