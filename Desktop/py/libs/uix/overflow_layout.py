@@ -2,6 +2,7 @@ from typing import Any, List, Tuple
 
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -37,7 +38,7 @@ class OverflowLayoutModal(ModalBoxLayout):
                 self.collide_point(*mouse_pos)):
             self.dismiss()
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         return Widget.on_touch_down(self, touch)
 
 

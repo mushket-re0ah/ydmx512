@@ -1,25 +1,30 @@
-from kivy.properties import ObjectProperty, StringProperty
-from kivy.lang import Builder
-from libs.uix.scroll_layout import ScrollLayout
-from libs.uix.button import HoverToggleButton
-from typing_extensions import Self
+from typing import TYPE_CHECKING
 
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty, StringProperty
+from kivy.uix.widget import Widget
+
+from libs.uix.button import HoverToggleButton
+from libs.uix.scroll_layout import ScrollLayout
+
+if TYPE_CHECKING:
+    from ui.mdi.settings import MDISettings
 
 Builder.load_file("ui/mdi/settings/sections.kv")
 
 
 class SettingsSectionToggle(HoverToggleButton):
-    title = StringProperty("untitled")
-    settings_section = ObjectProperty()
+    title: str = StringProperty("untitled")
+    settings_section: "SettingsSections" = ObjectProperty()
 
     def on_release(self):
         self.settings_section.on_select_section(self.title)
 
 
 class SettingsSections(ScrollLayout):
-    settings = ObjectProperty()
+    settings: "MDISettings" = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self.scrollview.data = [
             {
@@ -28,8 +33,8 @@ class SettingsSections(ScrollLayout):
             },
         ]
 
-    def on_select_section(self, section):
-        print(self, section)
+    def on_select_section(self, section: str):
+        pass
 
     # DATABASE
     #

@@ -1,13 +1,14 @@
 from typing import Any, Callable, List, Optional, Tuple, Type, Union
 
 from kivy.clock import Clock
+from kivy.graphics import Canvas
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.uix.button import ImageButton
 from libs.uix.restricted_scrollview import RestrictedScrollView
@@ -97,7 +98,7 @@ class ScrollBar(BoxLayout):
     _default_width: float = NumericProperty(f"{_DEFAULT_WIDTH_NUMERIC}dp")
     _default_height: float = NumericProperty(f"{DEFAULT_HEIGHT_NUMERIC}dp")
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         sv = self.scrollview
         if_vertical = self.orientation == "vertical"
         self.if_vertical = if_vertical
@@ -165,7 +166,7 @@ class ScrollBar(BoxLayout):
             else:
                 self.scrollview.scroll_x_right(abs(diff))
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self._do_mouse_scroll(touch):
             return True
         if self._do_cursor(touch):
@@ -177,7 +178,7 @@ class ScrollBar(BoxLayout):
             return True
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if self._start_pos:
             self.__do_scroll_by_cursor(touch)
             return True
@@ -186,7 +187,7 @@ class ScrollBar(BoxLayout):
             return True
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
         self._start_pos = None
@@ -195,7 +196,7 @@ class ScrollBar(BoxLayout):
             self._clock_btn_press.cancel()
         return super().on_touch_up(touch)
 
-    def _do_mouse_scroll(self, touch) -> bool:
+    def _do_mouse_scroll(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos):
             if touch.button == "scrollup":
                 self._processing_scrollup()
@@ -205,7 +206,7 @@ class ScrollBar(BoxLayout):
                 return True
         return False
 
-    def _do_cursor(self, touch) -> bool:
+    def _do_cursor(self, touch: MotionEvent) -> bool:
         locale_touch = self.layout_cursor.to_local(*touch.pos)
         if self.cursor.collide_point(*locale_touch):
             self._start_pos = locale_touch[1 if self.orientation ==
@@ -214,14 +215,14 @@ class ScrollBar(BoxLayout):
             return True
         return False
 
-    def _check_scroll_by_cursor_layout(self, touch) -> bool:
+    def _check_scroll_by_cursor_layout(self, touch: MotionEvent) -> bool:
         scroll_by_cursor_layout = self.layout_cursor.collide_point(*touch.pos)
         self._scroll_by_cursor_layout = scroll_by_cursor_layout
         if scroll_by_cursor_layout:
             self.__do_scroll_by_cursor_layout(touch)
         return scroll_by_cursor_layout
 
-    def __do_scroll_by_cursor(self, touch):
+    def __do_scroll_by_cursor(self, touch: MotionEvent):
         touch.push()
         touch.apply_transform_2d(self.layout_cursor.to_local)
         dy = self.__get_touch_pos(touch) - self._start_pos
@@ -231,7 +232,7 @@ class ScrollBar(BoxLayout):
         self.__set_scroll(self._start_scroll + diff)
         touch.pop()
 
-    def __do_scroll_by_cursor_layout(self, touch):
+    def __do_scroll_by_cursor_layout(self, touch: MotionEvent):
         touch.push()
         touch.apply_transform_2d(self.layout_cursor.to_local)
         dy = self.__get_touch_pos(touch)
@@ -252,7 +253,7 @@ class ScrollBar(BoxLayout):
     def __get_scroll(self) -> float:
         return getattr(self.scrollview, self._scroll_attr)
 
-    def __get_touch_pos(self, touch) -> float:
+    def __get_touch_pos(self, touch: MotionEvent) -> float:
         return getattr(touch, self._pos_attr)
 
     def __set_scroll(self, value: float):
@@ -366,7 +367,7 @@ class ScrollLayout(BoxLayout):
         lambda x, value: x._alias_set_scrollview_attr("do_scroll_y", value),
     )
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.remove_widget(self.scrollview)
         self.box_vertical.add_widget(self.scrollview)
 
@@ -383,7 +384,7 @@ class ScrollLayout(BoxLayout):
         )
         self.trigger_on_scrollview_bar()
 
-    def patch_add_widget(self, widget: Widget, index:int=0, canvas=None):
+    def patch_add_widget(self, widget: Widget, index:int=0, canvas: Optional[Canvas]=None):
         if isinstance(widget, ScrollBar) and (
                 widget.orientation == "horizontal"):
             self.original_add_widget(widget)

@@ -1,11 +1,13 @@
-from typing import Tuple
-from math import floor, ceil
-from kivy.properties import NumericProperty, ColorProperty, ReferenceListProperty
-from kivy.lang import Builder
-from libs.uix.workspace_manager import WorkspaceBehavior
-from libs.uix.map_layout import MapLayout
-from misc import colorscheme as cs
+from math import ceil, floor
+from typing import Optional, Tuple
 
+from kivy.lang import Builder
+from kivy.properties import ColorProperty, NumericProperty, ReferenceListProperty
+
+from libs.typecheck import RGBA
+from libs.uix.map_layout import MapLayout
+from libs.uix.workspace_manager import WorkspaceBehavior
+from misc import colorscheme as cs
 
 Builder.load_string("""
 <EditorMapLayout>:
@@ -27,15 +29,21 @@ Builder.load_string("""
 
 
 class EditorMapLayout(MapLayout):
-    outbound_background_color = ColorProperty(cs.EditorMapLayout.outbound_background_color)
-    _offset_x = NumericProperty(0)
-    _offset_y = NumericProperty(0)
-    _offset = ReferenceListProperty(_offset_x, _offset_y)
+    outbound_background_color: RGBA = ColorProperty(cs.EditorMapLayout.outbound_background_color)
+    _offset_x: int = NumericProperty(0)
+    _offset_y: int = NumericProperty(0)
+    _offset: Tuple[int, int] = ReferenceListProperty(_offset_x, _offset_y)
 
     def cell_to_pixel(self, cell_x: int, cell_y: int) -> Tuple[float, float]:
         return super().cell_to_pixel(cell_x - self._offset_x, cell_y - self._offset_y)
 
-    def pixel_to_cell(self, x, y, ignore_spaces=False, allow_outbound=False):
+    def pixel_to_cell(
+            self,
+            x: float,
+            y: float,
+            ignore_spaces:bool=False,
+            allow_outbound:bool=False
+        ) -> Optional[Tuple[int, int]]:
         result = super().pixel_to_cell(x, y, ignore_spaces, allow_outbound)
         if result is None:
             return None

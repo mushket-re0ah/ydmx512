@@ -122,7 +122,7 @@ class TableScene(DatabaseTable):
         return True
     scene_now_temp: Number = AliasProperty(
         lambda self: self.scene_now.temp, set_scene_now_temp,
-        bind=["scene_now"]
+        bind=("scene_now",)
     )
 
     def set_scene_now_dimmer(self, dimmer: float):
@@ -131,7 +131,7 @@ class TableScene(DatabaseTable):
         return True
     scene_now_dimmer: Number = AliasProperty(
         lambda self: self.scene_now.dimmer, set_scene_now_dimmer,
-        bind=["scene_now"]
+        bind=("scene_now",)
     )
 
     def set_scene_now_beats_count(self, beats_count: float):
@@ -140,7 +140,7 @@ class TableScene(DatabaseTable):
         return True
     scene_now_beats_count: int = AliasProperty(
         lambda self: self.scene_now.beats_count, set_scene_now_beats_count,
-        bind=["scene_now"]
+        bind=("scene_now",)
     )
 
     def on_scene_change(self, old_scene: RowScene, new_scene: RowScene):

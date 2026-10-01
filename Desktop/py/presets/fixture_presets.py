@@ -1,10 +1,13 @@
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 from database import db
 from database.fixture import RowFixture
+from database.phase_curve_type import RowPhaseCurveType
+from database.playback.renderer.render_data import PlaybackRenderRow
 from libs import logger
 from libs.asset_manager import FileAssetManager
+from libs.dmx512_render.misc import InterpolationType
 from libs.kivy_json_orm.fields import (
     BooleanField,
     ClampedNumericField,
@@ -18,23 +21,23 @@ from misc import constants
 
 
 class FixturePresetRowData(SerializableMixin):
-    active = BooleanField(False)
-    dots = ListField()
+    active: bool = BooleanField(False)
+    dots: Tuple[Tuple[float, float, InterpolationType]] = ListField()
 
 class FixturePresetPhaseData(SerializableMixin):
-    indices = ListField()
-    amount = ClampedNumericField(0.0, -1.0, 1.0)
-    curve = RefField(
+    indices: Tuple[int, ...] = ListField()
+    amount: float = ClampedNumericField(0.0, -1.0, 1.0)
+    curve: RowPhaseCurveType = RefField(
         lambda: db.phase_curve_type,
         default_factory=lambda: db.phase_curve_type.get_default_row()
     )
-    inverted = BooleanField(False)
-    dots = ListField()
+    inverted: bool = BooleanField(False)
+    dots: Tuple[Tuple[float, float, InterpolationType]] = ListField()
 
 class FixturePresetData(SerializableMixin):
-    title = StringField()
-    rows = ListNestedField(FixturePresetRowData)
-    phases = ListNestedField(FixturePresetPhaseData)
+    title: str = StringField()
+    rows: Tuple[PlaybackRenderRow, ...] = ListNestedField(FixturePresetRowData)
+    phases: Tuple[FixturePresetPhaseData, ...] = ListNestedField(FixturePresetPhaseData)
 
 
 class FixturePresetsManager(FileAssetManager):

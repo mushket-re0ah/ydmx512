@@ -1,12 +1,18 @@
+from typing import TYPE_CHECKING
+
 from kivy.properties import ObjectProperty, StringProperty
+
 from ui.components.database_mdi_window import DatabaseMDIWindow
+
+if TYPE_CHECKING:
+    from ui.mdi.settings.content import SettingsContent
 
 
 class MDISettings(DatabaseMDIWindow):
-    _db_title_id = "settings"
-    title = StringProperty("Настройки")
+    _db_title_id: str = "settings"
+    title: str = StringProperty("Настройки")
 
-    content = ObjectProperty()
+    content: "SettingsContent" = ObjectProperty()
 
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)

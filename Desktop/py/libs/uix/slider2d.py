@@ -1,3 +1,4 @@
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty
 from kivy.uix.widget import Widget
@@ -86,20 +87,20 @@ class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
 
     drag_enabled: bool = BooleanProperty(True)
 
-    def on_drag_start(self, touch) -> bool:
+    def on_drag_start(self, touch: MotionEvent) -> bool:
         self.focus = True
         self._set_from_touch(touch)
         return True
 
-    def on_drag(self, touch, delta_x: float, delta_y: float) -> bool:
+    def on_drag(self, touch: MotionEvent, delta_x: float, delta_y: float) -> bool:
         self._set_from_touch(touch)
         return True
 
-    def on_drag_end(self, touch) -> bool:
+    def on_drag_end(self, touch: MotionEvent) -> bool:
         self.focus = False
         return True
 
-    def _set_from_touch(self, touch):
+    def _set_from_touch(self, touch: MotionEvent):
         minmax_x = max(self.value_x_maximum - self.value_x_minimum, 1)
         px_to_val_x = (self.width - 2 * self.padding) / minmax_x
         xdiff = (touch.x - (self.x + self.padding)) - self.dot_radius / 4
@@ -114,16 +115,18 @@ class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
         diff = max(self.value_x_maximum - self.value_x_minimum, 1)
         xdiff = (self.value_x - self.value_x_minimum) / diff
         return (self.x + self.padding) + (self.width - 2 * self.padding) * xdiff - self.dot_radius / 2
-    dot_x: float = AliasProperty(_get_dot_x,
-                          bind=["pos", "size", "padding", "dot_radius",
-                                "value_x", "value_x_minimum", "value_x_maximum"],
-                          cache=True)
+    dot_x: float = AliasProperty(
+        _get_dot_x,
+        bind=("pos", "size", "padding", "dot_radius", "value_x", "value_x_minimum", "value_x_maximum"),
+        cache=True
+    )
 
     def _get_dot_y(self) -> float:
         diff = max(self.value_y_maximum - self.value_y_minimum, 1)
         ydiff = (self.value_y - self.value_y_minimum) / diff
         return (self.y + self.padding) + (self.height - 2 * self.padding) * ydiff - self.dot_radius / 2
-    dot_y: float = AliasProperty(_get_dot_y,
-                          bind=["pos", "size", "padding", "dot_radius",
-                                "value_y", "value_y_minimum", "value_y_maximum"],
-                          cache=True)
+    dot_y: float = AliasProperty(
+        _get_dot_y,
+        bind=("pos", "size", "padding", "dot_radius", "value_y", "value_y_minimum", "value_y_maximum"),
+        cache=True
+    )

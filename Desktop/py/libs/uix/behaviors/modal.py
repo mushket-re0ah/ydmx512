@@ -1,8 +1,9 @@
-from typing import Callable, Dict, FrozenSet, Optional, Tuple
+from typing import Any, Callable, Dict, FrozenSet, Optional, Tuple
 
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.input.motionevent import MotionEvent
 from kivy.properties import NumericProperty, ObjectProperty
 from kivy.uix.widget import Widget
 
@@ -18,7 +19,7 @@ class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
     is_blocked_keyboard: bool = True
 
     __events__ = ("on_open", "on_dismiss")
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self._trigger_reposition = Clock.create_trigger(self._reposition, -1)
         self.bind(size=self._trigger_reposition, pos=self._trigger_reposition)
         super().__init__(**kwargs)
@@ -62,11 +63,11 @@ class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
     def on_dismiss(self):
         pass
 
-    def _clamp_to_window(self, x: float, y: float):
+    def _clamp_to_window(self, x: float, y: float) -> Tuple[float, float]:
         win = Window
         x = max(0, min(x, win.width - self.width))
         y = max(0, min(y, win.height - self.height))
-        return x, y
+        return (x, y)
 
     def _reposition(self, *_:Any):
         if self.pos_fix is not None:
@@ -82,7 +83,7 @@ class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
         wx, wy = widget.to_window(*widget.pos)
         self.pos = self._clamp_to_window(wx, wy)
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos):
             super().on_touch_down(touch)
             return True

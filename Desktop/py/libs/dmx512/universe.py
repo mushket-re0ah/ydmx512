@@ -1,5 +1,5 @@
 import time
-from typing import List, Optional, Set, Tuple
+from typing import Any, List, Optional, Set, Tuple
 
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, ObjectProperty
@@ -15,10 +15,10 @@ class DMX512Universe(EventDispatcher):
     device: Optional[DMXSerialDevice] = ObjectProperty(allownone=True)
     force_value_set: Set[int] = ObjectProperty()
 
-    matrix: bytearray = None
-    default_matrix: bytearray = None
+    matrix: bytearray
+    default_matrix: bytearray
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         from libs.dmx512 import dmx512
         self.register_event_type("on_write_matrix")
         self.matrix = bytearray([0] * dmx512.DMX_ADDRESS_COUNT)

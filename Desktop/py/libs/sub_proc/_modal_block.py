@@ -1,11 +1,12 @@
-from typing import Optional
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import ObjectProperty
-from kivy.core.window import Window
-from kivy.lang import Builder
-from kivy.utils import platform
 from multiprocessing import Process
+from typing import Optional
 
+from kivy.core.window import Window
+from kivy.input.motionevent import MotionEvent
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.utils import platform
 
 Builder.load_string("""
 <SubProcModalBlock>:  # BoxLayout
@@ -30,13 +31,13 @@ class SubProcModalBlock(BoxLayout):
         if focus:
             _set_focus_on_process_window(self.process)
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         return True
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         return True
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         return True
 
 

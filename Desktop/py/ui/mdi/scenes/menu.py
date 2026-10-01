@@ -1,14 +1,20 @@
-from kivy.properties import ObjectProperty
+from typing import TYPE_CHECKING
+
 from kivy.lang import Builder
-from libs.uix.layouts import MenuPanel
+from kivy.properties import ObjectProperty
+
 from database import db
+from libs.uix.layouts import MenuPanel
+
+if TYPE_CHECKING:
+    from ui.mdi.scenes import MDIScenes
 
 
 Builder.load_file("ui/mdi/scenes/menu.kv")
 
 
 class SceneMenu(MenuPanel):
-    scene_ui = ObjectProperty()
+    scene_ui: MDIScenes = ObjectProperty()
 
     def create_scene(self):
         db.scene.add_row()

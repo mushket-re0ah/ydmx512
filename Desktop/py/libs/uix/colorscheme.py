@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from typing import Union
+from typing import Union, cast
 
 from kivy.utils import get_color_from_hex as _kivy_get_color_from_hex
 
@@ -8,7 +8,7 @@ from libs.typecheck import RGBA
 
 
 def hex_str_to_color(hex_str: str) -> RGBA:
-    return tuple(_kivy_get_color_from_hex(hex_str))
+    return cast(RGBA, tuple(_kivy_get_color_from_hex(hex_str)))
 
 
 def create_colorscheme(**kwargs: Union[ColorDiff, RGBA]) -> SimpleNamespace:

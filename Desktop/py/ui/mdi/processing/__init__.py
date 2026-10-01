@@ -1,15 +1,22 @@
+from typing import TYPE_CHECKING
+
 from kivy.properties import ObjectProperty, StringProperty
-from ui.components.database_mdi_window import DatabaseMDIWindow
+
 from database import db
 from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP
+from ui.components.database_mdi_window import DatabaseMDIWindow
+
+if TYPE_CHECKING:
+    from ui.mdi.processing.menu import ProcessingMenu
+    from ui.mdi.processing.processing_map import PlaybackMapSection
 
 
 class MDIProcessing(DatabaseMDIWindow):
-    _db_title_id = "processing"
-    title = StringProperty("Процессинг")
+    _db_title_id: str = "processing"
+    title: str = StringProperty("Процессинг")
 
-    menu = ObjectProperty()
-    map_section = ObjectProperty()
+    menu: "ProcessingMenu" = ObjectProperty()
+    map_section: "PlaybackMapSection" = ObjectProperty()
 
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)

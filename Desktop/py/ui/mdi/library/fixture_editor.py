@@ -1,31 +1,37 @@
 import shutil
 from pathlib import Path
-from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty
-from kivy.lang import Builder
-from kivy.uix.boxlayout import BoxLayout
-from libs.uix.layouts import StencilBoxLayout
-from libs.uix.scroll_layout import ScrollLayout
-from libs import sub_proc
-from libs import logger
-from database.brand import RowBrand
-from database import db
-from database.fixture_param import RowFixtureParam
-from database.fixture import RowFixture, FixtureChannelsGroup
-from misc import constants
-from typing_extensions import Self
+from typing import Any, Dict, List, Optional
 
+from kivy.lang import Builder
+from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty, StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
+
+from database import db
+from database.brand import RowBrand
+from database.fixture import FixtureChannelsGroup, RowFixture
+from database.fixture_param import RowFixtureParam
+from libs import logger, sub_proc
+from libs.uix.button import HoverButton
+from libs.uix.input import HoverInput
+from libs.uix.layouts import StencilBoxLayout
+from libs.uix.recycle_spinner import RecycleSpinner
+from libs.uix.restricted_scrollview import RestrictedScrollView
+from libs.uix.scroll_layout import ScrollLayout
+from misc import constants
+from ui.mdi.library import LibraryEditorContext, MDILibrary
 
 Builder.load_file("ui/mdi/library/fixture_editor.kv")
 
 
 class LibraryFixtureParam(BoxLayout):
     fixture_param: RowFixtureParam = ObjectProperty()
-    param_list = ObjectProperty()
-    group_index = NumericProperty()
+    param_list: List[RowFixtureParam] = ObjectProperty()
+    group_index: int = NumericProperty()
 
-    library = ObjectProperty()
-    context = ObjectProperty()
-    edit_exist = BooleanProperty(False)
+    library: MDILibrary = ObjectProperty()
+    context: LibraryEditorContext = ObjectProperty()
+    edit_exist: bool = BooleanProperty(False)
 
     def set_fixture_param(self, param: RowFixtureParam):
         self.param_list[self.group_index] = param
@@ -33,17 +39,17 @@ class LibraryFixtureParam(BoxLayout):
 
 
 class LibraryFixtureParamGroup(BoxLayout):
-    scrollview = ObjectProperty()
-    box = ObjectProperty()
+    scrollview: RestrictedScrollView = ObjectProperty()
+    box: BoxLayout = ObjectProperty()
 
     group: FixtureChannelsGroup = ObjectProperty()
 
-    library = ObjectProperty()
-    context = ObjectProperty()
-    master_widget = ObjectProperty()
-    edit_exist = BooleanProperty(False)
+    library: MDILibrary = ObjectProperty()
+    context: LibraryEditorContext = ObjectProperty()
+    master_widget: "LibraryFixtureParams" = ObjectProperty()
+    edit_exist: bool = BooleanProperty(False)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         for param in self.group.param_list:
             self.add_param(param)
@@ -64,12 +70,12 @@ class LibraryFixtureParamGroup(BoxLayout):
     def set_linear(self, linear: bool):
         self.__set_context("linear", linear)
 
-    def __set_context(self, attr: str, value: any):
+    def __set_context(self, attr: str, value: Any):
         if getattr(self.group, attr) != value:
             setattr(self.group, attr, value)
             self.library.property("view_context").dispatch(self.library)
 
-    def add_param(self, param: RowFixtureParam=None):
+    def add_param(self, param: Optional[RowFixtureParam]=None):
         if self.edit_exist:
             logger.warning("Попытка добавить параметр существующей фикстуре")
             return
@@ -93,15 +99,15 @@ class LibraryFixtureParamGroup(BoxLayout):
 
 
 class LibraryFixtureParams(ScrollLayout):
-    scrollview = ObjectProperty()
-    box = ObjectProperty()
+    scrollview: RestrictedScrollView = ObjectProperty()
+    box: BoxLayout = ObjectProperty()
 
-    library = ObjectProperty()
-    fixture = ObjectProperty()
-    context = ObjectProperty()
-    edit_exist = BooleanProperty(False)
+    library: MDILibrary = ObjectProperty()
+    fixture: RowFixture = ObjectProperty()
+    context: LibraryEditorContext = ObjectProperty()
+    edit_exist: bool = BooleanProperty(False)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         for group in self.context.channels_groups:
             self.add_group(group)
@@ -110,7 +116,7 @@ class LibraryFixtureParams(ScrollLayout):
         for param_group_ui in self.box.children:
             param_group_ui.edit_exist = edit_exist
 
-    def add_group(self, group: FixtureChannelsGroup=None):
+    def add_group(self, group: Optional[FixtureChannelsGroup]=None):
         if self.edit_exist:
             logger.warning("Попытка создания группы в существующей фикстуре")
             return
@@ -142,27 +148,27 @@ class LibraryFixtureParams(ScrollLayout):
 
 
 class LibraryFixtureEditor(StencilBoxLayout):
-    library = ObjectProperty()
+    library: MDILibrary = ObjectProperty()
 
-    fixture = ObjectProperty()
-    context = ObjectProperty()
+    fixture: RowFixture = ObjectProperty()
+    context: LibraryEditorContext = ObjectProperty()
 
-    title = StringProperty()
-    note = StringProperty()
-    brand = ObjectProperty()
-    icon = StringProperty((constants.DEFAULT_FIXTURE_ICON).as_posix())
-    temp_dependence = NumericProperty()
+    title: str = StringProperty()
+    note: str = StringProperty()
+    brand: RowBrand = ObjectProperty()
+    icon: str = StringProperty((constants.DEFAULT_FIXTURE_ICON).as_posix())
+    temp_dependence: int = NumericProperty()
 
     # ui
-    input_title = ObjectProperty()
-    input_note = ObjectProperty()
-    dropdown_brand = ObjectProperty()
-    btn_icon_now = ObjectProperty()
-    fixture_params = ObjectProperty()
+    input_title: HoverInput = ObjectProperty()
+    input_note: HoverInput = ObjectProperty()
+    dropdown_brand: RecycleSpinner = ObjectProperty()
+    btn_icon_now: HoverButton = ObjectProperty()
+    fixture_params: LibraryFixtureParams = ObjectProperty()
 
-    edit_exist = BooleanProperty()
+    edit_exist: bool = BooleanProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         context = kwargs["context"]
         fixture = kwargs["fixture"]
         library = kwargs["library"]
@@ -189,7 +195,7 @@ class LibraryFixtureEditor(StencilBoxLayout):
                 **kwargs)
         library.property("view_context").dispatch(library)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.fixture_params.edit_exist = self.edit_exist
 
     def close(self):
@@ -224,7 +230,7 @@ class LibraryFixtureEditor(StencilBoxLayout):
         self.library.property("view_context").dispatch(self.library)
         self.close()
 
-    def __get_save_kwargs(self) -> dict:
+    def __get_save_kwargs(self) -> Dict[str, Any]:
         return {
             "title": self.title,
             "note": self.note,
@@ -234,7 +240,12 @@ class LibraryFixtureEditor(StencilBoxLayout):
             "channels_groups": self.context.channels_groups
         }
 
-    def __init_context(self, fixture: RowFixture, context, library):
+    def __init_context(
+            self,
+            fixture: RowFixture,
+            context: LibraryEditorContext,
+            library: MDILibrary
+        ):
         context.fixture = fixture
         context.title = fixture.title
         context.note = fixture.note
@@ -245,7 +256,7 @@ class LibraryFixtureEditor(StencilBoxLayout):
         context.channels_groups = channels_groups
         library.property("view_context").dispatch(library)
 
-    def __set_context(self, attr: str, value: any):
+    def __set_context(self, attr: str, value: Any):
         if getattr(self.context, attr) != value:
             setattr(self.context, attr, value)
             self.library.property("view_context").dispatch(self.library)
@@ -256,10 +267,10 @@ class LibraryFixtureEditor(StencilBoxLayout):
                            filters=["*.png", "*.jpeg", "*.jpg"],
                            title="Выберите иконку для фикстуры")
 
-    def __on_open_file(self, filepath: str):
-        if not filepath:
+    def __on_open_file(self, filepath_str: str):
+        if not filepath_str:
             return
-        filepath = Path(filepath)
+        filepath = Path(filepath_str)
         if self.__is_file_in_fixture_dir(filepath):
             # Значит, файл взят из папки с картинками фикстур
             new_filepath = self.__path_to_fixture_icon(filepath)

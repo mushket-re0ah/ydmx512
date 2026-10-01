@@ -1,5 +1,6 @@
 from typing import Literal, Tuple
 
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import (
     AliasProperty,
@@ -9,7 +10,6 @@ from kivy.properties import (
     StringProperty,
 )
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.animation import AnimationBehavior, StatefulColorProperty
 from libs.mouse_manager import cursor_manager
@@ -110,20 +110,20 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
 
     drag_enabled: bool = BooleanProperty(True)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.default_value = self.value
 
-    def on_drag_start(self, touch) -> bool:
+    def on_drag_start(self, touch: MotionEvent) -> bool:
         self.focus = True
         self._set_value_from_pos(*touch.pos)
         return True
 
-    def on_drag(self, touch, delta_x: float, delta_y: float) -> bool:
+    def on_drag(self, touch: MotionEvent, delta_x: float, delta_y: float) -> bool:
         # дельты не используем, берём абсолютную позицию касания
         self._set_value_from_pos(*touch.pos)
         return False
 
-    def on_drag_end(self, touch) -> bool:
+    def on_drag_end(self, touch: MotionEvent) -> bool:
         self.focus = False
         return False
 
@@ -143,15 +143,15 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
                 normalized = 0
         self.value = self.minimum + normalized * (self.maximum - self.minimum)
 
-    def on_scroll_up(self, touch) -> bool:
+    def on_scroll_up(self, touch: MotionEvent) -> bool:
         self.value -= self.step_mouse_scroll
         return True
 
-    def on_scroll_down(self, touch) -> bool:
+    def on_scroll_down(self, touch: MotionEvent) -> bool:
         self.value += self.step_mouse_scroll
         return True
 
-    def on_right_click(self, touch) -> bool:
+    def on_right_click(self, touch: MotionEvent) -> bool:
         self.open_context_menu(touch.pos)
         return True
 
@@ -164,10 +164,11 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
         y = self.y + self.padding + nval * (self.height - 2 * self.padding)
         return (self.x + self.width / 2, y)
 
-    value_pos: Tuple[float, float] = AliasProperty(get_value_pos,
-                              bind=['pos', 'size', 'minimum', 'maximum',
-                                    'padding', 'value', 'orientation'],
-                              cache=True)
+    value_pos: Tuple[float, float] = AliasProperty(
+        get_value_pos,
+        bind=('pos', 'size', 'minimum', 'maximum', 'padding', 'value', 'orientation'),
+        cache=True
+    )
 
     def open_context_menu(self, pos: Tuple[float, float]):
         if self.disabled:

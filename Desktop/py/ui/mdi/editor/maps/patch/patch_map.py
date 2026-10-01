@@ -1,15 +1,16 @@
 from collections import defaultdict
 from typing import List, Optional
-from kivy.properties import ObjectProperty, ListProperty
+
 from kivy.lang import Builder
-from libs.uix.layouts import MenuPanel
-from libs.uix.workspace_manager import WorkspaceBehavior
+from kivy.properties import ListProperty, ObjectProperty
+from kivy.uix.widget import Widget
+
 from database import db
 from database.patch import RowPatch
 from database.scene import RowScene
+from libs.uix.layouts import MenuPanel
+from libs.uix.workspace_manager import WorkspaceBehavior
 from ui.mdi.editor.maps.patch.patch_ui import EditorPatchUi
-from typing_extensions import Self
-
 
 Builder.load_file("ui/mdi/editor/maps/patch/patch_map.kv")
 
@@ -31,7 +32,7 @@ class PatchEditorMap(MenuPanel):
                 patch_ui.is_down = patch_ui.patch in active_patch
                 patch_ui._activate_block = False
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.workspace_manager.bind(on_workspace_opened=self.on_workspace_opened)
         self.__init_workspace_manager()
         db.patch.bind(on_add_row=self.on_add_patch)

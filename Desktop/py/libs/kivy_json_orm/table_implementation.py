@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 class BaseTable(SerializableMixin):
     name: Optional[str] = None
-    filename: Optional[str] = None
+    filename: str
     filepath: Optional[Path] = None
     _save_flag: bool = False
     _events_block: bool = True
@@ -52,7 +52,7 @@ class BaseTable(SerializableMixin):
         atomic_json_save(self.filepath, self.serialize())
         self._save_flag = False
 
-    def _load(self):
+    def _load(self) -> None:
         raise NotImplementedError()
 
 

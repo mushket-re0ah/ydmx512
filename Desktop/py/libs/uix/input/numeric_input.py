@@ -1,9 +1,10 @@
 from typing import Callable, Dict, FrozenSet, List, Union
 
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty
+from kivy.uix.widget import Widget
 from kivy.utils import boundary
-from typing_extensions import Self
 
 from libs.typecheck import Number, OptionalNumber
 from libs.uix.context_menu import ContextMenu, ContextMenuItem, ContextMenuTemplates
@@ -32,7 +33,7 @@ class NumericInput(HoverInput):
     sensitive: Number = NumericProperty(2)
     THRESHOLD_Y: float = 35
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self._set_text_by_value()
         self.default_value = self.value
 
@@ -75,7 +76,8 @@ class NumericInput(HoverInput):
             self._set_text_by_value()
 
     value: OptionalNumber = AliasProperty(
-        lambda self: self._value, set_value,
+        lambda self: self._value,
+        set_value,
         bind=("_value", "minimum", "maximum")
     )
 
@@ -103,7 +105,7 @@ class NumericInput(HoverInput):
             value = int(value)
         return boundary(value, self.minimum, self.maximum)
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if touch.grab_current is not None:
             return False
 
@@ -120,18 +122,18 @@ class NumericInput(HoverInput):
         touch.grab(self)
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self and self._do_move_value(touch):
             return True
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
             return True
         return super().on_touch_up(touch)
 
-    def _do_move_value(self, touch) -> bool:
+    def _do_move_value(self, touch: MotionEvent) -> bool:
         if self._threshold_check(touch):
             y_offset = self._get_y_offset(touch)
             value = touch.ud["start_value"]
@@ -142,15 +144,15 @@ class NumericInput(HoverInput):
             return True
         return False
 
-    def _get_y_offset(self, touch) -> float:
+    def _get_y_offset(self, touch: MotionEvent) -> float:
         if touch.ud["start_pos_y"] > touch.y:
             return touch.y - touch.ud["start_pos_y"] + self.THRESHOLD_Y
         return touch.y - touch.ud["start_pos_y"] - self.THRESHOLD_Y
 
-    def _threshold_check(self, touch) -> bool:
+    def _threshold_check(self, touch: MotionEvent) -> bool:
         return abs(touch.y - touch.ud["start_pos_y"]) > self.THRESHOLD_Y
 
-    def _do_mouse_scroll(self, touch) -> bool:
+    def _do_mouse_scroll(self, touch: MotionEvent) -> bool:
         if touch.button == "scrollup":
             self._inc_value(-self.step_mouse_scroll)
             return True

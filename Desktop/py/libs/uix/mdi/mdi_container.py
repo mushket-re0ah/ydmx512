@@ -1,10 +1,10 @@
 from typing import Any, List, Optional, Tuple, Type, Union
 
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, ListProperty, ObjectProperty
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.kivy_mixins import AutoUnbindBehavior
 from libs.uix.context_menu import ContextMenu, ContextMenuTemplates
@@ -24,7 +24,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
 
     if_contain: bool = AliasProperty(
         lambda self: len(self.mdi_list_showed) > 0,
-        bind=["mdi_list_showed"]
+        bind=("mdi_list_showed",)
     )
 
     _layout_mode: ILayoutMode = ObjectProperty(allownone=False, rebind=True)
@@ -54,7 +54,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         self.layout_mode.sync_mdi_list_showed(mdi_list_showed)
 
     _kv_ready: bool = False
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self._kv_ready = True
 
@@ -123,7 +123,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         new_idx = (current_idx + 1) % len(self.mdi_list_showed)
         self.set_focus(self.mdi_list_showed[new_idx])
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         touch.push()
         touch.apply_transform_2d(self.to_local)
         if self.collide_point(*touch.pos) and not self.layout_mode.find_mdi_at_pos(touch.pos):
@@ -135,14 +135,14 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         touch.pop()
         return ret
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         touch.push()
         touch.apply_transform_2d(self.to_local)
         ret = self.layout_mode.handle_touch_move(touch)
         touch.pop()
         return ret
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         touch.push()
         touch.apply_transform_2d(self.to_local)
         ret = self.layout_mode.handle_touch_up(touch)
@@ -209,7 +209,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
 #         mdi = ObjectProperty()
 #         mdi_container = ObjectProperty()
 
-#         def on_kv_post(self, base_widget: Self):
+#         def on_kv_post(self, base_widget: Widget):
 #             super().on_kv_post(base_widget)
 #             self.mdi.bind(hidden=self._set_state_by_mdi)
 #             self._set_state_by_mdi(self.mdi, self.mdi.hidden)

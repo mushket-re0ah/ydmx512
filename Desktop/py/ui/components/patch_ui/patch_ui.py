@@ -1,12 +1,17 @@
-from typing import Tuple
-from kivy.lang.builder import Builder
-from kivy.properties import ObjectProperty, AliasProperty
-from libs.uix.button import HoverToggleButton
-from database.patch import RowPatch
-from ui.components.base_database_grid_item import BaseDatabaseGridItem
-from misc import colorscheme as cs
-from typing_extensions import Self
+from typing import Any, Tuple
 
+from kivy.lang.builder import Builder
+from kivy.properties import AliasProperty, ObjectProperty
+from kivy.uix.image import Image
+from kivy.uix.widget import Widget
+
+from database.patch import RowPatch
+from libs.uix.button import HoverToggleButton
+from libs.uix.input import HoverInput
+from libs.uix.input.numeric_input import NumericInput
+from libs.uix.label import RestrictedLabel
+from misc import colorscheme as cs
+from ui.components.base_database_grid_item import BaseDatabaseGridItem
 
 Builder.load_file("ui/components/patch_ui/patch_ui.kv")
 
@@ -20,28 +25,30 @@ class BasePatchUiTiltButton(HoverToggleButton):
 
 
 class BasePatchUi(BaseDatabaseGridItem):
-    input_start_address = ObjectProperty()
-    input_universe = ObjectProperty()
-    lbl_addr_info = ObjectProperty()
-    image_fixture = ObjectProperty()
-    toggle_controller = ObjectProperty()
-    input_title = ObjectProperty()
-    button_pan = ObjectProperty()
-    button_tilt = ObjectProperty()
+    input_start_address: NumericInput = ObjectProperty()
+    input_universe: NumericInput = ObjectProperty()
+    lbl_addr_info: RestrictedLabel = ObjectProperty()
+    image_fixture: Image = ObjectProperty()
+    toggle_controller: HoverToggleButton = ObjectProperty()
+    input_title: HoverInput = ObjectProperty()
+    button_pan: BasePatchUiPanButton = ObjectProperty()
+    button_tilt: BasePatchUiTiltButton = ObjectProperty()
 
     def _set_patch(self, patch: RowPatch) -> bool:
         if self.db_row != patch:
             self.db_row = patch
             return True
         return False
-    patch = AliasProperty(
-        lambda self: self.db_row, _set_patch, bind=["db_row"]
+    patch: RowPatch = AliasProperty(
+        lambda self: self.db_row,
+        _set_patch,
+        bind=("db_row",)
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(bg=cs.PatchUi.bg, **kwargs)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self._create_pan_tilt_toggle()
 

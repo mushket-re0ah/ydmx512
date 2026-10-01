@@ -1,6 +1,11 @@
-from libs.uix.map_layout import WorkspaceMapLayout
+from typing import TYPE_CHECKING
+
 from kivy.lang import Builder
 
+from libs.uix.map_layout import WorkspaceMapLayout
+
+if TYPE_CHECKING:
+    from ui.mdi.desktops.map_context_menu import DesktopMapContextMenu
 
 Builder.load_string("""
 #:import constants misc.constants
@@ -15,6 +20,6 @@ Builder.load_string("""
 
 
 class DesktopMap(WorkspaceMapLayout):
-    def _create_context_menu(self):
+    def _create_context_menu(self) -> "DesktopMapContextMenu":
         from ui.mdi.desktops.map_context_menu import DesktopMapContextMenu
         return DesktopMapContextMenu(desktop_map=self)

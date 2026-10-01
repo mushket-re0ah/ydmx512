@@ -185,7 +185,10 @@ class PlaybackRenderRow(SerializableMixin):
         self.invalidate_render()
 
     _render: Optional[bytes] = ObjectProperty(None, allownone=True)
-    has_data: bool = AliasProperty(lambda self: bool(self.get_render()), bind=["_render"])
+    has_data: bool = AliasProperty(
+        lambda self: bool(self.get_render()),
+        bind=("_render",)
+    )
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)

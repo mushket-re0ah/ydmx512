@@ -1,23 +1,29 @@
-from typing import List
+from typing import TYPE_CHECKING, List, Optional, Tuple
+
+from kivy.input.motionevent import MotionEvent
 from kivy.utils import boundary
-from libs.dmx512_render import DMXRenderDot, InterpolationType
-from libs.sdl2_keyboard import manager as keyboard_manager
-from database.playback import PlaybackRenderRow
-from database.playback.renderer.render_data import RowPhaseSpec, RenderDots
+
 from database.patch import RowPatch
 from database.phase_curve_type import RowPhaseCurveType
-from presets.param_presets import ParamPresetData
-from presets.fixture_presets import FixturePresetData
+from database.playback import PlaybackRenderRow
+from database.playback.renderer.render_data import RenderDots, RowPhaseSpec
+from libs.dmx512_render import DMXRenderDot, InterpolationType
+from libs.sdl2_keyboard import manager as keyboard_manager
 from misc import dmx_utils
+from presets.fixture_presets import FixturePresetData
+from presets.param_presets import ParamPresetData
 
+if TYPE_CHECKING:
+    from ui.mdi.editor.automation import Automation
+    from ui.mdi.editor.automation.rows.row import RowParamTactBox
 
 class EditorTool:
     requires_session = True
     auto_execute = False
 
-    def __init__(self, automation):
+    def __init__(self, automation: "Automation"):
         self.automation = automation
-        self.renderer = automation.playback.renderer
+        self.renderer = automation.renderer
         self.xy_grid = self.renderer.xy_grid
         self.row_panel = automation.row_panel
 
@@ -29,7 +35,7 @@ class EditorTool:
 
 
 class AddDotTool(EditorTool):
-    def on_touch_down(self, touch, source_widget):
+    def on_touch_down(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         frame_x, value_y = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=False, do_clamp=False)
         self._start_frame = (frame_x, value_y)
 
@@ -47,15 +53,15 @@ class AddDotTool(EditorTool):
         if success:
             self.row_panel.dots_selected = created_dots
 
-    def on_touch_move(self, _touch, _source_widget):
+    def on_touch_move(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         self.automation.set_tool(MoveDotsTool, self._start_frame)
 
-    def on_touch_up(self, _touch, _source_widget):
+    def on_touch_up(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         self.finish()
 
 
 class SetDotTypeTool(EditorTool):
-    def on_touch_down(self, _touch, _source_widget):
+    def on_touch_down(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         selected_dots = self.row_panel.dots_selected
         if not selected_dots:
             self.finish()
@@ -78,7 +84,7 @@ class SetDotTypeTool(EditorTool):
 
 
 class RemoveDotTool(EditorTool):
-    def on_touch_down(self, touch, source_widget):
+    def on_touch_down(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         frame_x, _ = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=False)
 
         selected_rows = self.row_panel.selected_render_rows
@@ -94,7 +100,7 @@ class RemoveDotTool(EditorTool):
 class MoveDotsTool(EditorTool):
     start_frame = None
     start_positions = None
-    def __init__(self, automation, start_frame=None):
+    def __init__(self, automation: "Automation", start_frame:Optional[Tuple[int, int]]=None):
         super().__init__(automation)
         self.start_frame = start_frame
         self.start_positions = {
@@ -102,10 +108,10 @@ class MoveDotsTool(EditorTool):
             for dot in self.row_panel.dots_selected
         }
 
-    def on_touch_down(self, touch, source_widget):
+    def on_touch_down(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         self.start_frame = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=False, do_clamp=False)
 
-    def on_touch_move(self, touch, source_widget):
+    def on_touch_move(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         current_frame = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=True, do_clamp=False)
         diff_x = current_frame[0] - self.start_frame[0]
         diff_y = current_frame[1] - self.start_frame[1]
@@ -126,12 +132,12 @@ class MoveDotsTool(EditorTool):
             norm_diff_x, norm_diff_y
         )
 
-    def on_touch_up(self, _touch, _source_widget):
+    def on_touch_up(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         self.finish()
 
 
 class MoveDotsByNumericInputTool(EditorTool):
-    def __init__(self, automation):
+    def __init__(self, automation: "Automation"):
         super().__init__(automation)
         self.selected_rows = self.row_panel.selected_render_rows
         self.selected_dots = self.row_panel.dots_selected
@@ -164,12 +170,12 @@ class MoveDotsByNumericInputTool(EditorTool):
 class SelectAreaTool(EditorTool):
     requires_session = False
 
-    def on_touch_down(self, touch, source_widget):
+    def on_touch_down(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         self.start_frame = source_widget.to_frame_coords(*touch.pos)
         self.row_panel.unselect_all()
         self.row_panel.start_area_selection(self.start_frame, source_widget.data_row)
 
-    def on_touch_move(self, touch, source_widget):
+    def on_touch_move(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         current = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=True)
         area_width = boundary(current[0] - self.start_frame[0],
                               -self.start_frame[0],
@@ -180,13 +186,13 @@ class SelectAreaTool(EditorTool):
                                255 - self.start_frame[1])
         self.row_panel.update_area_selection(self.start_frame, (area_width, area_height), source_widget.data_row)
 
-    def on_touch_up(self, _touch, _source_widget):
+    def on_touch_up(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         self.row_panel.stop_area_selection()
         self.finish()
 
 
 class RowPhaseTool(EditorTool):
-    def __init__(self, automation, curve: RowPhaseCurveType, inverted: bool):
+    def __init__(self, automation: "Automation", curve: RowPhaseCurveType, inverted: bool):
         super().__init__(automation)
         self.curve = curve
         self.inverted = inverted
@@ -210,7 +216,7 @@ class RowPhaseTool(EditorTool):
 
 
 class InterpatchPhaseTool(EditorTool):
-    def __init__(self, automation, render_rows: List[PlaybackRenderRow]):
+    def __init__(self, automation: "Automation", render_rows: List[PlaybackRenderRow]):
         super().__init__(automation)
         self.render_rows = render_rows
 
@@ -228,7 +234,7 @@ class InterpatchPhaseTool(EditorTool):
 class PasteTool(EditorTool):
     auto_execute = True
 
-    def __init__(self, automation, render_rows: List[PlaybackRenderRow]):
+    def __init__(self, automation: "Automation", render_rows: List[PlaybackRenderRow]):
         super().__init__(automation)
         self.render_rows = render_rows
 
@@ -262,7 +268,7 @@ class RemoveSelectedDotsTool(EditorTool):
 class DiscardRowTool(EditorTool):
     auto_execute = True
 
-    def __init__(self, automation, render_rows: List[PlaybackRenderRow]):
+    def __init__(self, automation: "Automation", render_rows: List[PlaybackRenderRow]):
         super().__init__(automation)
         self.render_rows = render_rows
 
@@ -297,7 +303,7 @@ class DiscardAllTool(EditorTool):
 class SetRowActiveTool(EditorTool):
     auto_execute = True
 
-    def __init__(self, automation, active: bool, render_rows: List[PlaybackRenderRow]):
+    def __init__(self, automation: "Automation", active: bool, render_rows: List[PlaybackRenderRow]):
         super().__init__(automation)
         self.active = active
         self.render_rows = render_rows
@@ -310,7 +316,7 @@ class SetRowActiveTool(EditorTool):
 class LoadParamPresetTool(EditorTool):
     auto_execute = True
 
-    def __init__(self, automation, preset: ParamPresetData, render_rows: List[PlaybackRenderRow]):
+    def __init__(self, automation: "Automation", preset: ParamPresetData, render_rows: List[PlaybackRenderRow]):
         super().__init__(automation)
         self.preset = preset
         self.render_rows = render_rows
@@ -329,7 +335,7 @@ class LoadParamPresetTool(EditorTool):
 class LoadFixturePresetTool(EditorTool):
     auto_execute = True
 
-    def __init__(self, automation, preset: FixturePresetData, patch: RowPatch):
+    def __init__(self, automation: "Automation", preset: FixturePresetData, patch: RowPatch):
         super().__init__(automation)
         self.preset = preset
         self.patch = patch

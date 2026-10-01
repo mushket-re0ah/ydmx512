@@ -1,15 +1,16 @@
-from typing import List
 from itertools import chain
-from libs.uix.mdi.workspace_mdi_container_manager import WorkspaceMDIContainerManager
-from libs.uix.mdi.layout_mode import TilingLayoutMode, FloatingLayoutMode
-from libs.uix.mdi.mdi_window import MDIWindow
-from libs.uix.workspace_manager import WorkspaceBehavior
+from typing import Any, List, Union
+
 from database import db
+from libs.uix.mdi.layout_mode import FloatingLayoutMode, TilingLayoutMode
+from libs.uix.mdi.mdi_window import MDIWindow
+from libs.uix.mdi.workspace_mdi_container_manager import WorkspaceMDIContainerManager
+from libs.uix.workspace_manager import WorkspaceBehavior
 from misc import constants
 
 
 class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         self._database_loaded = False
         super().__init__(*args, workspace_count=constants.DATABASE_MDI_WORKSPACES_COUNT, **kwargs)
 
@@ -73,24 +74,24 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
         self.unbind_from(workspace)
         self._save_data(workspace)
 
-    def _save_data(self, workspace):
+    def _save_data(self, workspace: WorkspaceBehavior):
         self._save_mdi_focused(workspace)
         self._save_layout_mode(workspace)
         self._save_layout(workspace)
 
-    def _save_layout(self, workspace):
+    def _save_layout(self, workspace: WorkspaceBehavior):
         if not self._database_loaded:
             return
         db_row = db.mdi_manager.by_workspace_index(workspace.index)
         db_row.edit(layout=self._get_serialized_workspace_layout(workspace))
 
-    def _save_layout_mode(self, workspace):
+    def _save_layout_mode(self, workspace: WorkspaceBehavior):
         if not self._database_loaded:
             return
         db_row = db.mdi_manager.by_workspace_index(workspace.index)
         db_row.edit(layout_mode=workspace.layout_mode.layout_state_key)
 
-    def _save_mdi_focused(self, workspace):
+    def _save_mdi_focused(self, workspace: WorkspaceBehavior):
         if not self._database_loaded:
             return
         db_row = db.mdi_manager.by_workspace_index(workspace.index)
@@ -100,7 +101,10 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
         else:
             db_row.edit(mdi_focused=mdi_focused._db_title_id)
 
-    def _get_serialized_workspace_layout(self, workspace) -> list:
+    def _get_serialized_workspace_layout(
+            self,
+            workspace: WorkspaceBehavior
+        ) -> Union[List[str], List[List[str]]]:
         layout_mode = workspace.layout_mode
         if isinstance(layout_mode, FloatingLayoutMode):
             return [i._db_title_id for i in layout_mode.get_layout()]
@@ -111,11 +115,15 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
             ]
         raise RuntimeError()
 
-    def _deserialize_workspace_layout(self, layout: list, mdi_list: List[MDIWindow]) -> List[MDIWindow]:
+    def _deserialize_workspace_layout(
+            self,
+            layout: Union[List[str], List[List[str]]],
+            mdi_list: List[MDIWindow]
+        ) -> List[MDIWindow]:
         mdi_by_title_id = {mdi._db_title_id: mdi for mdi in mdi_list}
-        def deserialize(value):
+        def deserialize(value: Union[str, List[str]]) -> Union[MDIWindow, List[MDIWindow]]:
             if isinstance(value, list):
                 return [deserialize(item) for item in value]
             return mdi_by_title_id[value]
 
-        return deserialize(layout)
+        return list(deserialize(layout))

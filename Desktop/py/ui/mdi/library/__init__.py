@@ -1,23 +1,29 @@
-from typing import TYPE_CHECKING, Union, List, Optional
-from enum import Enum, auto
-from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from kivy.properties import ObjectProperty, StringProperty, AliasProperty
-from kivy.lang import Builder
-from libs.serialize import SerializableMixin
-from libs.kivy_json_orm.fields import (
-    ListField, NumericField, RefField, StringField, ListNestedField, EnumField,
-    NestedField
-)
+from enum import Enum, auto
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
+
+from kivy.properties import AliasProperty, ObjectProperty, StringProperty
+
 from database import db
-from database.fixture import RowFixture, FixtureChannelsGroup
 from database.brand import RowBrand
+from database.fixture import FixtureChannelsGroup, RowFixture
+from libs.kivy_json_orm.fields import (
+    EnumField,
+    ListField,
+    ListNestedField,
+    NestedField,
+    NumericField,
+    RefField,
+    StringField,
+)
+from libs.serialize import SerializableMixin
 from misc import constants
 from ui.components.database_mdi_window import DatabaseMDIWindow
 from ui.mdi.library.table import LibraryTable
 
 if TYPE_CHECKING:
     from ui.mdi.library.fixture_editor import LibraryFixtureEditor
+    from ui.mdi.library.menu import LibraryMenu
 
 
 class LibraryContexts(Enum):
@@ -32,32 +38,57 @@ class LibraryContextTables(Enum):
 
 
 class LibraryTableContext(SerializableMixin):
-    selected_rows = ListField()
-    size_hint_x = ListField()
-    scroll_y = NumericField(1.0)
+    selected_rows: Tuple[int, ...] = ListField()
+    size_hint_x: List[float] = ListField()
+    scroll_y: float = NumericField(1.0)
 
 
 class LibraryEditorContext(SerializableMixin):
-    fixture = RefField(lambda: db.get("fixture"))
-    title = StringField()
-    note = StringField()
-    brand = RefField(lambda: db.get("brand"), lambda: db.get("brand").get_default_row(), default_factory=lambda: db.get("brand").get_default_row())
-    icon = StringField(constants.DEFAULT_FIXTURE_ICON.as_posix())
-    temp_dependence = NumericField(0)
-    channels_groups = ListNestedField(FixtureChannelsGroup)
+    fixture: RowFixture = RefField(lambda: db.get("fixture"))
+    title: str = StringField()
+    note: str = StringField()
+    brand: RowBrand = RefField(
+        lambda: db.get("brand"),
+        lambda: db.get("brand").get_default_row(),
+        default_factory=lambda: db.get("brand").get_default_row()
+    )
+    icon: str = StringField(constants.DEFAULT_FIXTURE_ICON.as_posix())
+    temp_dependence: int = NumericField(0)
+    channels_groups: List[FixtureChannelsGroup] = ListNestedField(FixtureChannelsGroup)
 
 
 class LibraryViewContext(SerializableMixin):
-    context_now = EnumField(LibraryContexts, LibraryContexts.MENU)
-    table_now = EnumField(LibraryContextTables, LibraryContextTables.FIXTURE)
-    fixture_now = RefField(lambda: db.get("fixture"), allownone=True)
+    context_now: LibraryContexts = EnumField(
+        LibraryContexts,
+        LibraryContexts.MENU
+    )
+    table_now: LibraryContextTables = EnumField(
+        LibraryContextTables,
+        LibraryContextTables.FIXTURE
+    )
+    fixture_now: RowFixture = RefField(lambda: db.get("fixture"), allownone=True)
 
-    fixture_editor_create = NestedField(LibraryEditorContext, default_factory=LibraryEditorContext)
-    fixture_editor_edit = NestedField(LibraryEditorContext, default_factory=LibraryEditorContext)
+    fixture_editor_create: LibraryEditorContext = NestedField(
+        LibraryEditorContext,
+        default_factory=LibraryEditorContext
+    )
+    fixture_editor_edit: LibraryEditorContext = NestedField(
+        LibraryEditorContext,
+        default_factory=LibraryEditorContext
+    )
 
-    table_fixture = NestedField(LibraryTableContext, default_factory=LibraryTableContext)
-    table_fixture_params = NestedField(LibraryTableContext, default_factory=LibraryTableContext)
-    table_brand = NestedField(LibraryTableContext, default_factory=LibraryTableContext)
+    table_fixture: LibraryTableContext = NestedField(
+        LibraryTableContext,
+        default_factory=LibraryTableContext
+    )
+    table_fixture_params: LibraryTableContext = NestedField(
+        LibraryTableContext,
+        default_factory=LibraryTableContext
+    )
+    table_brand: LibraryTableContext = NestedField(
+        LibraryTableContext,
+        default_factory=LibraryTableContext
+    )
 
     def get_table_data_by_context(self, table_context: LibraryContextTables) -> LibraryTableContext:
         if table_context is LibraryContextTables.FIXTURE:
@@ -69,7 +100,7 @@ class LibraryViewContext(SerializableMixin):
         raise ValueError()
 
 
-def _get_class_table_by_context(table_context: LibraryContextTables) -> LibraryTable:
+def _get_class_table_by_context(table_context: LibraryContextTables) -> Type[LibraryTable]:
     if table_context is LibraryContextTables.FIXTURE:
         from ui.mdi.library.table_fixture import LibraryTableFixture
         return LibraryTableFixture
@@ -126,9 +157,11 @@ class EditorState(ContextState):
 
     def _create_editor(self, library: "MDILibrary") -> "LibraryFixtureEditor":
         from ui.mdi.library.fixture_editor import LibraryFixtureEditor
-        return LibraryFixtureEditor(library=library,
-                                    fixture=self.row,
-                                    context=self.__get_fixture_editor_context(library))
+        return LibraryFixtureEditor(
+            library=library,
+            fixture=self.row,
+            context=self.__get_fixture_editor_context(library)
+        )
 
     def __get_fixture_editor_context(self, library: "MDILibrary") -> LibraryEditorContext:
         if self.row is None:
@@ -137,12 +170,12 @@ class EditorState(ContextState):
 
 
 class MDILibrary(DatabaseMDIWindow):
-    _db_title_id = "library"
-    title = StringProperty("Библиотека")
+    _db_title_id: str = "library"
+    title: str = StringProperty("Библиотека")
 
-    menu = ObjectProperty()
-    editor = ObjectProperty(allownone=True)
-    table_now = ObjectProperty()
+    menu: "LibraryMenu" = ObjectProperty()
+    editor: "LibraryFixtureEditor" = ObjectProperty(allownone=True)
+    table_now: LibraryTable = ObjectProperty()
 
     # view_context_template = {
     #     "workspace": 0,
@@ -162,18 +195,18 @@ class MDILibrary(DatabaseMDIWindow):
 
 
     # Костыль для нового view_context
-    def get_view_context(self):
+    def get_view_context(self) -> LibraryViewContext:
         return self.state.get("view_context", {})
-    def set_view_context(self, view_context):
+    def set_view_context(self, view_context: LibraryViewContext) -> bool:
         state = self.state.copy()
         state["view_context"] = view_context
         self.state = state
         return True
-    view_context = AliasProperty(
+    view_context: LibraryViewContext = AliasProperty(
         get_view_context,
         set_view_context,
     )
-    def on_view_context(self, _, _view_context):
+    def on_view_context(self, _, view_context: LibraryViewContext):
         self._save_vc()
     def _save_vc(self):
         self.mdi_db_row.edit(view_context=self.view_context)
@@ -182,7 +215,7 @@ class MDILibrary(DatabaseMDIWindow):
 
 
 
-    def change_context_now(self, context: LibraryContexts, row: RowFixture = None):
+    def change_context_now(self, context: LibraryContexts, row: Optional[RowFixture] = None):
         new_state = self._state_factory(context, row)
 
         if isinstance(self.context_state, new_state.__class__):
@@ -220,7 +253,7 @@ class MDILibrary(DatabaseMDIWindow):
         self.__switch_table(context)
         self.property("view_context").dispatch(self)
 
-    def _save_table_context(self, *_):
+    def _save_table_context(self, *_: Any):
         if self.table_now is not None:
             self.table_now.save_context()
 
@@ -236,7 +269,11 @@ class MDILibrary(DatabaseMDIWindow):
         from ui.mdi.library.menu import LibraryMenu
         self.menu = LibraryMenu(library=self)
 
-    def _state_factory(self, context: LibraryContexts, row: RowFixture = None) -> ContextState:
+    def _state_factory(
+            self,
+            context: LibraryContexts,
+            row: Optional[RowFixture] = None
+        ) -> ContextState:
         return {
             LibraryContexts.MENU: MenuState(),
             LibraryContexts.EDITOR: EditorState(row)

@@ -109,12 +109,12 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         return None
     fixture_param_1: Optional[RowFixtureParam] = AliasProperty(
         lambda self: self.get_fixture_param(1),
-        bind=["patch", "fixture_param_1_index"],
+        bind=("patch", "fixture_param_1_index"),
         cache=True
     )
     fixture_param_2: Optional[RowFixtureParam] = AliasProperty(
         lambda self: self.get_fixture_param(2),
-        bind=["patch", "fixture_param_2_index"],
+        bind=("patch", "fixture_param_2_index"),
         cache=True
     )
 
@@ -125,7 +125,7 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         )
     link_active: bool = AliasProperty(
         get_link_active,
-        bind=["patch", "fixture_param_1_index", "fixture_param_2_index"]
+        bind=("patch", "fixture_param_1_index", "fixture_param_2_index")
     )
 
     def update_active(self, _):
@@ -134,34 +134,34 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
 
     value_1_allow: bool = AliasProperty(
         lambda self: self.fixture_param_1_index is not None,
-        bind=["fixture_param_1_index"]
+        bind=("fixture_param_1_index",)
     )
 
     value_1: int = AliasProperty(
         lambda self: self._value_1 ^ 255 if self.value_1_inversion else self._value_1,
         lambda self, val: setattr(self, "_value_1", val),
-        bind=["_value_1", "value_1_inversion"]
+        bind=("_value_1", "value_1_inversion")
     )
 
     link_active_value_1: bool = AliasProperty(
         lambda self: self.link_active and self.value_1_allow,
-        bind=["link_active", "value_1_allow"]
+        bind=("link_active", "value_1_allow")
     )
 
     value_2_allow: bool = AliasProperty(
         lambda self: self.fixture_param_2_index is not None and self.uix_type is DesktopUixType.SLIDER_2D,
-        bind=["fixture_param_2_index"]
+        bind=("fixture_param_2_index",)
     )
 
     value_2: int = AliasProperty(
         lambda self: self._value_2 ^ 255 if self.value_2_inversion else self._value_2,
         lambda self, val: setattr(self, "_value_2", val),
-        bind=["_value_2", "value_2_inversion"]
+        bind=("_value_2", "value_2_inversion")
     )
 
     link_active_value_2: bool = AliasProperty(
         lambda self: self.link_active and self.value_2_allow,
-        bind=["link_active", "value_2_allow"]
+        bind=("link_active", "value_2_allow")
     )
 
 

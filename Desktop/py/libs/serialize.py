@@ -82,7 +82,7 @@ class SerializableMeta(type):
                 defaultvalue = prop.defaultvalue
                 value = getattr(self, key)
                 if defaultvalue != value:
-                    result[key] = ser(self, value) if ser else value
+                    result[key] = ser(self, value)
             return result
         return _serialize
 
@@ -152,13 +152,6 @@ def serializable_or_raw_serializer() -> Serializer:
         if isinstance(value, SerializableMixin):
             return value.serialize()
         return value
-    return serialize
-
-def rounded_tuple_serializer(decimals: int, allow_none:bool=False) -> Serializer:
-    def serialize(_self: SerializableMixin, value: Iterable[OptionalNumber]) -> Tuple[OptionalNumber, ...]:
-        if allow_none:
-            return tuple(None if v is None else round(v, decimals) for v in value)
-        return tuple(round(v, decimals) for v in value)
     return serialize
 
 def hex_color_serializer() -> Serializer:

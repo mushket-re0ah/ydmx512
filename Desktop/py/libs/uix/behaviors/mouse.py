@@ -1,10 +1,11 @@
+from kivy.input.motionevent import MotionEvent
 from kivy.properties import BooleanProperty
 
 
 class TouchMouseBehavior:
     drag_enabled: bool = BooleanProperty(False)
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.disabled:
             return False
         if touch.grab_current is not None:
@@ -32,7 +33,7 @@ class TouchMouseBehavior:
                     return True
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if self.drag_enabled and touch.grab_current is self:
             dx = touch.pos[0] - touch.ud["start_mouse_pos"][0]
             dy = touch.pos[1] - touch.ud["start_mouse_pos"][1]
@@ -40,18 +41,18 @@ class TouchMouseBehavior:
                 return True
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if self.drag_enabled and touch.grab_current is self:
             touch.ungrab(self)
             if self.on_drag_end(touch):
                 return True
         return super().on_touch_up(touch)
 
-    def on_left_click(self, touch) -> bool: return False
-    def on_right_click(self, touch) -> bool: return False
-    def on_middle_click(self, touch) -> bool: return False
-    def on_scroll_up(self, touch) -> bool: return False
-    def on_scroll_down(self, touch) -> bool: return False
-    def on_drag_start(self, touch) -> bool: return False
-    def on_drag(self, touch, delta_x: float, delta_y: float) -> bool: return False
-    def on_drag_end(self, touch) -> bool: return False
+    def on_left_click(self, touch: MotionEvent) -> bool: return False
+    def on_right_click(self, touch: MotionEvent) -> bool: return False
+    def on_middle_click(self, touch: MotionEvent) -> bool: return False
+    def on_scroll_up(self, touch: MotionEvent) -> bool: return False
+    def on_scroll_down(self, touch: MotionEvent) -> bool: return False
+    def on_drag_start(self, touch: MotionEvent) -> bool: return False
+    def on_drag(self, touch: MotionEvent, delta_x: float, delta_y: float) -> bool: return False
+    def on_drag_end(self, touch: MotionEvent) -> bool: return False

@@ -2,6 +2,7 @@ from typing import Any, Tuple
 
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import (
     ListProperty,
@@ -176,13 +177,13 @@ class ColorSelectorSquare(Widget):
         self.texture.flip_vertical()
         self.update_color(*self.marker_xy)
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos):
             self.select_color(touch.x, touch.y)
             return True
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos):
             self.select_color(touch.x, touch.y)
             return True

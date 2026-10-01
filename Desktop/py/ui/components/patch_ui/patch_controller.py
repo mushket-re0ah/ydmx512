@@ -1,14 +1,17 @@
-from kivy.properties import ObjectProperty, NumericProperty, AliasProperty
-from kivy.uix.boxlayout import BoxLayout
+from typing import Any
+
 from kivy.clock import Clock
 from kivy.lang import Builder
-from libs.uix.layouts import ModalBoxLayout
+from kivy.properties import AliasProperty, NumericProperty, ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
+
+import libs.uix.menu_components  # lazy kv import initialize
+from database.fixture_param import RowFixtureParam
+from database.patch import RowPatch
 from libs.dmx512 import dmx512
 from libs.uix import slider  # lazy kv import initialize
-import libs.uix.menu_components  # lazy kv import initialize
-from database.patch import RowPatch
-from database.fixture_param import RowFixtureParam
-
+from libs.uix.layouts import ModalBoxLayout
+from libs.uix.scroll_layout import ScrollLayout
 
 Builder.load_file("ui/components/patch_ui/patch_controller.kv")
 
@@ -25,7 +28,7 @@ class PatchControllerMenuChannel(BoxLayout):
     _write_allow = False
 
     _update_trigger = None
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._update_trigger = Clock.create_trigger(self.update, -1)
         self.bind(
@@ -35,7 +38,7 @@ class PatchControllerMenuChannel(BoxLayout):
             value=self._update_trigger,
         )
 
-    def update(self, _):
+    def update(self, _:float):
         self.value = dmx512.get_value(self.universe, self.address)
         self.disabled = dmx512.check_address_force(self.universe, self.address)
 
@@ -45,7 +48,7 @@ class PatchControllerMenuChannel(BoxLayout):
 
 class PatchControllerMenu(ModalBoxLayout):
     patch: RowPatch = ObjectProperty()
-    scroll_layout = ObjectProperty()
+    scroll_layout: ScrollLayout = ObjectProperty()
 
     def on_open(self):
         self.scroll_layout.scrollview.data = [

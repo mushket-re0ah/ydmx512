@@ -1,27 +1,28 @@
-from kivy.properties import ObjectProperty
 from kivy.lang import Builder
-from libs.uix.layouts import ModalBoxLayout
-import libs.uix.menu_components  # lazy kv import initialize
-from database.patch import RowPatch
-from typing_extensions import Self
+from kivy.properties import ObjectProperty
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.widget import Widget
 
+from database.patch import RowPatch
+from libs.uix.layouts import ModalBoxLayout
+from libs.uix.menu_components import MenuLabel, MenuNumericInput, MenuToggleButton
 
 Builder.load_file("ui/components/patch_ui/patch_context_menu.kv")
 
 
 class PatchContextMenu(ModalBoxLayout):
     patch: RowPatch = ObjectProperty()
-    grid_box = ObjectProperty()
-    toggle_invert_pan = ObjectProperty()
-    label_invert_pan = ObjectProperty()
-    toggle_invert_tilt = ObjectProperty()
-    label_invert_tilt = ObjectProperty()
-    input_correction_pan = ObjectProperty()
-    label_correction_pan = ObjectProperty()
-    input_correction_tilt = ObjectProperty()
-    label_correction_tilt = ObjectProperty()
+    grid_box: GridLayout = ObjectProperty()
+    toggle_invert_pan: MenuToggleButton = ObjectProperty()
+    label_invert_pan: MenuLabel = ObjectProperty()
+    toggle_invert_tilt: MenuToggleButton = ObjectProperty()
+    label_invert_tilt: MenuLabel = ObjectProperty()
+    input_correction_pan: MenuNumericInput = ObjectProperty()
+    label_correction_pan: MenuLabel = ObjectProperty()
+    input_correction_tilt: MenuNumericInput = ObjectProperty()
+    label_correction_tilt: MenuLabel = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         if not self.patch.fixture.is_dynamic:
             self.grid_box.remove_widget(self.toggle_invert_pan)
             self.grid_box.remove_widget(self.label_invert_pan)

@@ -1,5 +1,11 @@
+from typing import TYPE_CHECKING
+
 from kivy.lang import Builder
+
 from libs.uix.map_layout import WorkspaceMapLayout
+
+if TYPE_CHECKING:
+    from ui.mdi.patch_list.map_context_menu import PatchMapContextMenu
 
 
 Builder.load_string("""
@@ -15,6 +21,6 @@ Builder.load_string("""
 
 
 class PatchMap(WorkspaceMapLayout):
-    def _create_context_menu(self):
+    def _create_context_menu(self) -> "PatchMapContextMenu":
         from ui.mdi.patch_list.map_context_menu import PatchMapContextMenu
         return PatchMapContextMenu(patch_map=self)

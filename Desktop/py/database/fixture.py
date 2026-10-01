@@ -51,7 +51,7 @@ class RowFixture(DatabaseRow):
         return tuple(param_list_unpacked)
     param_list_unpacked: Tuple[RowFixtureParam, ...] = AliasProperty(
         get_param_list_unpacked, None,
-        bind=["channels_groups"], cache=True
+        bind=("channels_groups",), cache=True
     )
 
     def get_param_map(self) -> Dict[FixtureParamMapKey, List[int]]:
@@ -66,14 +66,14 @@ class RowFixture(DatabaseRow):
         return param_map
     param_map: Dict[FixtureParamMapKey, List[int]] = AliasProperty(
         get_param_map,
-        bind=["channels_groups"], cache=True
+        bind=("channels_groups",), cache=True
     )
 
     def get_is_dynamic(self) -> bool:
         return any(param.is_dynamic for param in self.param_list_unpacked)
     is_dynamic: bool = AliasProperty(
         get_is_dynamic, None,
-        bind=["param_list_unpacked"], cache=True
+        bind=("param_list_unpacked",), cache=True
     )
 
 

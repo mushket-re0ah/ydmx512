@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from database import db
 from database.fixture_param import RowFixtureParam
 from libs.asset_manager import FileAssetManager
@@ -8,8 +10,8 @@ from misc import constants
 
 
 class ParamPresetData(SerializableMixin):
-    title = StringField()
-    dots = ListField()
+    title: str = StringField()
+    dots: Tuple[Tuple[float, float, InterpolationType]] = ListField()
 
 
 class ParamPresetsManager(FileAssetManager):

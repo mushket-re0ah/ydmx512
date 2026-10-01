@@ -229,7 +229,11 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
         if d is not None:
             d.data = value
 
-    data: List[Dict[str, Any]] = AliasProperty(_get_data, _set_data, bind=["data_model"])
+    data: List[Dict[str, Any]] = AliasProperty(
+        _get_data,
+        _set_data,
+        bind=("data_model",)
+    )
     """
     The data used by the current view adapter. This is a list of dicts whose
     keys map to the corresponding property names of the
@@ -248,8 +252,11 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
         if a:
             a.viewclass = value
 
-    viewclass: Union[str, Type[Widget]] = AliasProperty(_get_viewclass, _set_viewclass,
-                              bind=["layout_manager"])
+    viewclass: Union[str, Type[Widget]] = AliasProperty(
+        _get_viewclass,
+        _set_viewclass,
+        bind=("layout_manager",)
+    )
     """
     The viewclass used by the current layout_manager.
 
@@ -266,8 +273,11 @@ class RecycleRestrictedScrollView(RecycleViewBehavior, RestrictedScrollView):
         if a:
             a.key_viewclass = value
 
-    key_viewclass: Optional[str] = AliasProperty(_get_key_viewclass, _set_key_viewclass,
-                                  bind=["layout_manager"])
+    key_viewclass: Optional[str] = AliasProperty(
+        _get_key_viewclass,
+        _set_key_viewclass,
+        bind=("layout_manager",)
+    )
     """
     key_viewclass is an :class:`~kivy.properties.AliasProperty` that gets and
     sets the key viewclass for the current
