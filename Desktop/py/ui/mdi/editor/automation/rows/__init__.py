@@ -1,42 +1,75 @@
-from typing import List, Optional, Tuple, Set, Dict, FrozenSet, Callable
 from collections import defaultdict
-from kivy.properties import (
-    ObjectProperty, ListProperty, AliasProperty, BooleanProperty
-)
-from kivy.lang import Builder
-from kivy.clock import Clock
-from libs.uix.scroll_layout import ScrollLayout
-from libs.dmx512_render import DMXRenderDot
-from libs.dmx512.misc import FullAddress
-from libs.sdl2_keyboard import manager as keyboard_manager
-from libs import logger
-from database.playback.renderer import render_utils
-from database.playback import PlaybackRenderRow
-from database.patch import RowPatch
-from ui.mdi.editor.automation.rows.row_data import RowParamData, RowsDataManager
-from ui.mdi.editor.automation.rows.row import RowParam  # lazy kv import initialize
-from ui.mdi.editor.automation.tools import RemoveSelectedDotsTool, PasteTool
-from misc import dmx_utils
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, Callable, DefaultDict, Dict, FrozenSet, List, Optional, Set, Tuple, TypedDict, Union
 
+from kivy.clock import Clock
+from kivy.input.motionevent import MotionEvent
+from kivy.lang import Builder
+from kivy.properties import AliasProperty, BooleanProperty, ListProperty, ObjectProperty
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.widget import Widget
+
+from database.fixture import RowFixture
+from database.fixture_param import RowFixtureParam
+from database.patch import RowPatch
+from database.playback import PlaybackRenderRow
+from database.playback.playback import RowPlayback
+from database.playback.renderer import PlaybackRenderer, render_utils
+from libs import logger
+from libs.dmx512.misc import FullAddress
+from libs.dmx512_render import DMXRenderDot
+from libs.dmx512_render.misc import InterpolationType, XYGrid
+from libs.sdl2_keyboard import manager as keyboard_manager
+from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
+from libs.uix.scroll_layout import ScrollLayout
+from misc import dmx_utils
+from ui.mdi.editor.automation.rows.row import RowParam  # lazy kv import initialize
+from ui.mdi.editor.automation.rows.row_data import RowParamData, RowsDataManager
+from ui.mdi.editor.automation.tools import PasteTool, RemoveSelectedDotsTool
+
+if TYPE_CHECKING:
+    from ui.mdi.editor.automation import Automation
 
 Builder.load_file("ui/mdi/editor/automation/rows/row_panel.kv")
 
 
+class _ParamsMapEntry(TypedDict):
+    patch_group: List[RowPatch]
+    fixture_index: Dict[RowPatch, List[int]]
+    fixture_param: Optional[RowFixtureParam]
+_GroupKey = Union[
+    Tuple[RowFixtureParam, RowFixture],
+    Tuple[RowFixtureParam, None],
+    Tuple[RowPatch, int],
+    Tuple[RowFixtureParam, int],
+]
+
+class _RowParamDataDict(TypedDict):
+    patch_group: Tuple[RowPatch, ...]
+    fixture_index: Dict[RowPatch, Tuple[int, ...]]
+    fixture_param: Optional[RowFixtureParam]
+    address_list: Dict[FullAddress, bool]
+    render_rows_by_address: Dict[FullAddress, Tuple[PlaybackRenderRow, ...]]
+    render_rows: Tuple[PlaybackRenderRow, ...]
+
+
 class RowPanel(ScrollLayout):
-    box = ObjectProperty()
-    scrollview = ObjectProperty()
+    box: RecycleBoxLayout = ObjectProperty()
+    scrollview: RecycleRestrictedScrollView = ObjectProperty()
 
-    automation = ObjectProperty(rebind=True)
-    editor_content = ObjectProperty(rebind=True)
-    playback = ObjectProperty(None, allownone=True, rebind=True)
-    renderer = AliasProperty(lambda self: self.playback.renderer if self.playback else None, bind=["playback"])
-    xy_grid = AliasProperty(lambda self: self.renderer.xy_grid if self.playback else None, bind=["playback"])
-    active_patch: List[RowPatch] = ListProperty([])
-    has_any_data = BooleanProperty(False, rebind=True)
+    automation: "Automation" = ObjectProperty(rebind=True)
+    playback: Optional[RowPlayback] = ObjectProperty(None, allownone=True, rebind=True)
+    renderer: Optional[PlaybackRenderer] = AliasProperty(
+        lambda self: self.playback.renderer if self.playback else None,
+        bind=("playback",)
+    )
+    xy_grid: Optional[XYGrid] = AliasProperty(
+        lambda self: self.renderer.xy_grid if self.playback else None,
+        bind=("playback",)
+    )
+    active_patch: Tuple[RowPatch, ...] = ListProperty()
+    has_any_data: bool = BooleanProperty(False, rebind=True)
 
-    _update_rows_ev = None
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self._update_rows_ev = Clock.create_trigger(self._update_rows, -1)
         self.bind(
             playback=self._update_rows_ev,
@@ -44,12 +77,12 @@ class RowPanel(ScrollLayout):
         )
         super().__init__(**kwargs)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self.automation.editor_content.bind(on_render_changed=self._on_render_changed)
         self._sync_has_any_data()
 
-    def _on_render_changed(self, _, _renderer):
+    def _on_render_changed(self, _, renderer: PlaybackRenderer):
         self._sync_has_any_data()
         self._sync_selected_dots()
 
@@ -57,21 +90,23 @@ class RowPanel(ScrollLayout):
         for patch in self.active_patch:
             self.renderer.add_patch(patch)
 
-    def _build_params_map(self, agregate=False) -> dict:
-        params_of_patches = defaultdict(
+    def _build_params_map(self, agregate:bool=False) -> DefaultDict[_GroupKey, _ParamsMapEntry]:
+        params_of_patches: DefaultDict[_GroupKey, _ParamsMapEntry] = defaultdict(
             lambda: {
                 "patch_group": [],
                 "fixture_index": defaultdict(list),
                 "fixture_param": None,
             }
         )
-
         if agregate:
             logger.error("Агрегация пока не поддерживается")
             for patch in self.active_patch:
                 fixture = patch.fixture
                 for param_key, indices in fixture.param_map.items():
-                    group_key = (param_key.param, fixture) if param_key.is_linear else (param_key.param, None)
+                    if param_key.is_linear:
+                        group_key = (param_key.param, fixture)
+                    else:
+                        group_key = (param_key.param, None)
 
                     entry = params_of_patches[group_key]
                     entry["patch_group"].append(patch)
@@ -94,31 +129,43 @@ class RowPanel(ScrollLayout):
 
         return params_of_patches
 
-    def _convert_to_rows_data(self, params_map: dict) -> dict:
-        result = []
+    def _convert_to_rows_data(
+            self,
+            params_map: DefaultDict[_GroupKey, _ParamsMapEntry]
+        ) -> Tuple[_RowParamDataDict, ...]:
+        if self.renderer is None:
+            raise RuntimeError()
+        result: List[_RowParamDataDict] = []
         for row_data in params_map.values():
-            render_rows = []
-            address_list = {}
-            render_rows_by_address = defaultdict(list)
+            render_rows: List[PlaybackRenderRow] = []
+            address_list: Dict[FullAddress, bool] = {}
+            render_rows_by_address: DefaultDict[FullAddress, List[PlaybackRenderRow]] = defaultdict(list)
+            result_fixture_index: Dict[RowPatch, Tuple[int, ...]] = {}
             for patch, fixture_index_list in row_data["fixture_index"].items():
                 for index in fixture_index_list:
                     render_row = self.renderer.get_row(patch, index)
+                    if render_row is None:
+                        raise RuntimeError()
                     render_rows.append(render_row)
                     fulladdress = FullAddress(patch.universe, patch.start_address + index)
                     address_list[fulladdress] = True
                     render_rows_by_address[fulladdress].append(render_row)
+                result_fixture_index[patch] = tuple(fixture_index_list)
+
+            result_render_rows_by_address: Dict[FullAddress, Tuple[PlaybackRenderRow, ...]] = {
+                fulladdr: tuple(row_list) for fulladdr, row_list in render_rows_by_address.items()
+            }
             result.append({
                 "patch_group": tuple(row_data["patch_group"]),
-                "fixture_index": row_data["fixture_index"],
-                "render_rows": render_rows,
+                "fixture_index": result_fixture_index,
+                "render_rows": tuple(render_rows),
                 "address_list": address_list,
-                "render_rows_by_address": dict(render_rows_by_address),
+                "render_rows_by_address": result_render_rows_by_address,
                 "fixture_param": row_data["fixture_param"],
             })
-        return result
+        return tuple(result)
 
     rows_data_manager = ObjectProperty(RowsDataManager([]))
-
     def _update_rows(self, _):
         if not self.playback:
             return
@@ -148,7 +195,7 @@ class RowPanel(ScrollLayout):
         self.scrollview.data = manager
 
     def on_rows_data_manager(self, _, rows_data_manager: RowsDataManager):
-        existing_rows = set()
+        existing_rows: Set[PlaybackRenderRow] = set()
         for data_row in rows_data_manager:
             existing_rows.update(data_row.render_rows)
 
@@ -180,11 +227,11 @@ class RowPanel(ScrollLayout):
         if self.rows_data_manager:
             self.rows_data_manager.dispatch_row_change()
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         self.row_selection = False
         return super().on_touch_up(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if self.row_selection:
             touch.push()
             touch.apply_transform_2d(self.scrollview.to_local)
@@ -198,7 +245,12 @@ class RowPanel(ScrollLayout):
     def find_row_by_y(self, y: float) -> Optional[RowParam]:
         return next((row_param for row_param in self.box.children if row_param.y <= y <= row_param.top), None)
 
-    def normalize_frame_x_with_row_phase(self, frame_x: int, data_row: RowParamData, allow_negative: bool=False) -> float:
+    def normalize_frame_x_with_row_phase(
+            self,
+            frame_x: int,
+            data_row: RowParamData,
+            allow_negative:bool=False
+        ) -> float:
         master_row = data_row.master_render_row
         shift = self.renderer.get_row_phase_shift(master_row) if master_row.row_phase_spec else 0.0
         norm_x = self.xy_grid.to_normalized_x(frame_x, allow_negative=allow_negative)
@@ -222,7 +274,7 @@ class RowPanel(ScrollLayout):
             frozenset({"ctrl", "v"}): self.paste,
         }
 
-    clipboard_data = ListProperty(None, allownone=True)
+    clipboard_data: Tuple[Tuple[int, int, InterpolationType], ...] = tuple()
     def copy(self) -> bool:
         return self.copy_rows(self.selected_render_rows, False)
 
@@ -234,6 +286,9 @@ class RowPanel(ScrollLayout):
         self.paste_rows(self.selected_render_rows)
 
     def copy_rows(self, render_rows: List[PlaybackRenderRow], is_all_row_dots: bool) -> bool:
+        if self.xy_grid is None:
+            return False
+
         if not render_rows:
             return False
 
@@ -254,9 +309,14 @@ class RowPanel(ScrollLayout):
             return False
 
         min_x = min(dot.x for dot in dots)
-        self.clipboard_data = [
-            (self.xy_grid.to_frame_x(dot.x - min_x), self.xy_grid.to_frame_y(dot.y), dot.dot_type) for dot in dots
-        ]
+        self.clipboard_data = tuple(
+            (
+                self.xy_grid.to_frame_x(dot.x - min_x),
+                self.xy_grid.to_frame_y(dot.y),
+                dot.dot_type
+            )
+            for dot in dots
+        )
         return True
 
     def paste_rows(self, render_rows: List[PlaybackRenderRow]):
@@ -267,6 +327,8 @@ class RowPanel(ScrollLayout):
         self.automation.set_tool(PasteTool, render_rows)
 
     def start_area_selection(self, frame_pos: Tuple[int, int], data_row: RowParamData):
+        if self.xy_grid is None:
+            return
         master_shift = self.get_frame_row_shift(data_row)
 
         selected_data_rows = self.rows_data_manager.get_selected_data_rows()
@@ -281,6 +343,8 @@ class RowPanel(ScrollLayout):
             frame_pos: Tuple[int, int],
             frame_size: Tuple[int, int],
             data_row: RowParamData):
+        if self.xy_grid is None:
+            return
         for row_param in self.box.children:
             if row_param.tact_box.selector:
                 row_param.tact_box.set_selector_size(frame_size)
@@ -297,6 +361,8 @@ class RowPanel(ScrollLayout):
             self,
             frame_pos: Tuple[int, int],
             frame_size: Tuple[int, int]):
+        if self.xy_grid is None:
+            return
         render_rows = self.selected_render_rows
         norm_start_x = self.xy_grid.to_normalized_x(min(frame_pos[0], frame_pos[0] + frame_size[0]))
         norm_width = self.xy_grid.to_normalized_x(abs(frame_size[0]))
@@ -307,17 +373,17 @@ class RowPanel(ScrollLayout):
             norm_start_x, norm_start_y, norm_width, norm_height
         )
 
-    dots_selected: List[DMXRenderDot] = ObjectProperty([])
+    dots_selected: Tuple[DMXRenderDot, ...] = ObjectProperty(tuple())
 
-    selection_main_x = None
+    selection_main_x: Optional[int] = None
 
     def select_all(self):
         self.dots_selected = self.get_rows_all_dots(self.selected_render_rows)
 
     def unselect_all(self):
-        self.dots_selected = []
+        self.dots_selected = tuple()
 
-    def select_dots_by_x(self, frame_x: int, data_row: RowParamData) -> List[DMXRenderDot]:
+    def select_dots_by_x(self, frame_x: int, data_row: RowParamData) -> Tuple[DMXRenderDot, ...]:
         if self.selection_main_x is not None and keyboard_manager.check_shift():
             precision_x = 1
 
@@ -346,18 +412,18 @@ class RowPanel(ScrollLayout):
                     dot for dot in dots
                     if dot not in selected
                 )
-                self.dots_selected = dots_selected
+                self.dots_selected = tuple(dots_selected)
             elif not set(self.dots_selected) & set(dots):
                 self.dots_selected = dots
         return self.dots_selected
 
-    def get_rows_all_dots(self, render_rows: List[PlaybackRenderRow]) -> List[DMXRenderDot]:
-        dots = []
+    def get_rows_all_dots(self, render_rows: List[PlaybackRenderRow]) -> Tuple[DMXRenderDot, ...]:
+        dots: List[DMXRenderDot] = []
         for row in render_rows:
             for dot in row.dots:
                 if dot not in dots:
                     dots.append(dot)
-        return dots
+        return tuple(dots)
 
     def set_dots_under_cursor(self, data_row: RowParamData, frame_x: int):
         norm_x = self.normalize_frame_x_with_row_phase(frame_x, data_row)
@@ -372,27 +438,31 @@ class RowPanel(ScrollLayout):
     row_selection = BooleanProperty(False)
     row_selection_main_data_row = ObjectProperty(None, allownone=True)
 
-    selected_render_rows = ListProperty([], rebind=True)
-    master_selected_render_row = AliasProperty(
+    selected_render_rows: Tuple[PlaybackRenderRow, ...] = ListProperty(rebind=True)
+    master_selected_render_row: Optional[PlaybackRenderRow] = AliasProperty(
         lambda self: self.selected_render_rows[0] if self.selected_render_rows else None,
-        bind=["selected_render_rows"], rebind=True, cache=True
+        bind=("selected_render_rows",),
+        rebind=True,
+        cache=True
     )
-    selected_patch_render_rows = AliasProperty(
+    selected_patch_render_rows: Dict[RowPatch, List[PlaybackRenderRow]] = AliasProperty(
         lambda self: render_utils.get_patch_render_rows(self.selected_render_rows),
-        bind=["selected_render_rows"], rebind=True
+        bind=("selected_render_rows",),
+        rebind=True
     )
-    allow_row_phase = AliasProperty(
+    allow_row_phase: bool = AliasProperty(
         lambda self: any(len(v) >= 2 for v in self.selected_patch_render_rows.values()),
-        bind=["selected_patch_render_rows"], rebind=True
+        bind=("selected_patch_render_rows",),
+        rebind=True
     )
-    def _get_row_group(self, data_row: RowParamData) -> Set[RowParamData]:
+    def _get_row_group(self, data_row: Optional[RowParamData]) -> Set[RowParamData]:
         """Возвращает множество RowParamData, которые должны выделяться вместе с data_row если есть фаза"""
         if data_row is None:
             return set()
         row_phase_spec = data_row.row_phase_spec
         if not row_phase_spec:
             return {data_row}
-        group = set()
+        group: Set[RowParamData] = set()
         for index in row_phase_spec.indices:
             row = self.renderer.get_row(row_phase_spec.patch, index)
             if row is not None:
@@ -404,7 +474,7 @@ class RowPanel(ScrollLayout):
     def _set_row_select(self, data_row: RowParamData, selected: bool):
         data_row.selected = selected
 
-    def select_one_row(self, data_row: RowParamData, force=False):
+    def select_one_row(self, data_row: RowParamData, force:bool=False):
         if not force and data_row in self.rows_data_manager.get_selected_data_rows():
             return
         group = self._get_row_group(data_row)
@@ -420,7 +490,7 @@ class RowPanel(ScrollLayout):
         min_index = min(start_index, end_index)
         max_index = max(start_index, end_index)
 
-        group = set()
+        group: Set[RowParamData] = set()
         for i, data_row in enumerate(self.rows_data_manager):
             if min_index <= i <= max_index:
                 group.update(self._get_row_group(data_row))
@@ -448,7 +518,7 @@ class RowPanel(ScrollLayout):
         if self.rows_data_manager:
             self.selected_render_rows = self.rows_data_manager.get_selected_render_rows()
         else:
-            self.selected_render_rows = []
+            self.selected_render_rows = tuple()
 
     def undo(self):
         if self.playback:

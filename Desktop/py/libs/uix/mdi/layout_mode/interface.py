@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Callable, Dict, FrozenSet, List, Optional, Tup
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy.input.motionevent import MotionEvent
 
 from libs.kivy_mixins import AutoUnbindBehavior
 from libs.kivy_utils import WIDGET_SIDE_CURSOR, WidgetSide, get_cursor_zone
@@ -129,7 +130,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
     def is_busy(self) -> bool:
         return self._resizing or self._moving
 
-    def handle_touch_down(self, touch) -> bool:
+    def handle_touch_down(self, touch: MotionEvent) -> bool:
         self._update_cursor_zone(touch.pos)
         mdi = self._mdi_on_cursor
 
@@ -150,7 +151,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
 
         return mdi.dispatch("on_touch_down", touch)
 
-    def handle_touch_move(self, touch) -> bool:
+    def handle_touch_move(self, touch: MotionEvent) -> bool:
         if self._resizing or self._moving:
             self._last_mouse_pos = touch.pos
             if self._resizing:
@@ -162,7 +163,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             return self._mdi_on_cursor.dispatch("on_touch_move", touch)
         return False
 
-    def handle_touch_up(self, touch) -> bool:
+    def handle_touch_up(self, touch: MotionEvent) -> bool:
         if self._resizing:
             self._resizing = False
             self._resize_side = None
@@ -206,18 +207,18 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             return
         cursor_manager.set_cursor(WIDGET_SIDE_CURSOR[self._widget_side_now])
 
-    def _is_title_bar_clicked(self, touch) -> bool:
+    def _is_title_bar_clicked(self, touch: MotionEvent) -> bool:
         mdi = self._mdi_on_cursor
         return mdi and mdi.title_bar_label.collide_point(*touch.pos)
 
-    def _is_double_tap_target(self, touch, mdi: MDIWindow) -> bool:
+    def _is_double_tap_target(self, touch: MotionEvent, mdi: MDIWindow) -> bool:
         return (mdi.title_bar_label.collide_point(*touch.pos) or
                 self._widget_side_now != WidgetSide.VOID)
 
-    def _on_double_tap(self, touch, mdi: MDIWindow) -> bool:
+    def _on_double_tap(self, touch: MotionEvent, mdi: MDIWindow) -> bool:
         return True
 
-    def _on_title_right_click(self, touch, mdi: MDIWindow) -> bool:
+    def _on_title_right_click(self, touch: MotionEvent, mdi: MDIWindow) -> bool:
         self._mdi_open_context_menu(mdi, touch.pos)
         return True
 
@@ -256,7 +257,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             hotkey=frozenset({"ctrl", "shift", "e"}),
         )
 
-    def _try_start_resize_or_move(self, touch, mdi: MDIWindow) -> bool:
+    def _try_start_resize_or_move(self, touch: MotionEvent, mdi: MDIWindow) -> bool:
         side = self._widget_side_now
         if self._can_start_resize(touch, mdi, side):
             return self._start_resize(touch, mdi, side)
@@ -264,7 +265,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             return self._start_move(touch, mdi, side)
         return False
 
-    def _start_resize(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
+    def _start_resize(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         self._resizing = True
         self._resize_side = side
         self._last_mouse_pos = touch.pos
@@ -273,7 +274,7 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         cursor_manager.set_force(True)
         return True
 
-    def _start_move(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
+    def _start_move(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         self._moving = True
         self._start_mouse_pos = touch.pos
         self._start_mdi_pos = mdi.pos[:]
@@ -283,10 +284,10 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         cursor_manager.set_force(True)
         return True
 
-    def _can_start_resize(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
+    def _can_start_resize(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         return False
 
-    def _can_start_move(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
+    def _can_start_move(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         return False
 
     def _apply_resize(self, _):

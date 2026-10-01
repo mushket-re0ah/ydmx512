@@ -1,21 +1,25 @@
-from typing import Optional
-from dataclasses import dataclass, field
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty
-from database.fixture import RowFixture
-from database.patch import RowPatch
+from typing import TYPE_CHECKING, Optional
+
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty
+
 from database import db
-from libs.kivy_json_orm.fields import table_ref_serializer, table_ref_deserializer
+from database.fixture import RowFixture
+from libs.kivy_json_orm.fields import table_ref_deserializer, table_ref_serializer
 from ui.components.database_mdi_window import DatabaseMDIWindow
+
+if TYPE_CHECKING:
+    from ui.mdi.patch_list.menu import PatchListMenu
+    from ui.mdi.patch_list.patch_map_section import PatchMapSection
 
 
 class MDIPatchList(DatabaseMDIWindow):
-    _db_title_id = "patch_list"
-    title = StringProperty("Патч-лист")
+    _db_title_id: str = "patch_list"
+    title: str = StringProperty("Патч-лист")
 
-    menu = ObjectProperty()
-    patch_map = ObjectProperty()
+    menu: "PatchListMenu" = ObjectProperty()
+    patch_map: "PatchMapSection" = ObjectProperty()
 
-    workspace = NumericProperty(0)
+    workspace: int = NumericProperty(0)
 
     view_context_template = {
         "workspace": 0,
@@ -41,8 +45,8 @@ class MDIPatchList(DatabaseMDIWindow):
 
     def create_patch(self,
                      fixture: RowFixture,
-                     count=1,
-                     universe=1,
+                     count: int=1,
+                     universe: int=1,
                      start_address:Optional[int]=None):
         kwargs = {
             "fixture": fixture,
@@ -53,8 +57,9 @@ class MDIPatchList(DatabaseMDIWindow):
             kwargs["start_address"] = start_address
         for _ in range(count):
             db.patch.add_row(**kwargs)
-            if start_address:
-                kwargs["start_address"] += len(fixture.param_list_unpacked) + 1
+            if start_address is not None:
+                start_address += len(fixture.param_list_unpacked) + 1
+                kwargs["start_address"] = start_address
 
     def __create_menu(self):
         from ui.mdi.patch_list.menu import PatchListMenu

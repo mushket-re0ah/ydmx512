@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Callable, Dict, FrozenSet, List, Type
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
-from typing_extensions import Self
+from kivy.uix.widget import Widget
 
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.uix.button import ImageToggleButton
@@ -38,7 +38,7 @@ class MDIToggleButton(ImageToggleButton):
     mdi_container_manager: "DatabaseWorkspaceMDIContainerManager" = ObjectProperty()
     mdi: MDIWindow = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.mdi.bind(hidden=self._set_state_by_mdi)
         self._set_state_by_mdi(self.mdi, self.mdi.hidden)
 
@@ -114,7 +114,7 @@ class MainRibbon(BoxLayout):
     midi_devices: MidiDevices = ObjectProperty()
     settings: MDISettings = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.mdi_menu.box.init(self.mdi_container_manager)
         mdi_cls = MDISettings
         mdi_id = mdi_cls._db_title_id

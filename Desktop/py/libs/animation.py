@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 from kivy.animation import Animation
 from kivy.clock import Clock
@@ -83,8 +83,8 @@ class AnimationBehavior:
     _animation_block: bool = True  # Первый кадр анимация недоступна
     _trigger_animate = None
 
-    _animation: Animation = None
-    def __init__(self, **kwargs):
+    _animation: Optional[Animation] = None
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._trigger_animate = Clock.create_trigger(self._animate, -1)
         self._make_animation_binds()
@@ -103,7 +103,7 @@ class AnimationBehavior:
                 else:
                     self.fbind(state, self._trigger_animate)
 
-    def _animate(self, _):
+    def _animate(self, _: float):
         if self._animation_block:
             return
         if self._animation:

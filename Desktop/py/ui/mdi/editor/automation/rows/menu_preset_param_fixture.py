@@ -1,19 +1,23 @@
+from typing import Any, Tuple
+
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
-from presets import param_preset_manager
-from presets.param_presets import ParamPresetData
-from ui.components.file_preset_manager import FilePresetModal, MenuPresetManager
-from ui.mdi.editor.automation.tools import DiscardRowTool, LoadParamPresetTool
 
+from database.playback.renderer.render_data import PlaybackRenderRow
+from presets import param_preset_manager
+from presets.param_presets import ParamPresetData, ParamPresetsManager
+from ui.components.file_preset_manager import FilePresetModal, MenuPresetManager
+from ui.mdi.editor.automation.rows import RowPanel
+from ui.mdi.editor.automation.tools import DiscardRowTool, LoadParamPresetTool
 
 Builder.load_file("ui/mdi/editor/automation/rows/menu_preset_param_fixture.kv")
 
 
 class ModalSaveParamFixturePreset(FilePresetModal):
-    asset_manager = ObjectProperty(param_preset_manager)
-    render_row = ObjectProperty()
+    asset_manager: ParamPresetsManager = ObjectProperty(param_preset_manager)
+    render_row: PlaybackRenderRow = ObjectProperty()
 
-    def create_preset(self):
+    def create_preset(self) -> ParamPresetData:
         return ParamPresetData(
             title=self.title,
             dots=[[dot.x, dot.y, dot.dot_type.value] for dot in self.render_row.dots]
@@ -21,11 +25,11 @@ class ModalSaveParamFixturePreset(FilePresetModal):
 
 
 class MenuPresetParamFixture(MenuPresetManager):
-    asset_manager = ObjectProperty(param_preset_manager)
-    row_panel = ObjectProperty()
-    render_rows = ObjectProperty()
+    asset_manager: ParamPresetsManager = ObjectProperty(param_preset_manager)
+    row_panel: RowPanel = ObjectProperty()
+    render_rows: Tuple[PlaybackRenderRow, ...] = ObjectProperty()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.allow_create_preset = any(row.has_data for row in self.render_rows)
 

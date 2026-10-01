@@ -3,7 +3,6 @@ from typing import Optional, Type
 from kivy.lang import Builder
 from kivy.properties import NumericProperty, ObjectProperty
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.kivy_mixins import AutoUnbindBehavior
 from libs.uix.button import HoverToggleButton
@@ -56,7 +55,7 @@ class WorkspaceMDIContainerManager(AutoUnbindBehavior, WorkspaceManager):
     window_switcher: LayoutModeSwitcher = ObjectProperty()
     orientation_switcher: TilingOrientationSwitcher = ObjectProperty(allownone=True)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self.menu.add_widget(Widget(size_hint=(1, 1)))
         self.window_switcher = LayoutModeSwitcher(mdi_manager=self)
@@ -195,7 +194,7 @@ class WorkspaceMDIContainerManager(AutoUnbindBehavior, WorkspaceManager):
 #         mdi_toggle_3 = ObjectProperty()
 #         mdi_toggle_4 = ObjectProperty()
 
-#         def on_kv_post(self, base_widget: Self):
+#         def on_kv_post(self, base_widget: Widget):
 #             self.mdi_1 = TestMDIWindow(title="test#1", hidden=True)
 #             self.mdi_2 = TestMDIWindow(title="test#2", hidden=True)
 #             self.mdi_3 = TestMDIWindow(title="test#3", hidden=True)

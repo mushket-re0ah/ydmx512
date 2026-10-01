@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from database.patch import RowPatch
 from database.playback.renderer.render_data import PlaybackRenderRow
@@ -7,7 +7,7 @@ from libs.dmx512_render import DMXRenderDot
 
 
 def get_rows_to_dots_all(
-    render_rows: List[PlaybackRenderRow]
+    render_rows: Tuple[PlaybackRenderRow, ...]
 ) -> Dict[PlaybackRenderRow, List[DMXRenderDot]]:
     rows_dots: Dict[PlaybackRenderRow, List[DMXRenderDot]] = defaultdict(list)
     for row in render_rows:
@@ -15,7 +15,7 @@ def get_rows_to_dots_all(
     return rows_dots
 
 def get_rows_to_dots_by_x(
-    render_rows: List[PlaybackRenderRow], x: float
+    render_rows: Tuple[PlaybackRenderRow, ...], x: float
 ) -> Dict[PlaybackRenderRow, List[DMXRenderDot]]:
     rows_dots: Dict[PlaybackRenderRow, List[DMXRenderDot]] = defaultdict(list)
     for row in render_rows:
@@ -25,28 +25,28 @@ def get_rows_to_dots_by_x(
     return rows_dots
 
 def get_dots_by_x(
-    render_rows: List[PlaybackRenderRow], x: float
-) -> List[DMXRenderDot]:
+    render_rows: Tuple[PlaybackRenderRow, ...], x: float
+) -> Tuple[DMXRenderDot, ...]:
     dots: List[DMXRenderDot] = []
     for row in render_rows:
         dot = row.dots.find_dot_by_x(x, render_rows[0].renderer.xy_grid)
         if dot is not None and dot not in dots:
             dots.append(dot)
-    return dots
+    return tuple(dots)
 
 def get_dots_by_area(
-    render_rows: List[PlaybackRenderRow],
+    render_rows: Tuple[PlaybackRenderRow, ...],
     x: float, y: float, width: float, height: float
-) -> List[DMXRenderDot]:
+) -> Tuple[DMXRenderDot, ...]:
     dots: List[DMXRenderDot] = []
     for row in render_rows:
         for dot in row.dots.find_dots_by_area(x, y, width, height):
             if dot not in dots:
                 dots.append(dot)
-    return dots
+    return tuple(dots)
 
 def get_patch_render_rows(
-    render_rows: List[PlaybackRenderRow]
+    render_rows: Tuple[PlaybackRenderRow, ...]
 ) -> Dict[RowPatch, List[PlaybackRenderRow]]:
     rows: Dict[RowPatch, List[PlaybackRenderRow]] = defaultdict(list)
     for row in render_rows:

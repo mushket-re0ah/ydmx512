@@ -1,9 +1,11 @@
-from ui.components.playback_ui import BasePlaybackUi
+from typing import Any
+
 from misc.player.status import PlayerStatus
+from ui.components.playback_ui import BasePlaybackUi
 
 
 class PlaybackUiProcessing(BasePlaybackUi):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self.bind(grid_pos=self._save_pos)
         super().__init__(selectable=True, **kwargs)
 

@@ -1,6 +1,7 @@
 from typing import Any, List, Tuple
 
 from kivy.clock import Clock
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import BooleanProperty
 
@@ -61,7 +62,7 @@ class HoverInput(CentralizedHotkeyTextInput):
     def focus_set_global(self, _, focus: bool):
         self.visible_focus = focus
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos) and touch.button == "right":
             self.open_context_menu(touch.pos)
             return True

@@ -1,20 +1,22 @@
-from kivy.properties import ObjectProperty
 from kivy.lang import Builder
-from libs.uix.layouts import MenuPanel
-from database import db
+from kivy.properties import ObjectProperty
 
+from database import db
+from libs.uix.button import HoverToggleButton
+from libs.uix.layouts import MenuPanel
+from ui.mdi.library import LibraryContextTables, MDILibrary
 
 Builder.load_file("ui/mdi/library/menu.kv")
 
 
 class LibraryMenu(MenuPanel):
-    library = ObjectProperty()
+    library: MDILibrary = ObjectProperty()
 
-    toggle_fixture = ObjectProperty()
-    toggle_params = ObjectProperty()
-    toggle_brands = ObjectProperty()
+    toggle_fixture: HoverToggleButton = ObjectProperty()
+    toggle_params: HoverToggleButton = ObjectProperty()
+    toggle_brands: HoverToggleButton = ObjectProperty()
 
-    def change_table(self, table):
+    def change_table(self, table: LibraryContextTables):
         self.library.change_table_now(table)
 
     def on_create_release(self):

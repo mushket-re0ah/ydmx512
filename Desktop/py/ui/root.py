@@ -1,6 +1,6 @@
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
-from typing_extensions import Self
+from kivy.uix.widget import Widget
 
 # pseudo lazy...
 import libs.uix.button  # lazy kv import initialize
@@ -31,7 +31,7 @@ class Root(BoxLayout):
     main_ribbon: MainRibbon = ObjectProperty()
     mdi_container_manager: DatabaseWorkspaceMDIContainerManager = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.mdi_container_manager = DatabaseWorkspaceMDIContainerManager()
         self.main_ribbon = MainRibbon(mdi_container_manager=self.mdi_container_manager)
         self.add_widget(self.main_ribbon)

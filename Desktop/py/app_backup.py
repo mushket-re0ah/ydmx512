@@ -8,7 +8,7 @@ from kivy.core.text import Label as CoreLabel
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
-from typing_extensions import Self
+from kivy.uix.widget import Widget
 
 from libs import logger
 from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
@@ -52,7 +52,7 @@ class Root(BoxLayout):
     error_msg: str = StringProperty("")
     filelist: Filelist = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         if constants.DATABASE_BACKUPS_PATH.is_dir():
             self.filelist.rootpath = constants.DATABASE_BACKUPS_PATH
             self.filelist.bind(on_submit=self.on_filelist_submit)

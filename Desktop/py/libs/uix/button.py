@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Type
 
 from kivy.event import EventDispatcher
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import (
     AliasProperty,
@@ -14,7 +15,6 @@ from kivy.properties import (
 )
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.animation import AnimationBehavior, StatefulColorProperty
 from libs.mouse_manager import cursor_manager
@@ -172,23 +172,22 @@ Builder.load_string("""
 """
 )
 
-
 class ExpansiveButtonBehavior(ButtonBehavior):
     is_down: bool = AliasProperty(
         lambda self: self.state == "down",
         lambda self, value: setattr(self, "state", "down" if value else "normal"),
-        bind=["state"],
+        bind=("state",),
     )
     pressed: bool = BooleanProperty(False)
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         pressed = super().on_touch_down(touch)
         if pressed:
             self.pressed = True
             self.is_down = True
         return pressed
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         self.is_down = False
         self.pressed = False
         if not self.collide_point(*touch.pos):
@@ -200,7 +199,7 @@ class ExpansiveToggleButtonBehavior(ToggleButtonBehavior):
     is_down: bool = AliasProperty(
         lambda self: self.state == "down",
         lambda self, value: setattr(self, "state", "down" if value else "normal"),
-        bind=["state"],
+        bind=("state",),
     )
     always_release: bool = BooleanProperty(False)
     pressed: bool = BooleanProperty(False)
@@ -221,7 +220,7 @@ class ExpansiveToggleButtonBehavior(ToggleButtonBehavior):
         self.pressed = False
         self._toggle_committed = False
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         self.pressed = False
         if self.collide_point(*touch.pos):
             # Бля да хуй знает на самом деле в чем был мой замысел с return False
@@ -289,11 +288,11 @@ class OptionToggleButton(ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLa
     state: Any = OptionProperty(None, options=[None])  # переопределять в предке
     state_to_str: Dict[Any, str]
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.property("state").dispatch(self)
 
     last_touch = None
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         self.last_touch = touch
         if self.collide_point(*touch.pos) and not self.disabled:
             if touch.button == "scrollup":
@@ -408,12 +407,12 @@ class ArrowBehavior(EventDispatcher):
 
     arrow_points: Tuple[float, float, float, float, float] = AliasProperty(
         _get_arrow_points,
-        bind=[
+        bind=(
             "vertical_arrow", "reverse_arrow",
             "arrow_size", "arrow_offset_right",
             "pos", "size", "x", "y", "center_x",
             "center_y", "right", "top", "width", "height"
-        ],
+        ),
         cache=True
     )
 

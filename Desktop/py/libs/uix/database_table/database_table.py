@@ -2,6 +2,7 @@ from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from kivy.clock import Clock
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import (
     BooleanProperty,
@@ -13,7 +14,6 @@ from kivy.properties import (
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 from libs.mouse_manager import cursor_manager
@@ -106,10 +106,10 @@ class TableHeaderToggle(ArrowToggleButton):
 
 
 class DatabaseTableHeader(BoxLayout):
-    columns_config: List[ColumnConfig] = ListProperty()
+    columns_config: Tuple[ColumnConfig, ...] = ListProperty()
     table_ui: "DatabaseTableUi" = ObjectProperty()
 
-    def on_columns_config(self, _, columns_config: List[ColumnConfig]):
+    def on_columns_config(self, _, columns_config: Tuple[ColumnConfig, ...]):
         for column in columns_config:
             self.add_widget(TableHeaderToggle(
                     table_ui=self.table_ui,
@@ -131,16 +131,28 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
     selected: bool = BooleanProperty(False)
     config_was_created: bool = False
 
-    columns_config: List[ColumnConfig]
+    columns_config: Tuple[ColumnConfig, ...]
     data: Dict[str, Any]
-    sync_method: Dict[ColumnConfig, Tuple[DatabaseRow, Callable[[DatabaseRow, Any], None]]]
-    sync_method_row: Dict[ColumnConfig, Tuple[DatabaseRow, Callable[[Widget, Any], None]]]
+    sync_method: Dict[
+        ColumnConfig,
+        Tuple[
+            DatabaseRow,
+            Callable[[DatabaseRow, Any], None]
+        ]
+    ]
+    sync_method_row: Dict[
+        ColumnConfig,
+        Tuple[
+            DatabaseRow,
+            Callable[[Widget, Any], None]
+        ]
+    ]
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self.sync_method = {}
         self.sync_method_row = {}
 
-    def __create_content(self, columns_config: List[ColumnConfig], _: DatabaseRow):
+    def __create_content(self, columns_config: Tuple[ColumnConfig, ...], _: DatabaseRow):
         if self.config_was_created:
             return
         for config in columns_config:
@@ -174,7 +186,7 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
 
     def __set_content_data(
             self,
-            columns_config: List[ColumnConfig],
+            columns_config: Tuple[ColumnConfig, ...],
             row: DatabaseRow
         ):
         self._unbind_sync_database(columns_config)
@@ -187,7 +199,7 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
                 id_column.is_down = self.data["selected"]
             self.__bind_sync_database(widget, row, config)
 
-    def _unbind_sync_database(self, columns_config: List[ColumnConfig]):
+    def _unbind_sync_database(self, columns_config: Tuple[ColumnConfig, ...]):
         for idx, config in enumerate(columns_config):
             widget = self.children[len(columns_config) - idx - 1]
             if config in self.sync_method:
@@ -244,7 +256,7 @@ class DatabaseTableUi(BoxLayout):
     scroll_layout: ScrollLayout = ObjectProperty()
 
     table: DatabaseTable = ObjectProperty()
-    columns_config: List[ColumnConfig] = ListProperty()
+    columns_config: Tuple[ColumnConfig, ...] = ListProperty()
     cls_height: float = NumericProperty("30dp")
 
     def default_filter_function(self, row: DatabaseRow) -> bool:
@@ -252,12 +264,12 @@ class DatabaseTableUi(BoxLayout):
 
     filter_attribute: str = StringProperty("title")
     filter_value: str = StringProperty("")
-    filter_function: Callable[[Self, DatabaseRow], str] = ObjectProperty(default_filter_function)
+    filter_function: Callable[[Widget, DatabaseRow], str] = ObjectProperty(default_filter_function)
 
     allow_resizing: bool = BooleanProperty(False)
     _resizing: bool = BooleanProperty(False)
 
-    selected_rows: List[int] = ListProperty()
+    selected_rows: Tuple[int, ...] = ListProperty()
 
     _resizing_column_index_left: int = 0
     _resizing_column_index_right: int = 0
@@ -272,7 +284,7 @@ class DatabaseTableUi(BoxLayout):
         )
         super().__init__(**kwargs)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.__build_header()
         self.trigger_build_rows()
         self.table.bind(
@@ -285,10 +297,10 @@ class DatabaseTableUi(BoxLayout):
         self.header.children[-1].dispatch("on_release")
 
     def do_filter(self, _):
-        if not self.filter_value or not self.filter_attribute:
-            self.trigger_build_rows()
-        else:
-            self.trigger_build_rows(do_filter=True)
+        # if not self.filter_value or not self.filter_attribute:
+        #     self.trigger_build_rows()
+        # else:
+        self.trigger_build_rows()
 
     def on_mouse_move(self, mouse_pos: Tuple[float, float]):
         if self._resizing:
@@ -323,14 +335,14 @@ class DatabaseTableUi(BoxLayout):
         if allow_resizing:
             cursor_manager.set_cursor("size_we")
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos) and self.allow_resizing and\
            touch.button == "left":
             self._resizing = True
             return False
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if self._resizing:
             c = tuple(reversed(self.header.children))
             index_left = self._resizing_column_index_left
@@ -362,7 +374,7 @@ class DatabaseTableUi(BoxLayout):
         master_hint = max(size_hint_min, sum_hint - slave_hint)
         return (master_hint, slave_hint)
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         self._resizing = False
         self.allow_resizing = False
         return super().on_touch_up(touch)
@@ -371,7 +383,7 @@ class DatabaseTableUi(BoxLayout):
         self.header.table_ui = self
         self.header.columns_config = self.columns_config
 
-    def _build_rows(self, _):
+    def _build_rows(self, dt: float):
         for row_ui in self.scroll_layout.scrollview.layout_manager.children:
             row_ui._unbind_sync_database(self.columns_config)
         self.scroll_layout.scrollview.data = [
@@ -381,10 +393,10 @@ class DatabaseTableUi(BoxLayout):
         ]
 
     def select_id_row(self, row: DatabaseRow):
-        self.selected_rows.append(row._id)
+        self.selected_rows = tuple([*self.selected_rows, row._id])
 
     def unselect_id_row(self, row: DatabaseRow):
-        self.selected_rows.remove(row._id)
+        self.selected_rows = tuple(i for i in self.selected_rows if i != row._id)
 
     def __make_row_data(self, row: DatabaseRow, selected: bool) -> Dict[str, Any]:
         return {

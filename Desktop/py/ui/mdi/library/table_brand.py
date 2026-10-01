@@ -1,8 +1,11 @@
-from libs.uix.database_table import ColumnConfigTemplates
-from ui.mdi.library.table import LibraryTable
-from database import db
+from typing import Tuple
 
-_columns_config = [
+from database import db
+from libs.uix.database_table import ColumnConfigTemplates
+from libs.uix.database_table.column_config import ColumnConfig
+from ui.mdi.library.table import LibraryTable
+
+_columns_config = (
     ColumnConfigTemplates.checkbox_id(),
     ColumnConfigTemplates.text_field(
         header_text="Название",
@@ -14,12 +17,12 @@ _columns_config = [
     ),
     ColumnConfigTemplates.button_copy(),
     ColumnConfigTemplates.button_remove()
-]
+)
 
 
 class LibraryTableBrand(LibraryTable):
     table = db.brand
-    columns_config = _columns_config
+    columns_config: Tuple[ColumnConfig, ...] = _columns_config
 
     def activate_menu_toggle(self):
         self.library.menu.toggle_brands.trigger_action(0)

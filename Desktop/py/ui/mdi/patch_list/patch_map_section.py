@@ -1,29 +1,33 @@
 from collections import defaultdict
-from typing import List, Optional
-from kivy.properties import ObjectProperty, AliasProperty
-from kivy.lang import Builder
-from libs.uix.layouts import SectionPanel
-from libs.uix.workspace_manager import WorkspaceBehavior
-from libs.kivy_mixins import AutoUnbindBehavior
-from database.scene import RowScene
-from database import db
-from database.patch import RowPatch
-from ui.mdi.patch_list.patch_ui import PatchUi
+from typing import Dict, List, Optional, Tuple
 
-from typing_extensions import Self
+from kivy.lang import Builder
+from kivy.properties import AliasProperty, ObjectProperty
+from kivy.uix.widget import Widget
+
+from database import db
+from database.patch import RowPatch, TablePatch
+from database.scene import RowScene, TableScene
+from libs.kivy_mixins import AutoUnbindBehavior
+from libs.uix.layouts import SectionPanel
+from libs.uix.workspace_manager import WorkspaceBehavior, WorkspaceManager
+from ui.mdi.patch_list import MDIPatchList
+from ui.mdi.patch_list.patch_ui import PatchUi
 
 Builder.load_file("ui/mdi/patch_list/patch_map_section.kv")
 
 
 class PatchMapSection(AutoUnbindBehavior, SectionPanel):
-    patch_list = ObjectProperty()
-    workspace_manager = ObjectProperty()
+    patch_list: MDIPatchList = ObjectProperty()
+    workspace_manager: WorkspaceManager = ObjectProperty()
 
     selected = AliasProperty(lambda self: self.workspace_manager.workspace_now.selected)
 
-    workspace_now = None
-    def on_kv_post(self, base_widget: Self):
+    workspace_now: Optional[WorkspaceBehavior] = None
+    def on_kv_post(self, base_widget: Widget):
         self.workspace_now = self.workspace_manager.workspace_now
+        if self.workspace_now is None:
+            raise RuntimeError()
         self.bind_to(self.workspace_now, selected=self._dispatch_selected)
         self.workspace_manager.bind(on_workspace_opened=self.on_workspace_opened)
         self.__init_workspace_manager()
@@ -37,17 +41,17 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
             self.workspace_manager.workspace_now
         )
 
-    def _dispatch_selected(self, _, _selected: List[PatchUi]):
+    def _dispatch_selected(self, _: WorkspaceBehavior, selected: Tuple[PatchUi, ...]):
         self.property("selected").dispatch(self)
 
-    def on_workspace_opened(self, _, workspace_index: int, workspace: WorkspaceBehavior):
+    def on_workspace_opened(self, _: WorkspaceManager, workspace_index: int, workspace: WorkspaceBehavior):
         self.unbind_from(self.workspace_now)
         self.workspace_now = workspace
         self.bind_to(workspace, selected=self._dispatch_selected)
         self.property("selected").dispatch(self)
         self.patch_list.workspace = workspace_index
 
-    def on_add_patch(self, _, patch: RowPatch):
+    def on_add_patch(self, _: TablePatch, patch: RowPatch):
         workspace = self.workspace_manager.create_workspace(patch.workspace)
         workspace.add_widget(PatchUi(
                 map_layout=workspace,
@@ -55,13 +59,13 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
             )
         )
 
-    def on_remove_patch(self, _, patch: RowPatch):
+    def on_remove_patch(self, _: TablePatch, patch: RowPatch):
         workspace = self.workspace_manager.workspace_now
         patch_ui = next((i for i in workspace.grid_items if i.patch is patch), None)
         if patch_ui is not None:
             patch_ui._self_destroy()
 
-    def on_workspace_any_patch(self, _, patch: RowPatch, workspace: int):
+    def on_workspace_any_patch(self, _: TablePatch, patch: RowPatch, workspace: int):
         wm = self.workspace_manager
         workspace = wm.create_workspace(workspace)
         patch_ui = self.get_patch_ui_by_row_patch(patch)
@@ -70,7 +74,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
         patch_ui.parent.remove_widget(patch_ui)
         workspace.add_widget(patch_ui)
 
-    def on_scene_change(self, _table, _old_scene: RowScene, _new_scene: RowScene):
+    def on_scene_change(self, table: TableScene, _old_scene: RowScene, _new_scene: RowScene):
         self.__init_workspace_manager()
 
     def add_address_to_selected(self, value: int):
@@ -103,7 +107,7 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
             if workspace:
                 workspace.clear_widgets()
 
-        grouped = defaultdict(list)
+        grouped: Dict[int, List[RowPatch]] = defaultdict(list)
         for item in db.patch.rows.values():
             key = item.workspace
             grouped[key].append(item)

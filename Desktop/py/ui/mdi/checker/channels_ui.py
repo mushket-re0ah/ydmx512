@@ -1,39 +1,47 @@
-from kivy.properties import ObjectProperty, ColorProperty
+from typing import TYPE_CHECKING, Any, Optional, Set
+
 from kivy.clock import Clock
 from kivy.lang import Builder
+from kivy.properties import ColorProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
+
+from database import db
+from database.patch import RowPatch
+from libs.dmx512 import dmx512
+from libs.properties import ClampedNumericProperty
+from libs.typecheck import RGBA
+from libs.uix.input.numeric_input import NumericInput
+from libs.uix.label import RestrictedLabel
 from libs.uix.layouts import SectionPanel
 from libs.uix.scroll_layout import ScrollLayout
-from libs.uix.label import RestrictedLabel
-from libs.properties import ClampedNumericProperty
-from libs.dmx512 import dmx512
-import libs.uix.slider  # lazy kv import initialize
-from database import db
+from libs.uix.slider import HoverSlider  # lazy kv import initialize
 from misc import colorscheme as cs
 from misc import constants
-from typing_extensions import Self
 
+if TYPE_CHECKING:
+    from ui.mdi.checker import MDIChecker
 
 Builder.load_file("ui/mdi/checker/channels_ui.kv")
 
 
 class CheckerSlider(BoxLayout):
-    checker = ObjectProperty()
+    checker: "MDIChecker" = ObjectProperty()
 
-    numeric = ObjectProperty()
-    slider = ObjectProperty()
+    numeric: NumericInput = ObjectProperty()
+    slider: HoverSlider = ObjectProperty()
 
-    address = ClampedNumericProperty(1, 1, constants.DMX_ADDRESS_COUNT)
-    value = ClampedNumericProperty(0, 0, 255)
-    fixture_param_color = ColorProperty(cs.CheckerSlider.fixture_param_default)
+    address: int = ClampedNumericProperty(1, 1, constants.DMX_ADDRESS_COUNT)
+    value: int = ClampedNumericProperty(0, 0, 255)
+    fixture_param_color: RGBA = ColorProperty(cs.CheckerSlider.fixture_param_default)
 
-    _write_allow = False
+    _write_allow: bool = False
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         prop = self.numeric.property("border_color")
         prop.set_normal(self.numeric, cs.CheckerSlider.border_color_normal)
 
-    def on_address(self, _, _address: int):
+    def on_address(self, _, address: int):
         self.update()
 
     def on_value(self, _, value: int):
@@ -56,15 +64,14 @@ class CheckerSlider(BoxLayout):
 
 
 class CheckerChannelsUiList(ScrollLayout):
-    checker = ObjectProperty()
-    _trigger_update_faders = None
-    _previous_universe = None
+    checker: "MDIChecker" = ObjectProperty()
+    _previous_universe: Optional[int] = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self._trigger_update_faders = Clock.create_trigger(self._update_faders, -1)
         super().__init__(**kwargs)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self.__create_faders()
         self.checker.bind(hidden=self._trigger_update_faders)
@@ -73,7 +80,7 @@ class CheckerChannelsUiList(ScrollLayout):
         self.on_universe_now(self.checker, self.checker.universe_now)
         self._trigger_update_faders()
 
-    def on_universe_now(self, _checker, universe):
+    def on_universe_now(self, checker: "MDIChecker", universe: int):
         if self._previous_universe is not None:
             dmx512.unregister_on_write_matrix(self._previous_universe, self._trigger_update_faders)
         dmx512.register_on_write_matrix(universe, self._trigger_update_faders)
@@ -88,7 +95,7 @@ class CheckerChannelsUiList(ScrollLayout):
             } for i in range(1, constants.DMX_ADDRESS_COUNT + 1)
         ]
 
-    def _update_faders(self, _):
+    def _update_faders(self, _:float):
         if self.checker.hidden:
             return
         for fader in self.scrollview.layout_manager.children:
@@ -100,7 +107,7 @@ class CheckerAddressTitle(RestrictedLabel):
 
 
 class PatchOverlayWidget(BoxLayout):
-    patch = ObjectProperty()
+    patch: RowPatch = ObjectProperty()
 
 
 class CheckerOverlay(BoxLayout):
@@ -109,11 +116,11 @@ class CheckerOverlay(BoxLayout):
     channel_sliders = ObjectProperty()
     patch_overlay = ObjectProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self._trigger_update_patch_overlay = Clock.create_trigger(self.update_patch_overlay, 0)
         super().__init__(**kwargs)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self.__create_address_titles()
         self.checker.bind(
@@ -141,7 +148,7 @@ class CheckerOverlay(BoxLayout):
         )
         self._trigger_update_patch_overlay()
 
-    def update_patch_overlay(self, _):
+    def update_patch_overlay(self, _: float):
         if self.checker.hidden:
             return
         self.patch_overlay.clear_widgets()
@@ -150,7 +157,7 @@ class CheckerOverlay(BoxLayout):
         universe = self.checker.universe_now
         address_list = [int(i.text) for i in lm.children]
 
-        patch_list = set()
+        patch_list: Set[RowPatch] = set()
         for address in address_list:
             address_info = db.patch.get_address_info(universe, address)
             if address_info is not None:
@@ -158,7 +165,6 @@ class CheckerOverlay(BoxLayout):
                 patch_list.add(patch)
 
         first_x = lm._rv_positions[self.channel_titles.scroll_element] - lm.spacing
-        item_width = lm.default_size[0]
         for patch in patch_list:
             x = lm._rv_positions[patch.start_address - 1]
             end_x = lm._rv_positions[patch.end_address - 1] - lm.spacing

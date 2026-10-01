@@ -1,11 +1,14 @@
+from typing import Tuple
+
 from kivy.utils import get_hex_from_color
-from libs.uix.input import HEXAInput
-from libs.uix.database_table import ColumnConfigTemplates
+
 from database import db
+from libs.uix.database_table import ColumnConfigTemplates
+from libs.uix.database_table.column_config import ColumnConfig
+from libs.uix.input import HEXAInput
 from ui.mdi.library.table import LibraryTable
 
-
-_columns_config = [
+_columns_config = (
     ColumnConfigTemplates.checkbox_id(),
     ColumnConfigTemplates.text_field(header_text="Название",
                                      data_attribute="title"),
@@ -33,12 +36,12 @@ _columns_config = [
     ),
     ColumnConfigTemplates.button_copy(),
     ColumnConfigTemplates.button_remove()
-]
+)
 
 
 class LibraryTableFixtureParams(LibraryTable):
     table = db.fixture_param
-    columns_config = _columns_config
+    columns_config: Tuple[ColumnConfig, ...] = _columns_config
 
     def activate_menu_toggle(self):
         self.library.menu.toggle_params.trigger_action(0)

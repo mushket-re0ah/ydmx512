@@ -1,6 +1,7 @@
 from typing import Type
 
 from kivy.clock import Clock
+from kivy.input.motionevent import MotionEvent
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.behaviors import FocusBehavior
 
@@ -16,7 +17,7 @@ class SnippetDropdown(RecycleDropdown):
     allow_hover_outside: bool = True
     dismiss_on_attach_click: bool = False
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos):
             FocusBehavior.ignored_touch.append(touch)
         return super().on_touch_down(touch)

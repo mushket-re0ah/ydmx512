@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Dict, FrozenSet, List, Optional, Set
 
-from kivy.core.window import Window
+from kivy.core.window import Window, WindowBase
 
 from libs.sdl2_keyboard.patch import patch_window_sdl2_keyboard_input
 from libs.sdl2_keyboard.scancodes import (
@@ -113,7 +113,7 @@ def _processing_contexts(hotkey: FrozenSet[str],
                 return True
     return stop_on_first and bool(contexts)
 
-def _on_key_down(window: Window, _keycode: str, scancode: int, _codepoint: int, _modifiers: List[str]):
+def _on_key_down(window: WindowBase, _keycode: str, scancode: int, _codepoint: int, _modifiers: List[str]):
     global _last_keyboard_text
     _last_keyboard_text = window.last_keyboard_text
 
@@ -146,7 +146,7 @@ def _processing_contexts_up(hotkey: FrozenSet[str],
                 return True
     return stop_on_first and bool(contexts)
 
-def _on_key_up(_window: Window, _keycode: str, scancode: int):
+def _on_key_up(_window: WindowBase, _keycode: str, scancode: int):
     key = SDL_SCANCODE_TO_KEYCODE_MAP[scancode]
     _remove_modifier(scancode, key)
 

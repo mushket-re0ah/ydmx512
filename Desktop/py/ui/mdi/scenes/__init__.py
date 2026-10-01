@@ -1,13 +1,20 @@
+from typing import TYPE_CHECKING
+
 from kivy.properties import ObjectProperty, StringProperty
+
 from ui.components.database_mdi_window import DatabaseMDIWindow
+
+if TYPE_CHECKING:
+    from ui.mdi.scenes.menu import SceneMenu
+    from ui.mdi.scenes.table import SceneTable
 
 
 class MDIScenes(DatabaseMDIWindow):
-    _db_title_id = "scene"
-    title = StringProperty("Сцены")
+    _db_title_id: str = "scene"
+    title: str = StringProperty("Сцены")
 
-    menu = ObjectProperty()
-    table = ObjectProperty()
+    menu: SceneMenu = ObjectProperty()
+    table: SceneTable = ObjectProperty()
 
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)

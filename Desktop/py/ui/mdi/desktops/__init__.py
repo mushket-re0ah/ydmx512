@@ -1,13 +1,19 @@
-from kivy.properties import StringProperty, ObjectProperty
+from typing import TYPE_CHECKING
+
+from kivy.properties import ObjectProperty, StringProperty
+
 from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP
 from ui.components.database_mdi_window import DatabaseMDIWindow
 
+if TYPE_CHECKING:
+    from ui.mdi.desktops.desktop_map_section import DesktopMapSection
+
 
 class MDIDesktops(DatabaseMDIWindow):
-    _db_title_id = "desktops"
-    title = StringProperty("Рабочие столы")
+    _db_title_id: str = "desktops"
+    title: str = StringProperty("Рабочие столы")
 
-    desktop_map = ObjectProperty()
+    desktop_map: "DesktopMapSection" = ObjectProperty()
 
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)

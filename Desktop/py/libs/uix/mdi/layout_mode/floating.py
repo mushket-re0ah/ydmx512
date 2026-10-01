@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Dict, FrozenSet, List, Optional, Tuple
 
+from kivy.input.motionevent import MotionEvent
+
 from libs.kivy_utils import (
     BOTTOM_WIDGET_SIDES,
     LEFT_WIDGET_SIDES,
@@ -30,10 +32,10 @@ class FloatingLayoutMode(ILayoutMode):
         self._save_lock = False
         super().__init__(mdi_container, from_layout_mode)
 
-    def _can_start_resize(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
+    def _can_start_resize(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         return side != WidgetSide.VOID
 
-    def _can_start_move(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
+    def _can_start_move(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         return mdi.title_bar_label.collide_point(*touch.pos) and side == WidgetSide.VOID
 
     def show_mdi(self, mdi: MDIWindow):
@@ -294,7 +296,7 @@ class FloatingLayoutMode(ILayoutMode):
             self.mdi_container.layout_remove_widget(locked_mdi)
             self.mdi_container.layout_add_widget(locked_mdi)
 
-    def _on_double_tap(self, touch, mdi: MDIWindow) -> bool:
+    def _on_double_tap(self, touch: MotionEvent, mdi: MDIWindow) -> bool:
         mdi.set_layout_state(expanded=not mdi.get_layout_state("expanded", False))
         return True
 

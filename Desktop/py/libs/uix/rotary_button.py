@@ -1,9 +1,9 @@
 from typing import Tuple, Union
 
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.animation import AnimationBehavior, StatefulColorProperty
 from libs.mouse_manager import cursor_manager
@@ -98,30 +98,30 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
 
     drag_enabled: bool = BooleanProperty(True)
 
-    def on_drag_start(self, touch) -> bool:
+    def on_drag_start(self, touch: MotionEvent) -> bool:
         self.focus = True
         touch.ud["start_value"] = self.value
         return True
 
-    def on_drag(self, touch, delta_x: float, delta_y: float) -> bool:
+    def on_drag(self, touch: MotionEvent, delta_x: float, delta_y: float) -> bool:
         y_offset = delta_y / self.drag_sensitivity
         y_offset *= self._get_full_value()
         self.value = touch.ud["start_value"] + y_offset
         return True
 
-    def on_drag_end(self, touch) -> bool:
+    def on_drag_end(self, touch: MotionEvent) -> bool:
         self.focus = False
         return True
 
-    def on_scroll_up(self, touch) -> bool:
+    def on_scroll_up(self, touch: MotionEvent) -> bool:
         self.value -= self.step_mouse_scroll
         return True
 
-    def on_scroll_down(self, touch) -> bool:
+    def on_scroll_down(self, touch: MotionEvent) -> bool:
         self.value += self.step_mouse_scroll
         return True
 
-    def on_right_click(self, touch) -> bool:
+    def on_right_click(self, touch: MotionEvent) -> bool:
         self.open_context_menu(touch.pos)
         return True
 
@@ -168,7 +168,7 @@ class RotaryButton(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widge
 
     angle: float = AliasProperty(
         _get_angle,
-        bind=["value", "angle_start", "angle_end", "minimum", "maximum"],
+        bind=("value", "angle_start", "angle_end", "minimum", "maximum"),
         cache=True
     )
 
@@ -180,7 +180,7 @@ class PanRotaryButton(RotaryButton):
     color_left = uix_cs.PanRotaryButton.rotary_active_color_left_normal
     color_right = uix_cs.PanRotaryButton.rotary_active_color_right_normal
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self._update_color()
 

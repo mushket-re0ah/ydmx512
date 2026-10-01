@@ -141,13 +141,13 @@ class PlaybackPlayer(BasePlayer):
 
     real_beats_count: int = AliasProperty(
         lambda self: self.playback.database.scene.scene_now_beats_count if self.is_link_global_temp else self.beats_count,
-        bind=["is_link_global_temp", "beats_count"]
+        bind=("is_link_global_temp", "beats_count")
     )
 
 
     frame_count: int = AliasProperty(
         lambda self: self.real_beats_count * constants.FRAMES_IN_BEAT,
-        bind=["real_beats_count"]
+        bind=("real_beats_count",)
     )
 
     def get_patch_render(self, patch: RowPatch, fixture_index: int, frame: int) -> Optional[int]:

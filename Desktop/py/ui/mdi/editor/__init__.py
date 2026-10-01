@@ -1,18 +1,26 @@
-from typing import Optional, Dict, List, FrozenSet, Callable
-from collections import defaultdict
-from kivy.properties import StringProperty, ObjectProperty
-from libs.kivy_json_orm.fields import table_ref_serializer, table_ref_deserializer, list_of_refs_serializer, list_of_refs_deserializer
-from database.playback import RowPlayback
-from database.patch import RowPatch
+from typing import TYPE_CHECKING, Callable, Dict, FrozenSet, Optional
+
+from kivy.properties import ObjectProperty, StringProperty
+
 from database import db
+from database.playback import RowPlayback
+from libs.kivy_json_orm.fields import (
+    list_of_refs_deserializer,
+    list_of_refs_serializer,
+    table_ref_deserializer,
+    table_ref_serializer,
+)
 from ui.components.database_mdi_window import DatabaseMDIWindow
+
+if TYPE_CHECKING:
+    from ui.mdi.editor.content import EditorContent
 
 
 class MDIEditor(DatabaseMDIWindow):
-    _db_title_id = "editor"
-    title = StringProperty("Редактор")
+    _db_title_id: str = "editor"
+    title: str = StringProperty("Редактор")
 
-    playback = ObjectProperty(None, allownone=True, rebind=True)
+    playback: Optional[RowPlayback] = ObjectProperty(None, allownone=True, rebind=True)
 
     view_context_template = {
         "content.splitter_x/width": 0,
@@ -33,7 +41,7 @@ class MDIEditor(DatabaseMDIWindow):
         "content.automation.toolbar.input_zoom_y/value": 8,
     }
 
-    content = ObjectProperty()
+    content: EditorContent = ObjectProperty()
 
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)
@@ -59,4 +67,4 @@ class MDIEditor(DatabaseMDIWindow):
                 **self.content.automation.row_panel.create_hotkeys(),
                 frozenset({"space"}): self.start_or_stop_playback
             }
-        return None
+        return {}

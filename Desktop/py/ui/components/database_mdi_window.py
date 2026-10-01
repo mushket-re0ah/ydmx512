@@ -1,13 +1,17 @@
+from typing import Any, Dict
+
 from kivy.properties import ObjectProperty
-from libs.uix.mdi.mdi_window import MDIWindow
+
 from database import db
+from database.mdi_window import RowMDIWindow
+from libs.uix.mdi.mdi_window import MDIWindow
 
 
 class DatabaseMDIWindow(MDIWindow):
-    _db_title_id = None
-    mdi_db_row = ObjectProperty(None, allownone=True)
+    _db_title_id: str
+    mdi_db_row: RowMDIWindow = ObjectProperty(None, allownone=True)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         mdi_db_row = db.mdi_window.by_title_id(self._db_title_id)
         if mdi_db_row is None:
             mdi_db_row = db.mdi_window.add_row(title_id=self._db_title_id)
@@ -19,7 +23,7 @@ class DatabaseMDIWindow(MDIWindow):
             **kwargs
         )
 
-    def on_state(self, _, _state: dict):
+    def on_state(self, _, state: Dict[str, Any]):
         self.mdi_db_row.edit(layout_state=self.state.get("layout_state"))
 
     def _save_vc(self):

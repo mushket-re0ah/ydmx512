@@ -1,37 +1,52 @@
-from typing import List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+
+from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.properties import (
-    BooleanProperty, ListProperty, ObjectProperty, AliasProperty,
-    NumericProperty, DictProperty
+    AliasProperty,
+    BooleanProperty,
+    DictProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
 )
-from kivy.clock import Clock
-from libs.kivy_mixins import AutoUnbindBehavior
+
+from database.fixture_param import RowFixtureParam
+from database.patch import RowPatch
 from database.playback import PlaybackRenderRow
+from database.playback.playback import RowPlayback
+from database.playback.renderer.render_data import InterpatchSpec, RowPhaseSpec
+from libs.dmx512.misc import FullAddress
+from libs.kivy_mixins import AutoUnbindBehavior
+
+if TYPE_CHECKING:
+    from ui.mdi.editor.automation import Automation
+    from ui.mdi.editor.automation.rows import RowPanel
 
 
 class RowParamData(AutoUnbindBehavior, EventDispatcher):
-    row_panel = ObjectProperty()
-    automation = ObjectProperty()
-    playback = ObjectProperty()
-    patch_group = ListProperty()
-    fixture_index = ObjectProperty()
-    fixture_param = ObjectProperty()
-    render_rows = ObjectProperty()
-    address_list = ObjectProperty()
-    selected = BooleanProperty(False)
-    active = BooleanProperty()
-    phase_interpatch_x = NumericProperty(None, allownone=True, rebind=True)
-    master_render_row = AliasProperty(lambda self: self.render_rows[0])
-    has_data = BooleanProperty(False)
+    row_panel: RowPanel = ObjectProperty()
+    automation: Automation = ObjectProperty()
+    playback: RowPlayback = ObjectProperty()
+    patch_group: Tuple[RowPatch, ...] = ListProperty()
+    fixture_index: Dict[RowPatch, Tuple[int, ...]] = ObjectProperty()
+    fixture_param: RowFixtureParam = ObjectProperty()
+    render_rows: Tuple[PlaybackRenderRow, ...] = ObjectProperty()
+    address_list: Dict[FullAddress, bool] = ObjectProperty()
+    selected: bool = BooleanProperty(False)
+    active: bool = BooleanProperty()
+    phase_interpatch_x: Optional[float] = NumericProperty(None, allownone=True, rebind=True)
+    master_render_row: PlaybackRenderRow = AliasProperty(lambda self: self.render_rows[0])
+    has_data: bool = BooleanProperty(False)
 
-    render_rows_by_address = DictProperty({})
+    render_rows_by_address: Dict[FullAddress, Tuple[PlaybackRenderRow, ...]] = DictProperty({})
 
-    row_phase_spec = ObjectProperty(None, allownone=True)
-    interpatch_spec = ObjectProperty(None, allownone=True)
+    row_phase_spec: Optional[RowPhaseSpec] = ObjectProperty(None, allownone=True)
+    interpatch_spec: Optional[InterpatchSpec] = ObjectProperty(None, allownone=True)
 
     __events__ = ("on_data_changed",)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._on_data_changed_trigger = Clock.create_trigger(self.dispatch_on_data_changed, -1)
         self.bind_to(
@@ -52,7 +67,7 @@ class RowParamData(AutoUnbindBehavior, EventDispatcher):
         self.interpatch_spec = self.master_render_row.interpatch_spec
         self.set_phase_interpatch_x_by_spec()
 
-    def dispatch_on_data_changed(self, *_):
+    def dispatch_on_data_changed(self, *_:Any):
         self.dispatch("on_data_changed")
 
     def on_data_changed(self):
@@ -67,7 +82,8 @@ class RowParamData(AutoUnbindBehavior, EventDispatcher):
                 self.master_render_row.fixture_index, None
             )
             if self.phase_interpatch_x is None:
-                raise RuntimeError(f"why spec return None for phase_interpatch_x? fixture_index={self.master_render_row.fixture_index}, shifts={self.interpatch_spec.linked_shifts}")
+                raise RuntimeError(f"fixture_index={self.master_render_row.fixture_index}, "
+                                   f"shifts={self.interpatch_spec.linked_shifts}")
         else:
             self.phase_interpatch_x = None
 
@@ -75,15 +91,15 @@ class RowParamData(AutoUnbindBehavior, EventDispatcher):
         self.active = value
 
     def get_master_render_rows(self) -> List[PlaybackRenderRow]:
-        result = {}
+        result: Dict[RowPatch, PlaybackRenderRow] = {}
         for row in self.render_rows:
             if row.patch not in result:
                 result[row.patch] = row
         return list(result.values())
 
-    master_patch = AliasProperty(
+    master_patch: RowPatch = AliasProperty(
         lambda self: self.patch_group[0] if self.patch_group else None,
-        bind=["patch_group"],
+        bind=("patch_group",),
         cache=True
     )
 
@@ -91,38 +107,38 @@ class RowParamData(AutoUnbindBehavior, EventDispatcher):
         if not self.patch_group or not self.render_rows:
             return False
         return len(self.patch_group) > 1 and len(self.render_rows) > 1
-    allow_interpatch_phase = AliasProperty(
+    allow_interpatch_phase: bool = AliasProperty(
         get_allow_interpatch_phase,
-        bind=["patch_group", "render_rows"]
+        bind=("patch_group", "render_rows",)
     )
 
-    def get(self, key, default=None):
+    def get(self, key: str, default:Any=None) -> Any:
         return getattr(self, key, default)
 
-    def items(self):
+    def items(self) -> Tuple[Tuple[str, Any], ...]:
         attrs = (
             "row_panel", "automation", "playback", "patch_group",
             "fixture_index", "fixture_param", "render_rows", "address_list",
             "selected", "master_patch", "master_render_row"
         )
-        return ((attr, getattr(self, attr)) for attr in attrs)
+        return tuple((attr, getattr(self, attr)) for attr in attrs)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         return getattr(self, key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any):
         setattr(self, key, value)
 
 
-class RowsDataManager(list):
-    def get_all_render_rows(self) -> List[List[PlaybackRenderRow]]:
+class RowsDataManager(List[RowParamData]):
+    def get_all_render_rows(self) -> List[PlaybackRenderRow]:
         return [row for data_row in self for row in data_row.render_rows]
 
     def get_selected_data_rows(self) -> List[RowParamData]:
         return [i for i in self if i.selected]
 
-    def get_selected_render_rows(self):
-        rows = []
+    def get_selected_render_rows(self) -> List[PlaybackRenderRow]:
+        rows: List[PlaybackRenderRow] = []
         for data_row in self.get_selected_data_rows():
             for fulladdress, active in data_row.address_list.items():
                 if active:

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from kivy.clock import Clock
 from kivy.lang import Builder
@@ -46,7 +46,7 @@ class FileListButton(HoverButton):
     filelist: "Filelist" = ObjectProperty()
     is_dir_button: bool = BooleanProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         set_colors_ev = Clock.create_trigger(self.update_colors, 0)
         self.set_colors_ev = set_colors_ev
         self.bind(is_dir_button=set_colors_ev)
@@ -69,7 +69,7 @@ class Filelist(ScrollLayout):
 
     rootpath: Path = ObjectProperty()
     path: Path = ObjectProperty()
-    filters: List[str] = ListProperty([])
+    filters: Tuple[str] = ListProperty()
 
     __events__ = ('on_submit',)
 
@@ -90,7 +90,7 @@ class Filelist(ScrollLayout):
         self.path = rootpath
         self.prev_path = rootpath
 
-    def update(self, _):
+    def update(self, _: float):
         path = self.path
         rootpath = self.rootpath
         if not path:

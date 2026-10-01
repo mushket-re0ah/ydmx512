@@ -10,7 +10,6 @@ from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import BooleanProperty, ListProperty, NumericProperty, ObjectProperty
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.sdl2_keyboard import hotkey_to_str
 from libs.uix.button import HoverButton
@@ -145,7 +144,7 @@ class ContextMenu(ModalBoxLayout):
     button_list: List[ContextMenuButton]
     hotkey_button_list: List[ContextMenuButton]
     was_inited: bool = False
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.was_inited = True
         self.hotkeys = {}
         self.property("items").dispatch(self)

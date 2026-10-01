@@ -69,13 +69,14 @@ class RowPatch(SceneRowMixin, DatabaseRow):
 
     def get_end_address(self) -> int:
         self._table.check_address_conflict(self.universe)
-        return boundary(
+        return int(boundary(
             self.start_address + len(self.param_list_unpacked) - 1,
             1, constants.DMX_ADDRESS_COUNT
-        )
+        ))
     end_address: int = AliasProperty(
-        get_end_address, None,
-        bind=["start_address", "param_list_unpacked"], cache=True
+        get_end_address,
+        bind=("start_address", "param_list_unpacked"),
+        cache=True
     )
 
     def on_remove(self):

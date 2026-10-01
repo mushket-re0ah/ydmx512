@@ -1,6 +1,7 @@
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Callable, Dict, FrozenSet, List, Optional, Tuple, Union
 
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -107,10 +108,10 @@ class TilingLayoutMode(ILayoutMode):
                 mdi_box.add_widget(mdi)
             self.container.add_widget(mdi_box)
 
-    def _can_start_resize(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
+    def _can_start_resize(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         return side != WidgetSide.VOID and not mdi.get_layout_state("locked", False)
 
-    def _can_start_move(self, touch, mdi: MDIWindow, side: WidgetSide) -> bool:
+    def _can_start_move(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         return mdi.title_bar_label.collide_point(*touch.pos) and side == WidgetSide.VOID
 
     def show_mdi(self, mdi: MDIWindow):

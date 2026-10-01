@@ -3,7 +3,7 @@ from typing import Type
 from kivy.lang import Builder
 from kivy.properties import ColorProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
-from typing_extensions import Self
+from kivy.uix.widget import Widget
 
 from libs.serial.observer import SerialObserver
 from libs.serial.observer import observer as serial_observer
@@ -35,7 +35,7 @@ class SerialDevices(DeviceListPanel):
     bg_scrollview: RGBA = ColorProperty(colorscheme.SerialDevices.bg)
     title_filter_device_box: TitleFilterSerialDeviceBox = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self.remove_widget(self.section_label)
         box = TitleFilterSerialDeviceBox()

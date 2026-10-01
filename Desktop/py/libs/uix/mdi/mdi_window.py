@@ -11,7 +11,7 @@ from kivy.properties import (
     StringProperty,
 )
 from kivy.uix.boxlayout import BoxLayout
-from typing_extensions import Self
+from kivy.uix.widget import Widget
 
 from libs.animation import AnimationBehavior, StatefulColorProperty
 from libs.kivy_mixins import AutoUnbindBehavior, ViewContextSaverMixin
@@ -111,7 +111,7 @@ class MDIWindow(ViewContextSaverMixin, KeyboardBehavior, AutoUnbindBehavior, Ani
     def on_window_minimum_height(self, _, value: float):
         self.height = max(self.height, value)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         w, h = self.size
         w_min, h_min = self.window_minimum_size
@@ -152,11 +152,11 @@ class MDIWindow(ViewContextSaverMixin, KeyboardBehavior, AutoUnbindBehavior, Ani
         set_view_context,
     )
 
-    def on_hidden(self, _: Self, hidden: bool):
+    def on_hidden(self, _: Widget, hidden: bool):
         if hidden and self._view_context_loaded:
             self._save_vc()
 
-    def on_focus(self, _: Self, focus: bool):
+    def on_focus(self, _: Widget, focus: bool):
         if focus:
             self.register_keyboard_context()
         else:

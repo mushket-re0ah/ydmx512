@@ -5,7 +5,7 @@ from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.properties import ColorProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
-from typing_extensions import Self
+from kivy.uix.widget import Widget
 
 from libs.typecheck import RGBA
 from libs.uix.layouts import SectionPanel
@@ -64,7 +64,7 @@ class DeviceListPanel(SectionPanel):
     scrollview: RestrictedScrollView = ObjectProperty()
     box: BoxLayout = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         for dev in self.observer.devices:
             self._add_device(dev)
         self.observer.bind(

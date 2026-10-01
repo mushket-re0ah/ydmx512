@@ -1,47 +1,68 @@
-from typing import Tuple, Optional, Set, Dict
 from collections import defaultdict
-from kivy.properties import (
-    ObjectProperty, NumericProperty, BooleanProperty, ListProperty,
-    AliasProperty, VariableListProperty
-)
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.uix.boxlayout import BoxLayout
-from kivy.clock import Clock
-from kivy.graphics import Color, SmoothLine, SmoothEllipse
-from kivy.uix.widget import Widget
-from kivy.lang import Builder
-from libs.dmx512_render import DMXRenderDot, InterpolationType
-from libs.uix.button import HoverToggleButton
-from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
-from libs.mouse_manager.hover import HoverBehavior
-from libs.animation import AnimationBehavior
-from libs.dmx512.misc import FullAddress
-from libs.kivy_mixins import AutoUnbindBehavior
-from libs.animation import StatefulColorProperty
-from libs.uix.layouts import ModalBoxLayout
-from libs.mouse_manager import cursor_manager
-from libs.sdl2_keyboard import manager as keyboard_manager
-from database.patch import RowPatch
-from misc import colorscheme as cs
-from ui.mdi.editor.automation.tools import (
-    AddDotTool, SetDotTypeTool, RemoveDotTool, MoveDotsTool, SelectAreaTool,
-    InterpatchPhaseTool, SetRowActiveTool
-)
-from ui.mdi.editor.automation.rows.row_data import RowParamData
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
 
+from kivy.clock import Clock
+from kivy.graphics import Color, SmoothEllipse, SmoothLine
+from kivy.input.motionevent import MotionEvent
+from kivy.lang import Builder
+from kivy.properties import (
+    AliasProperty,
+    BooleanProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    VariableListProperty,
+)
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.stacklayout import StackLayout
+from kivy.uix.widget import Widget
+
+from database.fixture_param import RowFixtureParam
+from database.patch import RowPatch
+from database.playback.playback import RowPlayback
+from database.playback.renderer.render_data import PlaybackRenderRow, RowPhaseSpec
+from libs.animation import AnimationBehavior, StatefulColorProperty
+from libs.dmx512.misc import FullAddress
+from libs.dmx512_render import DMXRenderDot, InterpolationType
+from libs.kivy_mixins import AutoUnbindBehavior
+from libs.mouse_manager import cursor_manager
+from libs.mouse_manager.hover import HoverBehavior
+from libs.sdl2_keyboard import manager as keyboard_manager
+from libs.typecheck import RGBA
+from libs.uix.button import HoverToggleButton
+from libs.uix.layouts import ModalBoxLayout
+from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
+from libs.uix.rotary_button import PanRotaryButton
+from misc import colorscheme as cs
+from ui.mdi.editor.automation.rows.row_data import RowParamData
+from ui.mdi.editor.automation.tools import (
+    AddDotTool,
+    InterpatchPhaseTool,
+    MoveDotsTool,
+    RemoveDotTool,
+    SelectAreaTool,
+    SetDotTypeTool,
+    SetRowActiveTool,
+)
+
+if TYPE_CHECKING:
+    from ui.mdi.editor.automation import Automation
+    from ui.mdi.editor.automation.rows import RowPanel
 
 Builder.load_file("ui/mdi/editor/automation/rows/row_param.kv")
 
 
 class RowDotsSelector(Widget):
-    rect_1_size = VariableListProperty([0, 0], length=2)
-    rect_1_pos = VariableListProperty([0, 0], length=2)
+    rect_1_size: Tuple[float, float] = VariableListProperty((0, 0), length=2)
+    rect_1_pos: Tuple[float, float] = VariableListProperty((0, 0), length=2)
 
-    rect_2_size = VariableListProperty([0, 0], length=2)
-    rect_2_pos = VariableListProperty([0, 0], length=2)
+    rect_2_size: Tuple[float, float] = VariableListProperty((0, 0), length=2)
+    rect_2_pos: Tuple[float, float] = VariableListProperty((0, 0), length=2)
 
-    def set_pixel_rect(self, pos, size):
+    def set_pixel_rect(self, pos: Tuple[float, float], size: Tuple[float, float]):
+        if self.parent is None:
+            return
         self.pos = pos
         self.size = size
 
@@ -53,47 +74,46 @@ class RowDotsSelector(Widget):
 
         vis_start = max(start, left)
         vis_end = min(end, right)
-        self.rect_1_pos = [vis_start, self.y]
-        self.rect_1_size = [vis_end - vis_start, self.height]
+        self.rect_1_pos = (vis_start, self.y)
+        self.rect_1_size = (vis_end - vis_start, self.height)
 
         # выход за левую границу
         if start < left:
             overflow = left - start
-            self.rect_2_pos = [right - overflow, self.y]
-            self.rect_2_size = [overflow, self.height]
+            self.rect_2_pos = (right - overflow, self.y)
+            self.rect_2_size = (overflow, self.height)
         # выход за правую границу
         elif end > right:
             overflow = end - right
-            self.rect_2_pos = [left, self.y]
-            self.rect_2_size = [overflow, self.height]
+            self.rect_2_pos = (left, self.y)
+            self.rect_2_size = (overflow, self.height)
         else:
-            self.rect_2_pos = [0, 0]
-            self.rect_2_size = [0, 0]
+            self.rect_2_pos = (0, 0)
+            self.rect_2_size = (0, 0)
 
 
 class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
-    automation = ObjectProperty()
-    row_panel = ObjectProperty()
-    row_param = ObjectProperty()
+    automation: "Automation" = ObjectProperty()
+    row_panel: "RowPanel" = ObjectProperty()
+    row_param: "RowParam" = ObjectProperty()
 
-    def get_data_row(self):
+    def get_data_row(self) -> RowParamData:
         return self.row_param.data_row
-    data_row = AliasProperty(lambda self: self.row_param.data_row)
+    data_row: RowParamData = AliasProperty(get_data_row)
 
     selector: RowDotsSelector = ObjectProperty(None, allownone=True)
 
-    playback = ObjectProperty(None, allownone=True, rebind=True)
-    beat_line_points = ListProperty()
-    halfbeat_line_points = ListProperty()
+    playback: RowPlayback = ObjectProperty(None, allownone=True, rebind=True)
+    beat_line_points: Tuple[float, ...] = ListProperty()
+    halfbeat_line_points: Tuple[float, ...] = ListProperty()
 
-    active = BooleanProperty(False)
-    row_phase_spec = ObjectProperty(allownone=True)
+    active: bool = BooleanProperty(False)
+    row_phase_spec: Optional[RowPhaseSpec] = ObjectProperty(allownone=True)
 
-    draw_ev = None
-    dots_under_cursor = ObjectProperty(None, allownone=True)
-    focus = BooleanProperty(False)
+    dots_under_cursor: Optional[Tuple[DMXRenderDot, ...]] = ObjectProperty(None, allownone=True)
+    focus: bool = BooleanProperty(False)
 
-    background_color = StatefulColorProperty(
+    background_color: RGBA = StatefulColorProperty(
         normal=cs.AutomationTactBox.bg,
         states={
             ("focus", "row_phase_spec"): cs.AutomationTactBox.bg_row_phase_focused,
@@ -107,15 +127,14 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
         }
     )
 
-    padding_x = AliasProperty(lambda self: self.automation.TACT_BOX_PADDING_X)
-    padding_y = AliasProperty(lambda self: self.automation.TACT_BOX_PADDING_Y)
+    padding_x: float = AliasProperty(lambda self: self.automation.TACT_BOX_PADDING_X)
+    padding_y: float = AliasProperty(lambda self: self.automation.TACT_BOX_PADDING_Y)
 
-    LINE_DETECTION_PRECISION = 10
-    line_under_cursor = False
+    LINE_DETECTION_PRECISION: float = 10
+    line_under_cursor: bool = False
 
-    def on_kv_post(self, base_widget: Self):
-        draw_ev = Clock.create_trigger(self.draw, -1)
-        self.draw_ev = draw_ev
+    def on_kv_post(self, base_widget: Widget):
+        self.draw_ev = Clock.create_trigger(self.draw, -1)
         self.bind(
             playback=self.draw_ev,
             dots_under_cursor=self.draw_ev,
@@ -123,10 +142,10 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             pos=self.draw_ev,
         )
 
-    def on_row_panel(self, _, row_panel):
+    def on_row_panel(self, _, row_panel: "RowPanel"):
         row_panel.bind(dots_selected=self.draw_ev)
 
-    def on_automation(self, _, automation):
+    def on_automation(self, _, automation: "Automation"):
         automation.bind(
             beats_x_pos=self.draw_ev,
             xy_grid=self.draw_ev,
@@ -141,10 +160,11 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
 
     def to_frame_coords(
             self,
-            x_pixel,
-            y_pixel,
-            ignore_dot_radius=False,
-            do_clamp=True) -> Tuple[int, int]:
+            x_pixel: float,
+            y_pixel: float,
+            ignore_dot_radius:bool=False,
+            do_clamp:bool=True
+        ) -> Tuple[int, int]:
         """Обратное преобразование из пикселей в квантованные координаты."""
         xy_grid = self.row_panel.xy_grid
         dot_radius = 0 if ignore_dot_radius else self.dot_radius
@@ -178,13 +198,13 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
         self.draw_render_lines()
         self.draw_dots()
 
-    BEAT_LINE_WIDTH = NumericProperty(1)
-    HALFBEAT_HEIGHT = NumericProperty("4dp")
+    BEAT_LINE_WIDTH: float = NumericProperty(1)
+    HALFBEAT_HEIGHT: float = NumericProperty("4dp")
     def draw_beats_lines(self):
         y = self.y
         with self.canvas.after:
-            beat_line_points = []
-            halfbeat_line_points = []
+            beat_line_points: List[float] = []
+            halfbeat_line_points: List[float] = []
             for x_beat, x_halfbeat in self.automation.beats_x_pos:
                 x_beat = self.to_widget(x_beat, 0)[0]
                 x_halfbeat = self.to_widget(x_halfbeat, 0)[0]
@@ -192,12 +212,12 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
                 halfbeat_line_points.extend([x_halfbeat, y, x_halfbeat, y + self.HALFBEAT_HEIGHT, float("nan"), float("nan")])
             x_beat = self.right - self.padding_x
             beat_line_points.extend([x_beat, self.y, x_beat, self.top, float("nan"), float("nan")])
-        self.beat_line_points = beat_line_points
-        self.halfbeat_line_points = halfbeat_line_points
+        self.beat_line_points = tuple(beat_line_points)
+        self.halfbeat_line_points = tuple(halfbeat_line_points)
 
-    RENDER_MASTER_LINE_WIDTH = NumericProperty("2dp")
-    RENDER_SLAVE_LINE_WIDTH = NumericProperty("1dp")
-    def _get_patch_render_line_width(self, patch: RowPatch) -> int:
+    RENDER_MASTER_LINE_WIDTH: float = NumericProperty("2dp")
+    RENDER_SLAVE_LINE_WIDTH: float = NumericProperty("1dp")
+    def _get_patch_render_line_width(self, patch: RowPatch) -> float:
         if patch is self.data_row.master_patch:
             return self.RENDER_MASTER_LINE_WIDTH
         return self.RENDER_SLAVE_LINE_WIDTH
@@ -222,7 +242,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             line_width = self._get_patch_render_line_width(patch)
             for index in data_row.fixture_index[patch]:
                 color = patch.fixture.param_list_unpacked[index].color
-                points = []
+                points: List[float] = []
                 for frame in range(self.playback.renderer.xy_grid.size_x_getter() - 1):
                     y0 = self._get_patch_render(patch, index, frame)
                     y1 = self._get_patch_render(patch, index, frame + 1)
@@ -238,8 +258,8 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
                     Color(*color, group="render_lines")
                     SmoothLine(width=line_width, points=points, group="render_lines")
 
-    # Словарь для выбора цвета
-    dot_color_map = {  # (selected, hovered, type): color
+    # Словарь для выбора цвета (selected, hovered, type): color
+    dot_color_map: Dict[Tuple[bool, bool, InterpolationType], RGBA] = {
         (False, False, InterpolationType.LINEAR): cs.RowParam.dot_color_linear,
         (True, False, InterpolationType.LINEAR): cs.RowParam.dot_color_linear_selected,
         (False, True, InterpolationType.LINEAR): cs.RowParam.dot_color_linear_hovered,
@@ -266,8 +286,8 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
 
         color_map = RowParamTactBox.dot_color_map
         dots_selected = self.row_panel.dots_selected
-        dots_hovered = self.dots_under_cursor if self.dots_under_cursor else []
-        dots_by_color = defaultdict(list)
+        dots_hovered = self.dots_under_cursor if self.dots_under_cursor else tuple()
+        dots_by_color: Dict[RGBA, List[Tuple[float, float]]] = defaultdict(list)
         for render_row in render_rows:
             row_phase = self.playback.renderer.get_row_phase_shift(render_row)
             size_x = self.row_panel.xy_grid.size_x_getter()
@@ -294,29 +314,32 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
                 for pos in positions:
                     SmoothEllipse(pos=pos, size=dot_size, group="dots")
 
-    def set_dots_under_cursor(self, dots: Set[DMXRenderDot]):
+    def set_dots_under_cursor(self, dots: Tuple[DMXRenderDot, ...]):
         self.dots_under_cursor = dots
 
     def get_quant_size(self) -> Tuple[float, float]:
         quant_width = self.automation.quant_width
         quant_height = (self.height - self.padding_y * 2) / self.row_panel.xy_grid.size_y_getter()
         return (quant_width, quant_height)
-    quant_size = AliasProperty(
-        get_quant_size, None, bind=["size"]
+    quant_size: Tuple[float, float] = AliasProperty(
+        get_quant_size,
+        bind=("size",)
     )
 
     def get_dot_size(self) -> Tuple[float, float]:
         quant_width, _ = self.quant_size
         return (quant_width, quant_width)
-    dot_size = AliasProperty(
-        get_dot_size, None, bind=["quant_size"]
+    dot_size: Tuple[float, float] = AliasProperty(
+        get_dot_size,
+        bind=("quant_size",)
     )
 
     def get_dot_radius(self) -> float:
         quant_width, _ = self.quant_size
         return max(quant_width / 2, 1)
-    dot_radius = AliasProperty(
-        get_dot_radius, None, bind=["quant_size"]
+    dot_radius: Tuple[float, float] = AliasProperty(
+        get_dot_radius,
+        bind=("quant_size",)
     )
 
     def start_selector(self, frame_pos: Tuple[int, int]):
@@ -335,7 +358,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             self.remove_widget(self.selector)
             self.selector = None
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos):
             self.focus = True
             self.row_panel.select_one_row(self.row_param.data_row)
@@ -360,12 +383,12 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             self.automation.tool_action("on_touch_down", touch, self)
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if self.focus:
             self.automation.tool_action("on_touch_move", touch, self)
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if self.focus:
             self.focus = False
             self.automation.tool_action("on_touch_up", touch, self)
@@ -393,14 +416,14 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
 
 
 class FixtureParamToggle(HoverToggleButton):
-    fixture_param = ObjectProperty()
-    render_rows = ObjectProperty()
-    row_panel = ObjectProperty()
+    fixture_param: RowFixtureParam = ObjectProperty()
+    render_rows: Tuple[PlaybackRenderRow, ...] = ObjectProperty()
+    row_panel: "RowPanel" = ObjectProperty()
 
     def _do_press(self, *_):
         return
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos) and touch.button == "right":
             self.open_context_menu()
             return False
@@ -416,7 +439,7 @@ class FixtureParamToggle(HoverToggleButton):
 
 
 class RowParamActiveToggle(HoverToggleButton):
-    row_param = ObjectProperty()
+    row_param: "RowParam" = ObjectProperty()
 
     def _do_press(self, *_):
         return
@@ -430,17 +453,17 @@ class RowParamActiveToggle(HoverToggleButton):
 
 
 class RowParamAddressToggle(HoverToggleButton):
-    row_param = ObjectProperty()
-    address_list = ObjectProperty()
-    fulladdress = ObjectProperty()
+    row_param: "RowParam" = ObjectProperty()
+    address_list: Dict[FullAddress, bool] = ObjectProperty()
+    fulladdress: FullAddress = ObjectProperty()
 
     universe = AliasProperty(
         lambda self: self.fulladdress.universe if self.fulladdress else 0,
-        bind=["fulladdress"]
+        bind=("fulladdress",)
     )
     address = AliasProperty(
         lambda self: self.fulladdress.address if self.fulladdress else 0,
-        bind=["fulladdress"]
+        bind=("fulladdress",)
     )
 
     def on_is_down(self, _, is_down: bool):
@@ -449,11 +472,11 @@ class RowParamAddressToggle(HoverToggleButton):
 
 
 class AddressListBoxContextMenu(ModalBoxLayout):
-    row_param = ObjectProperty()
-    address_list = ObjectProperty()
-    box = ObjectProperty()
+    row_param: "RowParam" = ObjectProperty()
+    address_list: Dict[FullAddress, bool] = ObjectProperty()
+    box: StackLayout = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         for fulladdress in self.address_list:
             toggle = RowParamAddressToggle(
                 row_param=self.row_param,
@@ -464,9 +487,9 @@ class AddressListBoxContextMenu(ModalBoxLayout):
 
 
 class AddressListBox(RecycleRestrictedScrollView):
-    address_list = ObjectProperty()
+    address_list: Dict[FullAddress, bool] = ObjectProperty()
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos) and touch.button == "right" and not self.disabled:
             self.open_context_menu()
             return False
@@ -480,8 +503,8 @@ class AddressListBox(RecycleRestrictedScrollView):
 
 
 class CheckboxPhaseInterpatchX(HoverToggleButton):
-    data_row = ObjectProperty(rebind=True)
-    phase_active = BooleanProperty(False)
+    data_row: RowParamData = ObjectProperty(rebind=True)
+    phase_active: bool = BooleanProperty(False)
 
     def on_data_row(self, _, data_row: RowParamData):
         self.phase_active = data_row.phase_interpatch_x is not None
@@ -490,7 +513,7 @@ class CheckboxPhaseInterpatchX(HoverToggleButton):
     def set_phase_active(self, _, phase_interpatch_x: Optional[int]):
         self.phase_active = phase_interpatch_x is not None
 
-    color = StatefulColorProperty(
+    color: RGBA = StatefulColorProperty(
         normal=cs.CheckboxPhaseInterpatchX.fg_normal,
         states={
             ("phase_active", "disabled"): cs.CheckboxPhaseInterpatchX.fg_active_disabled,
@@ -501,22 +524,21 @@ class CheckboxPhaseInterpatchX(HoverToggleButton):
 
 
 class RowParam(RecycleDataViewBehavior, AutoUnbindBehavior, BoxLayout):
-    automation = ObjectProperty()
-    row_panel = ObjectProperty()
+    automation: "Automation" = ObjectProperty()
+    row_panel: "RowPanel" = ObjectProperty()
 
-    address_list_box = ObjectProperty()
-    scrollview_address_list_box = ObjectProperty()
-    tact_box = ObjectProperty()
-    phase_interpatch_input_x = ObjectProperty()
-    checkbox_phase = ObjectProperty()
+    address_list_box: AddressListBox = ObjectProperty()
+    tact_box: RowParamTactBox = ObjectProperty()
+    phase_interpatch_input_x: PanRotaryButton = ObjectProperty()
+    checkbox_phase: CheckboxPhaseInterpatchX = ObjectProperty()
 
-    data_row = ObjectProperty(rebind=True)
+    data_row: RowParamData = ObjectProperty(rebind=True)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._update_trigger = Clock.create_trigger(self.update, -1)
 
-    def refresh_view_attrs(self, rv, index, data_row):
+    def refresh_view_attrs(self, rv: RecycleRestrictedScrollView, index: int, data_row: RowParamData):
         if self.data_row is not data_row:
             if self.data_row:
                 self.unbind_from(self.data_row)
@@ -539,7 +561,7 @@ class RowParam(RecycleDataViewBehavior, AutoUnbindBehavior, BoxLayout):
             for fulladdress in address_list
         ]
 
-    def update(self, *_):
+    def update(self, *_: Any):
         self.tact_box.draw_ev()
         self.property("data_row").dispatch(self.data_row)
 
@@ -563,7 +585,7 @@ class RowParam(RecycleDataViewBehavior, AutoUnbindBehavior, BoxLayout):
         else:
             self._input_set_interpatch_x(False)
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if self.automation.check_tool(InterpatchPhaseTool):
             self.automation.tool_action("finish")
         return super().on_touch_up(touch)

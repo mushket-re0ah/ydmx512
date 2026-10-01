@@ -1,9 +1,10 @@
 from typing import Any, Dict, List, Optional, Type
 
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
-from typing_extensions import Self
+from kivy.uix.widget import Widget
 
 from libs.animation import StatefulColorProperty
 from libs.properties import ContextualNumericProperty
@@ -83,7 +84,7 @@ class WorkspaceSwitcherMenu(TouchMouseBehavior, BoxLayout):
         self.toggle_list = []
         super().__init__(**kwargs)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         for i in range(self.workspace_manager.workspace_count):
             self._add_toggle(i)
 
@@ -101,11 +102,11 @@ class WorkspaceSwitcherMenu(TouchMouseBehavior, BoxLayout):
     def switch_toggle(self, toggle_id: int) -> None:
         self.get_toggle(toggle_id or 0).trigger_action(0)
 
-    def on_scroll_up(self, touch) -> bool:
+    def on_scroll_up(self, touch: MotionEvent) -> bool:
         self.switch_toggle(min(self.workspace_manager.workspace_now_index + 1, len(self.toggle_list) - 1))
         return False
 
-    def on_scroll_down(self, touch) -> bool:
+    def on_scroll_down(self, touch: MotionEvent) -> bool:
         self.switch_toggle(max(self.workspace_manager.workspace_now_index - 1, 0))
         return False
 
@@ -122,7 +123,6 @@ class WorkspaceManager(BoxLayout):
     workspace_cls: Type[WorkspaceBehavior] = ObjectProperty()
     workspace_count: int = NumericProperty(9)
 
-    workspaces: Dict[int, WorkspaceBehavior] = None
     workspace_now_index: int = ContextualNumericProperty(
         default=0,
         min_getter=lambda self: 0,
@@ -151,7 +151,7 @@ class WorkspaceManager(BoxLayout):
     def on_workspace_removed(self, workspace_index: int, workspace: WorkspaceBehavior):
         pass
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         if self.workspace_cls is None:
             raise ValueError(f"{self}: workspace_cls not defined")
         initial = self.workspace_now_index
@@ -199,7 +199,7 @@ class WorkspaceManager(BoxLayout):
 
     workspace_now: WorkspaceBehavior = AliasProperty(
         lambda self: self.create_workspace(self.workspace_now_index),
-        bind=["workspace_now_index"], rebind=True
+        bind=("workspace_now_index",), rebind=True
     )
 
     prev_workspace_index = None

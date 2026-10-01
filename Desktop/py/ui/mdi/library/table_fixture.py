@@ -1,10 +1,12 @@
-from libs.uix.database_table import ColumnConfigTemplates
-from ui.mdi.library.table import LibraryTable
+from typing import Tuple
+
 from database import db
 from database.fixture import RowFixture
+from libs.uix.database_table import ColumnConfigTemplates
+from libs.uix.database_table.column_config import ColumnConfig
+from ui.mdi.library.table import LibraryTable
 
-
-_columns_config = [
+_columns_config = (
     ColumnConfigTemplates.checkbox_id(),
     ColumnConfigTemplates.text_field(header_text="Название",
                                      data_attribute="title"),
@@ -23,12 +25,12 @@ _columns_config = [
     ColumnConfigTemplates.button_copy(),
     ColumnConfigTemplates.button_edit(),
     # ColumnConfigTemplates.button_remove()
-]
+)
 
 
 class LibraryTableFixture(LibraryTable):
     table = db.fixture
-    columns_config = _columns_config
+    columns_config: Tuple[ColumnConfig, ...] = _columns_config
 
     def activate_menu_toggle(self):
         self.library.menu.toggle_fixture.trigger_action(0)

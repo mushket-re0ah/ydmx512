@@ -1,18 +1,24 @@
-from typing import Optional, Dict, FrozenSet, Callable
-from kivy.properties import StringProperty, ObjectProperty, AliasProperty
-from ui.components.database_mdi_window import DatabaseMDIWindow
+from typing import TYPE_CHECKING, Callable, Dict, FrozenSet
+
+from kivy.properties import AliasProperty, ObjectProperty, StringProperty
+
 from libs.properties import ClampedNumericProperty
 from misc import constants
+from ui.components.database_mdi_window import DatabaseMDIWindow
+
+if TYPE_CHECKING:
+    from ui.mdi.checker.channels_ui import CheckerChannelsUi
+    from ui.mdi.checker.menu import CheckerMenu
 
 
 class MDIChecker(DatabaseMDIWindow):
-    _db_title_id = "checker"
+    _db_title_id: str = "checker"
 
-    title = StringProperty("Прозвон")
-    universe_now = ClampedNumericProperty(1, 1, constants.DMX_UNIVERSE_COUNT)
+    title: str = StringProperty("Прозвон")
+    universe_now: int = ClampedNumericProperty(1, 1, constants.DMX_UNIVERSE_COUNT)
 
-    menu = ObjectProperty()
-    channels_ui = ObjectProperty()
+    menu: "CheckerMenu" = ObjectProperty()
+    channels_ui: "CheckerChannelsUi" = ObjectProperty()
 
     view_context_template = {
         "universe_now": 1,
@@ -39,10 +45,10 @@ class MDIChecker(DatabaseMDIWindow):
             scroll_element=self.setter("address_start")
         )
 
-    def set_address_start(self, scroll_element: int):
+    def set_address_start(self, scroll_element: int) -> bool:
         self.channels_ui.channel_sliders.scroll_element = scroll_element
         return True
-    address_start = AliasProperty(
+    address_start: int = AliasProperty(
         lambda self: self.channels_ui.channel_sliders.scroll_element + 1 if self.channels_ui.channel_sliders.scroll_element else 0,
         set_address_start
     )

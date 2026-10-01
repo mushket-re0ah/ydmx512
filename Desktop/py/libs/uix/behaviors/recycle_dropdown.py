@@ -1,9 +1,9 @@
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from kivy.clock import Clock
+from kivy.input.motionevent import MotionEvent
 from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs import logger
 from libs.kivy_mixins import AutoUnbindBehavior
@@ -37,7 +37,7 @@ class RecycleDropdownBehavior(AutoUnbindBehavior):
         self.bind(selected=self._trigger_set_host_value)
         super().__init__(**kwargs)
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         if self.values_getter is None:
             self.values_getter = self.dropdown_cls.default_values_getter
         if self.value_to_dict is None:
@@ -74,14 +74,14 @@ class RecycleDropdownBehavior(AutoUnbindBehavior):
     def on_select(self, data: Any):
         pass
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if not self.collide_point(*touch.pos):
             return False
         if self._do_mouse_scroll(touch):
             return True
         return super().on_touch_down(touch)
 
-    def _do_mouse_scroll(self, touch) -> bool:
+    def _do_mouse_scroll(self, touch: MotionEvent) -> bool:
         if touch.button == "scrollup":
             self._do_scroll(1)
             return True

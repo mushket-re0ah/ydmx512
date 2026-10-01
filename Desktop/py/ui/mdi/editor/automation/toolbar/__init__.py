@@ -1,41 +1,47 @@
-from typing import Any, List, Optional, Set, Dict
-from kivy.properties import (
-    ObjectProperty, NumericProperty, ListProperty, BooleanProperty, AliasProperty
-)
-from kivy.lang import Builder
-from kivy.uix.widget import Widget
-from kivy.graphics import Color, SmoothLine, SmoothEllipse
-from kivy.utils import boundary
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type
+
 from kivy.clock import Clock
-from libs.uix.layouts import StencilBoxLayout
-from libs.uix.rotary_button import PanRotaryButton
-from libs.uix.button import OptionToggleButton, OptionToggleButtonContextMenu
-from libs.uix.input.numeric_input import NumericInput
-from libs.uix.layouts import WindowModalBoxLayout
-from libs.dmx512_render import DMXRenderDot
-from libs.properties import EnumProperty
-from database.playback import RowPlayback
-from database.playback.renderer import render_utils
-from database.patch import RowPatch
-from database.playback.renderer.render_data import PlaybackRenderRow
+from kivy.graphics import Color, SmoothEllipse, SmoothLine
+from kivy.input.motionevent import MotionEvent
+from kivy.lang import Builder
+from kivy.properties import (
+    BooleanProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+)
+from kivy.uix.widget import Widget
+from kivy.utils import boundary
+
 from database import db
+from database.patch import RowPatch
 from database.phase_curve_type import RowPhaseCurveType
-from misc import colorscheme as cs
-from ui.mdi.editor.automation.tools import RowPhaseTool, DiscardAllTool, MoveDotsByNumericInputTool
-from typing_extensions import Self
+from database.playback import RowPlayback
+from database.playback.renderer import PlaybackRenderer
+from database.playback.renderer.render_data import InterpatchSpec, PlaybackRenderRow, RowPhaseSpec
+from libs.typecheck import OptionalNumber
+from libs.uix.button import HoverToggleButton, OptionToggleButton, OptionToggleButtonContextMenu
+from libs.uix.input.numeric_input import NumericInput
+from libs.uix.layouts import StencilBoxLayout, WindowModalBoxLayout
+from libs.uix.rotary_button import PanRotaryButton, RotaryButton
+from ui.mdi.editor.automation.tools import DiscardAllTool, MoveDotsByNumericInputTool, RowPhaseTool
+
+if TYPE_CHECKING:
+    from ui.mdi.editor.automation import Automation
+    from ui.mdi.editor.automation.toolbar.menu_preset_fixture import MenuPresetFixture
 
 
 Builder.load_file("ui/mdi/editor/automation/toolbar/toolbar.kv")
 
 
 class PhaseCurveTypeCreateMenuCanvas(Widget):
-    dots = ListProperty()
+    dots: Tuple[Tuple[float, float], ...] = ListProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         self.draw_ev = Clock.create_trigger(self.draw, -1)
         super().__init__(**kwargs)
 
-    def draw(self, _):
+    def draw(self, _: Any):
         if not self.parent:
             return
         self.canvas.after.remove_group("render_lines")
@@ -48,8 +54,8 @@ class PhaseCurveTypeCreateMenuCanvas(Widget):
         x = self.x
         y = self.y
 
-        points = []
-        dots = list(sorted(self.dots, key=lambda x: x[0]))
+        points: List[float] = []
+        dots = tuple(sorted(self.dots, key=lambda x: x[0]))
         for i in range(len(dots) - 1):
             next_x_dot = i + 1
             points.append(x + dots[i][0] * self.width)
@@ -58,7 +64,7 @@ class PhaseCurveTypeCreateMenuCanvas(Widget):
             points.append(y + dots[next_x_dot][1] * self.height)
         with self.canvas.after:
             Color(1, 1, 1, 1, group="render_lines")
-            SmoothLine(width=2, points=points, group="render_lines")
+            SmoothLine(width=2, points=tuple(points), group="render_lines")
 
     def draw_dots(self):
         dot_radius = 5
@@ -75,36 +81,38 @@ class PhaseCurveTypeCreateMenuCanvas(Widget):
             with self.canvas.after:
                 SmoothEllipse(pos=(x_pos, y_pos), size=dot_size, group="dots")
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos):
             touch.grab(self)
             self.add_dot(touch)
         return super().on_touch_down(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             self.add_dot(touch)
         return super().on_touch_move(touch)
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
             return True
         return super().on_touch_up(touch)
 
-    def add_dot(self, touch):
+    def add_dot(self, touch: MotionEvent):
         x, y = touch.pos
         x, y = x - self.x, y - self.y
         x, y = x / self.width, y / self.height
         x = round(round(boundary(x, 0.0, 1.0) / 0.05) * 0.05, 2)
         y = round(round(boundary(y, 0.0, 1.0) / 0.05) * 0.05, 2)
+        dots = list(self.dots[:])
         for xy in self.dots[:]:
             if xy[0] == x:
-                self.dots.remove(xy)
+                dots.remove(xy)
         if (x, y) not in self.dots:
-            self.dots.append((x, y))
+            dots.append((x, y))
+        self.dots = tuple(dots)
 
-    def on_dots(self, _, _dots: list):
+    def on_dots(self, _, dots: Tuple[Tuple[float, float], ...]):
         self.draw_ev()
 
 
@@ -119,13 +127,13 @@ class PhaseCurveTypeMenu(OptionToggleButtonContextMenu):
 
 
 class PhaseCurveTypeOptionButton(OptionToggleButton):
-    modal_cls = ObjectProperty(PhaseCurveTypeMenu)
-    state = ObjectProperty(db.phase_curve_type.get_default_row())
+    modal_cls: Type[PhaseCurveTypeMenu] = ObjectProperty(PhaseCurveTypeMenu)
+    state: RowPhaseCurveType = ObjectProperty(db.phase_curve_type.get_default_row())
 
     def on_state(self, _, state: RowPhaseCurveType):
         self.text = state.title
 
-    def get_state_step(self, direction):
+    def get_state_step(self, direction: int) -> RowPhaseCurveType:
         keys = tuple(db.phase_curve_type.rows.keys())
         values = tuple(db.phase_curve_type.rows.values())
         i = values.index(self.state)
@@ -142,17 +150,17 @@ class PhaseCurveTypeOptionButton(OptionToggleButton):
 
 
 class NumericInputDotX(NumericInput):
-    def set_value(self, value: int):
+    def set_value(self, value: OptionalNumber):
         if value is not None:
             value = value - 1
         super().set_value(value)
 
-    def _value_to_str(self, value: int):
+    def _value_to_str(self, value: OptionalNumber) -> str:
         if value is None:
             return ""
         return str(value + 1)
 
-    def _str_to_value(self, text: str):
+    def _str_to_value(self, text: str) -> OptionalNumber:
         if text in ("", "-"):
             if self.allow_empty:
                 return None
@@ -163,32 +171,39 @@ class NumericInputDotX(NumericInput):
 
 
 class AutomationToolbar(StencilBoxLayout):
-    playback = ObjectProperty(None, allownone=True, rebind=True)
-    active_patch: List[RowPatch] = ListProperty([])
+    playback: Optional[RowPlayback] = ObjectProperty(None, allownone=True, rebind=True)
+    active_patch: Tuple[RowPatch] = ListProperty()
 
-    automation = ObjectProperty(rebind=True)
+    automation: "Automation" = ObjectProperty(rebind=True)
 
-    fixture_selected_count = NumericProperty(0)
-    clear_render_mode = BooleanProperty(False)
+    fixture_selected_count: int = NumericProperty(0)
+    clear_render_mode: bool = BooleanProperty(False)
 
-    toggle_fixture_presets = ObjectProperty()
-    btn_phase = ObjectProperty()
-    toggle_phase_curve = ObjectProperty()
-    input_phase_amount = ObjectProperty()
+    toggle_fixture_presets: HoverToggleButton = ObjectProperty()
+    btn_phase: HoverToggleButton = ObjectProperty()
+    toggle_phase_curve: PhaseCurveTypeOptionButton = ObjectProperty()
+    input_phase_amount: PanRotaryButton = ObjectProperty()
     btn_phase_direction = ObjectProperty()
-    input_zoom_y = ObjectProperty()
-    input_dot_x = ObjectProperty()
-    input_dot_y = ObjectProperty()
+    input_zoom_y: RotaryButton = ObjectProperty()
+    input_dot_x: NumericInputDotX = ObjectProperty()
+    input_dot_y: NumericInput = ObjectProperty()
 
-    selected_master_row_phase_spec = ObjectProperty(None, allownone=True, rebind=True)
+    selected_master_row_phase_spec: Optional[RowPhaseSpec] = ObjectProperty(
+        None,
+        allownone=True,
+        rebind=True
+    )
 
-    def _set_master_row_phase_spec(self, _, master_selected_render_row: Optional[PlaybackRenderRow]):
+    def _set_master_row_phase_spec(
+            self,
+            _,
+            master_selected_render_row: Optional[PlaybackRenderRow]):
         if master_selected_render_row:
             self.selected_master_row_phase_spec = master_selected_render_row.row_phase_spec
         else:
             self.selected_master_row_phase_spec = None
 
-    def on_kv_post(self, base_widget: Self):
+    def on_kv_post(self, base_widget: Widget):
         self.automation.row_panel.bind(
             dots_selected=self.update_dots_data,
             master_selected_render_row=self._set_master_row_phase_spec
@@ -201,10 +216,10 @@ class AutomationToolbar(StencilBoxLayout):
     def on_clear_render_mode(self, *_):
         self.automation.row_panel.dispatch_row_change()
 
-    def _on_render_changed(self, _, _renderer):
+    def _on_render_changed(self, _, renderer: PlaybackRenderer):
         self.update_dots_data()
 
-    menu_preset_fixture = None
+    menu_preset_fixture: Optional[MenuPresetFixture] = None
     def open_menu_preset_fixture(self):
         if self.menu_preset_fixture:
             return
@@ -261,13 +276,13 @@ class AutomationToolbar(StencilBoxLayout):
     def discard_all(self):
         self.automation.set_tool(DiscardAllTool)
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if self.automation.check_tool(RowPhaseTool):
             self.automation.tool_action("finish")
         return super().on_touch_up(touch)
 
-    processing_sync_data = BooleanProperty(False)
-    def update_dots_data(self, *_):
+    processing_sync_data: bool = BooleanProperty(False)
+    def update_dots_data(self, *_:Any):
         self.processing_sync_data = True
         dots = self.automation.row_panel.dots_selected
         if not dots:

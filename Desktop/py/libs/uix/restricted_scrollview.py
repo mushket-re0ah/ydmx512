@@ -1,7 +1,9 @@
-from typing import Any, List, NamedTuple, Optional, Tuple, Type
+from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type
 
 from kivy.clock import Clock
 from kivy.graphics import Canvas, PopMatrix, PushMatrix, Translate
+from kivy.graphics.transformation import Matrix
+from kivy.input.motionevent import MotionEvent
 from kivy.properties import (
     AliasProperty,
     BooleanProperty,
@@ -150,7 +152,7 @@ class RestrictedScrollView(StencilView):
             )
 
     scroll_element_block: bool = False
-    def _do_scroll_by_element(self, _):
+    def _do_scroll_by_element(self, _: Any):
         if self.do_scroll_by_element:
             self.scroll_element_block = True
             self.scroll_to(self.scroll_element)
@@ -203,12 +205,12 @@ class RestrictedScrollView(StencilView):
         tx, ty = self.g_translate.xy
         return x + tx, y + ty
 
-    def _apply_transform(self, m, pos:Optional[Tuple[float, float]]=None) -> Tuple[float, float]:
+    def _apply_transform(self, m: Matrix, pos:Optional[Tuple[float, float]]=None) -> Matrix:
         tx, ty = self.g_translate.xy
         m.translate(tx, ty, 0)
         return super()._apply_transform(m, (0, 0))
 
-    def simulate_touch_down(self, touch) -> bool:
+    def simulate_touch_down(self, touch: MotionEvent) -> bool:
         # at this point the touch is in parent coords
         touch.push()
         touch.apply_transform_2d(self.to_local)
@@ -216,7 +218,7 @@ class RestrictedScrollView(StencilView):
         touch.pop()
         return ret
 
-    def on_motion(self, etype, me) -> bool:
+    def on_motion(self, etype: Literal["begin", "update", "end"], me: MotionEvent) -> bool:
         if me.type_id in self.motion_filter and 'pos' in me.profile:
             me.push()
             me.apply_transform_2d(self.to_local)
@@ -225,7 +227,7 @@ class RestrictedScrollView(StencilView):
             return ret
         return super().on_motion(etype, me)
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         if self.collide_point(*touch.pos):
             scrollable_widget = self._get_scrollable_widget()
             if scrollable_widget and scrollable_widget is not self:
@@ -238,7 +240,7 @@ class RestrictedScrollView(StencilView):
                 return self.simulate_touch_down(touch)
             if touch.button == "middle" and self.scroll_by_content:
                 self._start_pos = touch.pos
-                self._start_scroll = [self.scroll_x, self.scroll_y]
+                self._start_scroll = (self.scroll_x, self.scroll_y)
                 touch.grab(self)
                 return True
             if touch.button == "scrollup" and self._can_scroll_by_y():
@@ -312,8 +314,10 @@ class RestrictedScrollView(StencilView):
                 dx = self.convert_distance_to_scroll_x(self.scroll_wheel_distance)
                 self.scroll_x += dx * diff
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if self._start_scroll:
+            if self._start_pos is None:
+                raise ValueError()
             if self.do_scroll_x:
                 dx = self.convert_distance_to_scroll_x(touch.x - self._start_pos[0])
                 self.scroll_x = self._start_scroll[0] + dx
@@ -327,7 +331,7 @@ class RestrictedScrollView(StencilView):
         touch.pop()
         return ret
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if self._start_scroll:
             touch.ungrab(self)
         self._start_pos = None
@@ -433,7 +437,7 @@ class RestrictedScrollView(StencilView):
     def _get_uid(self, prefix:str='sv') -> str:
         return f'{prefix}.{self.uid}'
 
-    def _do_touch_up(self, touch, *_):
+    def _do_touch_up(self, touch: MotionEvent, *_):
         # touch is in window coords
         touch.push()
         touch.apply_transform_2d(self.to_widget)
