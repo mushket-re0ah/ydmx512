@@ -191,7 +191,10 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
         if self.is_busy():
             return
         self._mdi_on_cursor = self.find_mdi_at_pos(pos)
-        self._widget_side_now = get_cursor_zone(self._mdi_on_cursor, pos) if self._mdi_on_cursor else WidgetSide.VOID
+        if self._mdi_on_cursor:
+            self._widget_side_now = get_cursor_zone(self._mdi_on_cursor, pos)
+        else:
+            self._widget_side_now = WidgetSide.VOID
         if self._prev_mdi_on_cursor is not self._mdi_on_cursor:
             if self._prev_mdi_on_cursor:
                 self._prev_mdi_on_cursor.focus_selected = False
@@ -200,7 +203,11 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
             self._prev_mdi_on_cursor = self._mdi_on_cursor
 
     def find_mdi_at_pos(self, pos: Tuple[float, float]) -> Optional[MDIWindow]:
-        return next((mdi for mdi in reversed(self.mdi_container.mdi_list_showed) if mdi.collide_point(*pos)), None)
+        return next(
+            (mdi for mdi in reversed(self.mdi_container.mdi_list_showed)
+                 if mdi.collide_point(*pos)),
+            None
+        )
 
     def _set_cursor(self):
         if self.is_busy():

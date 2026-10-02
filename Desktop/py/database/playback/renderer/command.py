@@ -6,14 +6,13 @@ from libs.command import Command
 from libs.dmx512_render.misc import DMXRenderDot, InterpolationType
 
 if TYPE_CHECKING:
-    from database.playback import RowPlayback
     from database.playback.renderer import PlaybackRenderer
 
 
 class PlaybackCommand(Command):
     def __init__(self, renderer: "PlaybackRenderer"):
-        self.renderer: "PlaybackRenderer" = renderer
-        self.playback: "RowPlayback" = self.renderer.playback
+        self.renderer = renderer
+        self.playback = self.renderer.playback
         super().__init__()
 
 

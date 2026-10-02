@@ -122,16 +122,11 @@ class SerialDevice(EventDispatcher):
     #         if device.in_waiting >= len(self.handshake_msg):
     #             msg = device.read(len(self.handshake_msg))
     #             if msg == self.handshake_msg:
-    #                 logger.info(f"Принят handshake. Отправка в ответ {self.handshake_msg}. Ждем {self.HANDSHAKE_ACK_SETTLE_TIME}, device.in_waiting={device.in_waiting}")
     #                 device.write(self.handshake_msg)
     #                 time.sleep(self.HANDSHAKE_ACK_SETTLE_TIME)
-    #                 logger.info(f"Очищаем input_buffer. Сейчас device.in_waiting={device.in_waiting}")
     #                 device.reset_input_buffer()
-    #                 logger.info(f"После очистки device.in_waiting={device.in_waiting}. Ждем еще 0.05с")
     #                 time.sleep(0.05)
-    #                 logger.info(f"Второй раз очищаем input_buffer. Сейчас device.in_waiting={device.in_waiting}")
     #                 device.reset_input_buffer()
-    #                 logger.info(f"После второго раза очистки device.in_waiting={device.in_waiting}")
     #                 self.state = SerialState.CONNECTED
     #         return True
     #     except (serial.SerialException, OSError):
@@ -150,14 +145,16 @@ class SerialDevice(EventDispatcher):
         try:
             # time.sleep(self.HANDSHAKE_ACK_SETTLE_TIME)
             if device.in_waiting < len(self.handshake_msg):
-                if not self._prev_handshake_time_send or (time.monotonic() - self._prev_handshake_time_send) >= self.HANDSHAKE_ACK_SETTLE_TIME:
-                    logger.info(f"Отправляем handshake {self.handshake_msg}. device.in_waiting={device.in_waiting}")
+                if not self._prev_handshake_time_send or\
+                   (time.monotonic() - self._prev_handshake_time_send) >= self.HANDSHAKE_ACK_SETTLE_TIME:  # noqa: E501
+                    logger.info(f"Отправляем handshake {self.handshake_msg}. "
+                                f"device.in_waiting={device.in_waiting}")
                     device.write(self.handshake_msg)
                     self._prev_handshake_time_send = time.monotonic()
                 return None
             msg = device.read(len(self.handshake_msg))
             # if msg != self.handshake_msg:
-            #     logger.info(f"Пришел неверный handshake {msg}. device.in_waiting={device.in_waiting}")
+            #     logger.info(f"Пришел неверный handshake {msg}. in_waiting={device.in_waiting}")
             #     device.reset_input_buffer()
             #     return None
             logger.info(f"Пришел ответный handshake {msg}")
@@ -204,7 +201,11 @@ class SerialDevice(EventDispatcher):
                 break
 
     def _is_connected(self) -> bool:
-        return bool(self.device is not None and self.device.is_open and self.state is SerialState.CONNECTED)
+        return bool(
+            self.device is not None and
+            self.device.is_open and
+            self.state is SerialState.CONNECTED
+        )
 
     def _get_connected_device(self) -> Optional[serial.Serial]:
         if not self._is_connected():

@@ -1,5 +1,18 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Callable, DefaultDict, Dict, FrozenSet, List, Optional, Set, Tuple, TypedDict, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    DefaultDict,
+    Dict,
+    FrozenSet,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypedDict,
+    Union,
+)
 
 from kivy.clock import Clock
 from kivy.input.motionevent import MotionEvent
@@ -119,9 +132,11 @@ class RowPanel(ScrollLayout):
                 for param_key, indices in fixture.param_map.items():
                     for idx in indices:
                         if param_key.is_linear:
-                            group_key = (patch, idx) # каждый канал отдельно
+                            # каждый канал отдельно
+                            group_key = (patch, idx)
                         else:
-                            group_key = (param_key.param, idx) # агрегация по патчам при одинаковом индексе
+                            # агрегация по патчам при одинаковом индексе
+                            group_key = (param_key.param, idx)
                         entry = params_of_patches[group_key]
                         entry["patch_group"].append(patch)
                         entry["fixture_index"][patch].append(idx)
@@ -133,13 +148,15 @@ class RowPanel(ScrollLayout):
             self,
             params_map: DefaultDict[_GroupKey, _ParamsMapEntry]
         ) -> Tuple[_RowParamDataDict, ...]:
+        render_rows_by_address: DefaultDict[FullAddress, List[PlaybackRenderRow]]
+
         if self.renderer is None:
             raise RuntimeError()
         result: List[_RowParamDataDict] = []
         for row_data in params_map.values():
             render_rows: List[PlaybackRenderRow] = []
             address_list: Dict[FullAddress, bool] = {}
-            render_rows_by_address: DefaultDict[FullAddress, List[PlaybackRenderRow]] = defaultdict(list)
+            render_rows_by_address = defaultdict(list)
             result_fixture_index: Dict[RowPatch, Tuple[int, ...]] = {}
             for patch, fixture_index_list in row_data["fixture_index"].items():
                 for index in fixture_index_list:
@@ -243,7 +260,10 @@ class RowPanel(ScrollLayout):
         return super().on_touch_move(touch)
 
     def find_row_by_y(self, y: float) -> Optional[RowParam]:
-        return next((row_param for row_param in self.box.children if row_param.y <= y <= row_param.top), None)
+        return next(
+            (row_param for row_param in self.box.children if row_param.y <= y <= row_param.top),
+            None
+        )
 
     def normalize_frame_x_with_row_phase(
             self,
@@ -390,7 +410,10 @@ class RowPanel(ScrollLayout):
             start = min(self.selection_main_x, frame_x)
             end = max(self.selection_main_x, frame_x)
             norm_area_x = self.normalize_frame_x_with_row_phase(start - precision_x, data_row)
-            norm_area_width = self.normalize_frame_x_with_row_phase((end - start) + 2 * precision_x, data_row)
+            norm_area_width = self.normalize_frame_x_with_row_phase(
+                (end - start) + 2 * precision_x,
+                data_row
+            )
 
             self.dots_selected = render_utils.get_dots_by_area(
                 self.selected_render_rows,
@@ -456,7 +479,8 @@ class RowPanel(ScrollLayout):
         rebind=True
     )
     def _get_row_group(self, data_row: Optional[RowParamData]) -> Set[RowParamData]:
-        """Возвращает множество RowParamData, которые должны выделяться вместе с data_row если есть фаза"""
+        """Возвращает множество RowParamData, которые должны выделяться вместе
+        с data_row если есть фаза"""
         if data_row is None:
             return set()
         row_phase_spec = data_row.row_phase_spec
@@ -483,7 +507,11 @@ class RowPanel(ScrollLayout):
         self.row_selection_main_data_row = data_row
         self.set_selected_render_rows()
 
-    def select_row_diaposone(self, row_start_data_row: RowParamData, row_end_data_row: RowParamData):
+    def select_row_diaposone(
+            self,
+            row_start_data_row: RowParamData,
+            row_end_data_row: RowParamData
+        ):
         start_index = self.rows_data_manager.index(row_start_data_row)
         end_index = self.rows_data_manager.index(row_end_data_row)
 

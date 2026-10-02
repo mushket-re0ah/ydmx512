@@ -70,7 +70,10 @@ Builder.load_string("""
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+            pos: (\
+                int(self.center_x - self.texture_size[0] / 2.0),\
+                int(self.center_y - self.texture_size[1] / 2.0)\
+            )
 
 
 <-HoverToggleButton>:
@@ -87,7 +90,10 @@ Builder.load_string("""
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+            pos: (\
+                int(self.center_x - self.texture_size[0] / 2.0),\
+                int(self.center_y - self.texture_size[1] / 2.0)\
+            )
 
 
 <OptionToggleButtonContextMenu>:
@@ -144,7 +150,10 @@ Builder.load_string("""
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+            pos: (\
+                int(self.center_x - self.texture_size[0] / 2.0),\
+                int(self.center_y - self.texture_size[1] / 2.0)\
+            )
 
 
 
@@ -284,7 +293,9 @@ class OptionToggleButtonContextMenuOption(HoverButton):
 
 class OptionToggleButton(ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLabel):
     modal_cls: Type[OptionToggleButtonContextMenu] = ObjectProperty(OptionToggleButtonContextMenu)
-    option_cls: Type[OptionToggleButtonContextMenuOption] = ObjectProperty(OptionToggleButtonContextMenuOption)
+    option_cls: Type[OptionToggleButtonContextMenuOption] = ObjectProperty(
+        OptionToggleButtonContextMenuOption
+    )
     state: Any = OptionProperty(None, options=[None])  # переопределять в предке
     state_to_str: Dict[Any, str]
 

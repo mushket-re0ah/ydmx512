@@ -53,7 +53,8 @@ class StatefulColorProperty(ColorProperty):
             params[state] = color
             if isinstance(state, tuple):
                 # Составной ключ -> проверяем все атрибуты
-                triggers[state] = lambda self, s=state: all(getattr(self, attr, False) for attr in s)
+                triggers[state] = lambda self, s=state:\
+                                         all(getattr(self, attr, False) for attr in s)
             else:
                 # Одиночный ключ
                 triggers[state] = lambda self, s=state: getattr(self, s, False)
@@ -66,7 +67,7 @@ class StatefulColorProperty(ColorProperty):
         setattr(obj, f'_normal_{self.name}', new_normal)
         obj._set_colors()
 
-    def get_normal(self, obj: "AnimationBehavior"):
+    def get_normal(self, obj: "AnimationBehavior") -> RGBA:
         # Если экземпляр переопределил нормальный цвет, берём его,
         # иначе возвращаем классовый default (self.normal)
         return getattr(obj, f'_normal_{self.name}', self.normal)

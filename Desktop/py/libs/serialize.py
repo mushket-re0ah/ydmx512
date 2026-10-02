@@ -6,7 +6,7 @@ from kivy.utils import get_hex_from_color
 from typing_extensions import TypeAlias
 
 from libs.kivy_utils import atomic_setattrs
-from libs.typecheck import RGBA, OptionalNumber
+from libs.typecheck import RGBA
 
 SerializableT = TypeVar("SerializableT", bound="SerializableMixin")
 Serializer: TypeAlias = Callable[["SerializableMixin", Any], Any]
@@ -43,15 +43,19 @@ class SerializableMixinProperty:
 
 
 class SerializableMeta(type):
+    serialize: Callable[[], Dict[str, Any]]
+    deserialize: Callable[[Dict[str, Any]], "SerializableMixin"]
+    serialization_keys: Tuple[str, ...]
+
     def __new__(mcs, name: str, bases: Tuple[type, ...], namespace: Dict[str, Any]) -> type:
         new_cls = super().__new__(mcs, name, bases, namespace)
         setattr(new_cls, "serialize", mcs._create_serialize_method(new_cls))
         setattr(new_cls, "deserialize", mcs._create_deserialize_method(new_cls))
-        new_cls._get_serialization_keys(new_cls)
+        new_cls.get_serialization_keys(new_cls)
         return new_cls
 
     @staticmethod
-    def _get_serialization_keys(target_cls: type) -> Tuple[str, ...]:
+    def get_serialization_keys(target_cls: type) -> Tuple[str, ...]:
         if "serialization_keys" in target_cls.__dict__:
             return target_cls.__dict__["serialization_keys"]
 
@@ -73,24 +77,28 @@ class SerializableMeta(type):
         return target_cls.serialization_keys
 
     @staticmethod
-    def _create_serialize_method(target_cls: type) -> Callable[["SerializableMixin"], Dict[str, Any]]:
-        def _serialize(self: SerializableMixin) -> Dict[str, Any]:
+    def _create_serialize_method(
+            target_cls: type
+        ) -> Callable[["SerializableMixin"], Dict[str, Any]]:
+        def serialize(self: SerializableMixin) -> Dict[str, Any]:
             result: Dict[str, Any] = {}
-            for key in SerializableMeta._get_serialization_keys(target_cls):
-                prop = self.property(key)
+            for key in SerializableMeta.get_serialization_keys(target_cls):
+                prop: SerializableMixinProperty = self.property(key)
                 ser = prop.serialize
                 defaultvalue = prop.defaultvalue
                 value = getattr(self, key)
                 if defaultvalue != value:
                     result[key] = ser(self, value)
             return result
-        return _serialize
+        return serialize
 
     @staticmethod
-    def _create_deserialize_method(target_cls: type) -> Callable[["SerializableMixin", Dict[str, Any]], "SerializableMixin"]:
+    def _create_deserialize_method(
+            target_cls: type
+        ) -> Callable[["SerializableMixin", Dict[str, Any]], "SerializableMixin"]:
         def deserialize(self: SerializableMixin, data: Dict[str, Any]) -> SerializableMixin:
             items = [(k, getattr(type(self), k))
-                     for k in SerializableMeta._get_serialization_keys(target_cls)
+                     for k in SerializableMeta.get_serialization_keys(target_cls)
                      if k in data and getattr(type(self), k, None) is not None]
 
             value_attrs = {
@@ -141,51 +149,63 @@ class SerializableMixin(EventDispatcher, metaclass=SerializableMeta):
         pass
 
 
-def default_serializer(_self: SerializableMixin, value: Any) -> Any:
+def default_serializer(self: SerializableMixin, value: Any) -> Any:
     return value
 
-def default_deserializer(_self: SerializableMixin, value: Any) -> Any:
+def default_deserializer(self: SerializableMixin, value: Any) -> Any:
     return value
 
 def serializable_or_raw_serializer() -> Serializer:
-    def serialize(_self: SerializableMixin, value: Any) -> Any:
+    def serialize(self: SerializableMixin, value: Any) -> Any:
         if isinstance(value, SerializableMixin):
             return value.serialize()
         return value
     return serialize
 
 def hex_color_serializer() -> Serializer:
-    def serialize(_self: SerializableMixin, color: RGBA) -> str:
+    def serialize(self: SerializableMixin, color: RGBA) -> str:
         return get_hex_from_color(color)
     return serialize
 
 def enum_serializer() -> Serializer:
-    def serialize(_self: SerializableMixin, value: Any) -> Any:
+    def serialize(self: SerializableMixin, value: Any) -> Any:
         return value.value if value is not None else None
     return serialize
 
 def enum_deserializer(enum_cls: Type[Enum]) -> Deserializer:
-    def deserialize(_self: SerializableMixin, value: Any) -> Enum:
+    def deserialize(self: SerializableMixin, value: Any) -> Enum:
         return enum_cls(value)
     return deserialize
 
 def nested_serializer() -> Serializer:
-    def serialize(_self: SerializableMixin, value: Optional[SerializableMixin]) -> Optional[Dict[str, Any]]:
+    def serialize(
+            self: SerializableMixin,
+            value: Optional[SerializableMixin]
+        ) -> Optional[Dict[str, Any]]:
         return value.serialize() if value is not None else None
     return serialize
 
 def nested_deserializer(cls: Type[SerializableMixin]) -> Deserializer:
-    def deserialize(_self: SerializableMixin, value: Optional[SerializableMixin]) -> Optional[SerializableMixin]:
+    def deserialize(
+            self: SerializableMixin,
+            value: Optional[SerializableMixin]
+        ) -> Optional[SerializableMixin]:
         return cls.from_data(value) if value is not None else None
     return deserialize
 
 def list_of_serializable_serializer() -> Serializer:
-    def serialize(_self: SerializableMixin, value: Iterable[SerializableMixin]) -> List[Dict[str, Any]]:
+    def serialize(
+            self: SerializableMixin,
+            value: Iterable[SerializableMixin]
+        ) -> List[Dict[str, Any]]:
         return [item.serialize() for item in value]
     return serialize
 
 def list_of_serializable_deserializer(item_cls: Type[SerializableMixin]) -> Deserializer:
-    def deserialize(_self: SerializableMixin, value: Iterable[Dict[str, Any]]) -> List[SerializableMixin]:
+    def deserialize(
+            self: SerializableMixin,
+            value: Iterable[Dict[str, Any]]
+        ) -> List[SerializableMixin]:
         return [item_cls.from_data(item) for item in value]
     return deserialize
 

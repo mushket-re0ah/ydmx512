@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from kivy.properties import AliasProperty, BooleanProperty, ObjectProperty
 
@@ -21,12 +21,20 @@ if TYPE_CHECKING:
 class PlaybackPlayer(BasePlayer):
     playback: "RowPlayback" = ObjectProperty()
 
-    beats_count: int = ClampedNumericField(4, constants.BEATS_COUNT_MINIMIUM, constants.BEATS_COUNT_MAXIMUM)
+    beats_count: int = ClampedNumericField(
+        4,
+        constants.BEATS_COUNT_MINIMIUM,
+        constants.BEATS_COUNT_MAXIMUM
+    )
     is_link_global_temp: bool = BooleanField(True)
     is_cycle: bool = BooleanField(True)
     is_cycle_last_frame: bool = BooleanField(False)
     fade_to_black: bool = BooleanField(False)
-    fade_to_black_time: int = ClampedNumericField(1000, constants.FADE_TO_BLACK_MS_MINIMUM, constants.FADE_TO_BLACK_MS_MAXIMUM)
+    fade_to_black_time: int = ClampedNumericField(
+        1000,
+        constants.FADE_TO_BLACK_MS_MINIMUM,
+        constants.FADE_TO_BLACK_MS_MAXIMUM
+    )
     blackout_activate: bool = BooleanField(False)
     bounce: bool = BooleanField(False)
 
@@ -43,7 +51,10 @@ class PlaybackPlayer(BasePlayer):
         self.playback = parent_row
         self.effects_renderer = PlayerEffectsRenderer(self)
         self.bind_to(dmx512, on_blackout=self.on_blackout)
-        self.bind_to(self.playback.database.scene, scene_now_beats_count=self._update_real_beats_count)
+        self.bind_to(
+            self.playback.database.scene,
+            scene_now_beats_count=self._update_real_beats_count
+        )
 
     def on_remove(self, instance: "RowPlayback"):
         self.stop()
@@ -138,12 +149,14 @@ class PlaybackPlayer(BasePlayer):
         elif (status is PlayerStatus.WORK) or (status is PlayerStatus.ATTACK):
             master_player.add_playback(self)
 
-
+    def get_real_beats_count(self) -> int:
+        if self.is_link_global_temp:
+            return self.playback.database.scene.scene_now_beats_count
+        return self.beats_count
     real_beats_count: int = AliasProperty(
-        lambda self: self.playback.database.scene.scene_now_beats_count if self.is_link_global_temp else self.beats_count,
+        get_real_beats_count,
         bind=("is_link_global_temp", "beats_count")
     )
-
 
     frame_count: int = AliasProperty(
         lambda self: self.real_beats_count * constants.FRAMES_IN_BEAT,

@@ -36,10 +36,18 @@ Builder.load_string("""
     BoxLayout:
         orientation: "vertical"
         Label:
-            text: "HSL: {}".format([int(selector.hue * 255), int(selector.saturate * 255), int(selector.lightness * 255)])
+            text: "HSL: {}".format([\
+                int(selector.hue * 255),\
+                int(selector.saturate * 255),\
+                int(selector.lightness * 255)\
+            ])
             size_hint: (1, 0.2)
         Label:
-            text: "RGB: {}".format([int(selector.red * 255), int(selector.green * 255), int(selector.blue * 255)])
+            text: "RGB: {}".format([\
+                int(selector.red * 255),\
+                int(selector.green * 255),\
+                int(selector.blue * 255)\
+            ])
             size_hint: (1, 0.2)
 
         BoxLayout:
@@ -108,7 +116,7 @@ Builder.load_string("""
 
 
 class ColorSelectorSquare(Widget):
-    color: RGB = ListProperty([1, 0, 0])  # Текущий цвет в RGB
+    color: RGB = ListProperty((1, 0, 0))  # Текущий цвет в RGB
 
     red: float = NumericProperty(0)
     green: float = NumericProperty(0)
@@ -128,7 +136,10 @@ class ColorSelectorSquare(Widget):
 
     marker_graphics_x: float = NumericProperty(0)
     marker_graphics_y: float = NumericProperty(0)
-    marker_graphics_pos: Tuple[float, float] = ReferenceListProperty(marker_graphics_x, marker_graphics_y)
+    marker_graphics_pos: Tuple[float, float] = ReferenceListProperty(
+        marker_graphics_x,
+        marker_graphics_y
+    )
 
     MARKER_SIZE = 10
 

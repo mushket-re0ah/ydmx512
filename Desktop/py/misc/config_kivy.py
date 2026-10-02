@@ -33,9 +33,9 @@ def init(backup_mode:bool=False):
     from misc import constants
     data = {}
     try:
-        with open(constants.DATABASE_PATH / "misc.json", "r", encoding="utf8") as fptr:
+        with open(constants.DATABASE_PATH / "misc.json", "r", encoding="utf8") as fptr:  # noqa: UP015
             data = json.loads(fptr.read())
-    except:
+    except Exception:
         pass
     maximize = data.get("maximize", False)
     fullscreen = data.get("fullscreen", False)

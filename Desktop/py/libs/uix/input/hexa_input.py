@@ -27,7 +27,10 @@ Builder.load_string("""
         id: color_toggle
         size_hint: (None, None)
         size: (root.height - dp(2 * root.padding[1]), root.height - dp(2 * root.padding[1]))
-        pos: (root.right - (root.height - dp(2 * root.padding[1])) - dp(root.padding[0]), dp(root.y + root.padding[1]))
+        pos: (\
+            root.right - (root.height - dp(2 * root.padding[1])) - dp(root.padding[0]),\
+            dp(root.y + root.padding[1])\
+        )
         on_release: root.open_modal()
         color: get_color_from_hex(root.text) or get_color_from_hex("#FFFFFF")
 

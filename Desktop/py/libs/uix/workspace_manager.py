@@ -103,7 +103,8 @@ class WorkspaceSwitcherMenu(TouchMouseBehavior, BoxLayout):
         self.get_toggle(toggle_id or 0).trigger_action(0)
 
     def on_scroll_up(self, touch: MotionEvent) -> bool:
-        self.switch_toggle(min(self.workspace_manager.workspace_now_index + 1, len(self.toggle_list) - 1))
+        toggle_id = min(self.workspace_manager.workspace_now_index + 1, len(self.toggle_list) - 1)
+        self.switch_toggle(toggle_id)
         return False
 
     def on_scroll_down(self, touch: MotionEvent) -> bool:

@@ -38,7 +38,7 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
             float_layout = workspace_layout
         elif db_row.layout_mode == TilingLayoutMode.layout_state_key:
             float_layout = list(chain.from_iterable(workspace_layout))
-        mdi_focused = next((mdi for mdi in float_layout if mdi._db_title_id == db_row.mdi_focused))
+        mdi_focused = next(mdi for mdi in float_layout if mdi._db_title_id == db_row.mdi_focused)
         workspace.set_focus(mdi_focused)
 
     def on_workspace_opened(self, workspace_index: int, workspace: WorkspaceBehavior):

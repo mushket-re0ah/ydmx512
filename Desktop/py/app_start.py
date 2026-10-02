@@ -31,7 +31,7 @@ def kivy_execute() -> ExitCode:
                     return ExitCode.FAILURE
                 logger.info("cythonized successful")
                 import libs.dmx512_render.render_interpolation
-                import libs.uix.color_selector.colorpicker_utils
+                import libs.uix.color_selector.colorpicker_utils  # noqa: F401
             except Exception:
                 logger.error(exc_info=True)
                 return ExitCode.FAILURE
@@ -153,7 +153,7 @@ def main() -> ExitCode:
             all_threads=True,
             chain=False,
         )
-    except:
+    except BaseException:
         pass
 
     logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES, constants.SESSION_LOG_ENV_KEY)

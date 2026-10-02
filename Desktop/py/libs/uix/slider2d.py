@@ -31,10 +31,19 @@ Builder.load_string("""
             rgba: self.line_color
         Line:
             width: dp(1)
-            rectangle: (self.x + self.padding, self.y + self.padding, self.width - self.padding * 2, self.height - self.padding * 2)
+            rectangle: (\
+                self.x + self.padding,\
+                self.y + self.padding,\
+                self.width - self.padding * 2,\
+                self.height - self.padding * 2\
+            )
         Line:
             width: dp(1)
-            points: [self.x + self.padding, self.dot_y + self.dot_radius / 2, self.dot_x + self.dot_radius / 2, self.dot_y + self.dot_radius / 2, self.dot_x + self.dot_radius / 2, self.y + self.padding]
+            points: [\
+                self.x + self.padding, self.dot_y + self.dot_radius / 2,\
+                self.dot_x + self.dot_radius / 2, self.dot_y + self.dot_radius / 2,\
+                self.dot_x + self.dot_radius / 2, self.y + self.padding\
+            ]
 """
 )
 
@@ -114,19 +123,29 @@ class Slider2D(TouchMouseBehavior, TooltipBehavior, AnimationBehavior, Widget):
     def _get_dot_x(self) -> float:
         diff = max(self.value_x_maximum - self.value_x_minimum, 1)
         xdiff = (self.value_x - self.value_x_minimum) / diff
-        return (self.x + self.padding) + (self.width - 2 * self.padding) * xdiff - self.dot_radius / 2
+        x = self.x + self.padding
+        width = self.width - (2 * self.padding)
+        return x + width * xdiff - self.dot_radius / 2
     dot_x: float = AliasProperty(
         _get_dot_x,
-        bind=("pos", "size", "padding", "dot_radius", "value_x", "value_x_minimum", "value_x_maximum"),
+        bind=(
+            "pos", "size", "padding", "dot_radius", "value_x", "value_x_minimum",
+            "value_x_maximum"
+        ),
         cache=True
     )
 
     def _get_dot_y(self) -> float:
         diff = max(self.value_y_maximum - self.value_y_minimum, 1)
         ydiff = (self.value_y - self.value_y_minimum) / diff
-        return (self.y + self.padding) + (self.height - 2 * self.padding) * ydiff - self.dot_radius / 2
+        y = self.y + self.padding
+        height = self.height - (2 * self.padding)
+        return y + height * ydiff - self.dot_radius / 2
     dot_y: float = AliasProperty(
         _get_dot_y,
-        bind=("pos", "size", "padding", "dot_radius", "value_y", "value_y_minimum", "value_y_maximum"),
+        bind=(
+            "pos", "size", "padding", "dot_radius", "value_y", "value_y_minimum",
+            "value_y_maximum"
+        ),
         cache=True
     )

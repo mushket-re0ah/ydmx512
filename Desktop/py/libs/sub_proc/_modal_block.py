@@ -1,7 +1,7 @@
 from multiprocessing import Process
 from typing import Optional
 
-from kivy.core.window import Window
+from kivy.core.window import Window, WindowBase
 from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
@@ -27,7 +27,7 @@ Builder.load_string("""
 class SubProcModalBlock(BoxLayout):
     process: Process = ObjectProperty()
 
-    def on_window_focus(self, _window: Window, focus: bool):
+    def on_window_focus(self, window: WindowBase, focus: bool):
         if focus:
             _set_focus_on_process_window(self.process)
 
@@ -61,6 +61,7 @@ def stop():
 if platform == "win":
     import ctypes
     from ctypes import wintypes
+
     import win32gui
 
     user32 = ctypes.WinDLL('user32', use_last_error=True)
@@ -72,11 +73,11 @@ if platform == "win":
     user32.GetClassNameW.argtypes = (wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
     user32.GetWindowThreadProcessId.argtypes = (wintypes.HWND, ctypes.POINTER(wintypes.DWORD))
 
-    def _get_main_hwnd(pid):
+    def _get_main_hwnd(pid) -> wintypes.HWND:
         main_hwnd = None
 
         @EnumWindowsProc
-        def callback(hwnd, l_param):
+        def callback(hwnd, l_param) -> bool:
             nonlocal main_hwnd
 
             # Проверяем PID

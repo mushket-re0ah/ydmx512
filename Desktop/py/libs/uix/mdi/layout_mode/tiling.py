@@ -75,7 +75,10 @@ class TilingLayoutMode(ILayoutMode):
     layout_state_key: str = "tiling"
     title: str = "Тайлинг"
     container: MDITilingBoxContainer
-    tiling_orientation: TilingOrientation = EnumProperty(TilingOrientation, TilingOrientation.HORIZONTAL)
+    tiling_orientation: TilingOrientation = EnumProperty(
+        TilingOrientation,
+        TilingOrientation.HORIZONTAL
+    )
 
     def __init__(self, mdi_container: "MDIContainer", from_layout_mode: ILayoutMode):
         self.mdi_container = mdi_container
@@ -217,13 +220,19 @@ class TilingLayoutMode(ILayoutMode):
         if mouse_x > container.right - self.EDGE_DROP_ZONE:
             return None, "right"
 
-        collided_box = next((box for box in container.children if box.x <= mouse_x <= box.right), None)
+        collided_box = next(
+            (box for box in container.children if box.x <= mouse_x <= box.right),
+            None
+        )
 
         if collided_box is None:
             return None
 
         if collided_box is not mdi.parent:
-            collided_mdi = next((w for w in collided_box.children if w.collide_point(mouse_x, mouse_y)), None)
+            collided_mdi = next(
+                (w for w in collided_box.children if w.collide_point(mouse_x, mouse_y)),
+                None
+            )
 
             if collided_mdi is None:
                 if mouse_y > collided_box.children[0].y:
@@ -238,7 +247,10 @@ class TilingLayoutMode(ILayoutMode):
 
             return collided_box, index
 
-        collided_mdi = next((w for w in collided_box.children if w.collide_point(mouse_x, mouse_y)), None)
+        collided_mdi = next(
+            (w for w in collided_box.children if w.collide_point(mouse_x, mouse_y)),
+            None
+        )
 
         if collided_mdi is None or collided_mdi is mdi:
             return None

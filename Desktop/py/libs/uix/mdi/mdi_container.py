@@ -112,7 +112,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
 
     def clear_layout_widgets(self):
         for child in self.children[:]:
-            if widget.parent is None:
+            if child.parent is None:
                 continue
             RelativeLayout.remove_widget(self, child)
 

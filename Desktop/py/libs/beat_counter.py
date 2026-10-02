@@ -10,7 +10,13 @@ def _raise_error(*args, **kwargs):
     raise RuntimeError("beat_counter module is not initialized")
 BeatCounter = _raise_error
 loop = _raise_error
-def init(TEMP_MINIMUM: int, TEMP_MAXIMUM: int, BEATS_COUNT_MINIMUM: int, BEATS_COUNT_MAXIMUM: int, FRAMES_IN_BEAT: int):
+def init(
+        TEMP_MINIMUM: int,
+        TEMP_MAXIMUM: int,
+        BEATS_COUNT_MINIMUM: int,
+        BEATS_COUNT_MAXIMUM: int,
+        FRAMES_IN_BEAT: int
+    ):
     global BeatCounter
     if BeatCounter is not _raise_error:
         raise Exception("beat_counter module already initialized")

@@ -108,7 +108,7 @@ class SoftEffectsRenderer:
         key: str,
         frame: int,
         total_frames: int,
-        live_value: int,      # текущее "живое" значение (для атаки — конечное, для релиза — fallback-начало)
+        live_value: int,      # живое значение (для атаки — конечное, для релиза — fallback-начало)
         default_value: int    # значение по умолчанию (для атаки — начальное, для релиза — конечное)
     ) -> Optional[int]:
         """

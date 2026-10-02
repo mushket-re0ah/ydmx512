@@ -17,7 +17,8 @@ Builder.load_string("""
     valign: "center"
     text_size: self.size
     padding: ["8dp", 0, 0, 0]
-    normal_background_color: uix_cs.FileListButton.dir_bg if self.is_dir_button else uix_cs.FileListButton.file_bg
+    normal_background_color: uix_cs.FileListButton.dir_bg\
+                            if self.is_dir_button else uix_cs.FileListButton.file_bg
 
 
 <Filelist>:  # ScrollLayout

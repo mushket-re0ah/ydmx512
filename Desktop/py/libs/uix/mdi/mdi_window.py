@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, FrozenSet, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, FrozenSet, Optional, Tuple
 
 from kivy.lang import Builder
 from kivy.properties import (
@@ -19,6 +19,10 @@ from libs.sdl2_keyboard import KeyboardBehavior
 from libs.typecheck import RGBA, Number
 from libs.uix import colorscheme as uix_cs
 from libs.uix.label import RestrictedLabel
+
+if TYPE_CHECKING:
+    from libs.uix.mdi.mdi_container import MDIContainer
+
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -70,14 +74,23 @@ Builder.load_string("""
 )
 
 
-class MDIWindow(ViewContextSaverMixin, KeyboardBehavior, AutoUnbindBehavior, AnimationBehavior, BoxLayout):
+class MDIWindow(
+        ViewContextSaverMixin,
+        KeyboardBehavior,
+        AutoUnbindBehavior,
+        AnimationBehavior,
+        BoxLayout
+    ):
     title: str = StringProperty("")
     focus: bool = BooleanProperty(False)
     hidden: bool = BooleanProperty(False)
     state: Dict[str, Any] = DictProperty()
     window_minimum_width: Number = NumericProperty("250dp")
     window_minimum_height: Number = NumericProperty("250dp")
-    window_minimum_size: Tuple[Number, Number] = ReferenceListProperty(window_minimum_width, window_minimum_height)
+    window_minimum_size: Tuple[Number, Number] = ReferenceListProperty(
+        window_minimum_width,
+        window_minimum_height
+    )
     focus_selected: bool = BooleanProperty(False)  # Для UI border: наведение, перемещение...
 
     animation_time: float = 0.0
@@ -115,7 +128,7 @@ class MDIWindow(ViewContextSaverMixin, KeyboardBehavior, AutoUnbindBehavior, Ani
         super().on_kv_post(base_widget)
         w, h = self.size
         w_min, h_min = self.window_minimum_size
-        self.size = [max(w, w_min), max(h, h_min)]
+        self.size = (max(w, w_min), max(h, h_min))
 
     def get_layout_state(self, key: str, default: Any) -> Any:
         return self.state.get("layout_state", {}).get(key, default)

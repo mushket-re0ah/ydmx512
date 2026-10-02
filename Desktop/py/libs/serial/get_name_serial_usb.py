@@ -22,10 +22,10 @@ if platform == "win":
 
     IOCTL_USB_GET_ROOT_HUB_NAME = USB_CTL(258)                   # HCD_GET_ROOT_HUB_NAME
     IOCTL_USB_GET_NODE_INFORMATION = USB_CTL(258)                # USB_GET_NODE_INFORMATION
-    IOCTL_USB_GET_NODE_CONNECTION_INFORMATION = USB_CTL(259)     # USB_GET_NODE_CONNECTION_INFORMATION
-    IOCTL_USB_GET_NODE_CONNECTION_DRIVERKEY_NAME = USB_CTL(264)  # USB_GET_NODE_CONNECTION_DRIVERKEY_NAME
+    IOCTL_USB_GET_NODE_CONNECTION_INFORMATION = USB_CTL(259)     # USB_GET_NODE_CONNECTION_INFORMATION  # noqa: E501
+    IOCTL_USB_GET_NODE_CONNECTION_DRIVERKEY_NAME = USB_CTL(264)  # USB_GET_NODE_CONNECTION_DRIVERKEY_NAME  # noqa: E501
     IOCTL_USB_GET_NODE_CONNECTION_NAME = USB_CTL(261)            # USB_GET_NODE_CONNECTION_NAME
-    IOCTL_USB_GET_DESCRIPTOR_FROM_NODE_CONNECTION = USB_CTL(260) # USB_GET_DESCRIPTOR_FROM_NODE_CONNECTION
+    IOCTL_USB_GET_DESCRIPTOR_FROM_NODE_CONNECTION = USB_CTL(260) # USB_GET_DESCRIPTOR_FROM_NODE_CONNECTION  # noqa: E501
 
     USB_CONFIGURATION_DESCRIPTOR_TYPE = 2
     USB_STRING_DESCRIPTOR_TYPE = 3
@@ -93,7 +93,7 @@ if platform == "win":
                                         12+MAXIMUM_USB_STRING_LENGTH,
                                         None)
         except pywintypes.error as e:
-            return 'ERROR: no String Descriptor for index {}'.format(str_idx)
+            return f'ERROR: no String Descriptor for index {str_idx}'
         if len(buf) > 16:
             return buf[14:].decode('utf-16le')
         return ''
@@ -102,7 +102,7 @@ if platform == "win":
     def exam_hub(name, level, usb_port) -> str:
         handle = open_dev(r'\\.\{}'.format(name))
         if not handle:
-            print('Failed to open device {}'.format(name))
+            print(f'Failed to open device {name}')
             return
         buf = win32file.DeviceIoControl(handle,
                                     IOCTL_USB_GET_NODE_INFORMATION,
@@ -127,7 +127,7 @@ if platform == "win":
                 print(e)
                 print(e.winerror, e.funcname, e.strerror)
                 return
-            _, vid, pid, vers, manu, prod, seri, _, ishub, _, stat = struct.unpack('=12sHHHBBB3s?6sL', buf[:35])
+            _, vid, pid, vers, manu, prod, seri, _, ishub, _, stat = struct.unpack('=12sHHHBBB3s?6sL', buf[:35])  # noqa: E501
 
             if ishub:
                 product_name = exam_hub(get_ext_hub_name(handle, idx), level, usb_port)
@@ -144,7 +144,7 @@ if platform == "win":
         usb_port = int(usb_location.split(":x")[0].split('.')[-1].split('-')[-1])
 
         for i in range(10):
-            name = r"\\.\HCD{}".format(i)
+            name = r"\\.\HCD{}".format(i)  # noqa: UP032
             handle = open_dev(name)
             if not handle:
                 continue
@@ -154,7 +154,7 @@ if platform == "win":
             dev_name = r'\\.\{}'.format(root)
             dev_handle = open_dev(dev_name)
             if not dev_handle:
-                print('Failed to open device {}'.format(dev_name))
+                print(f'Failed to open device {dev_name}')
                 continue
 
             buf = win32file.DeviceIoControl(dev_handle,

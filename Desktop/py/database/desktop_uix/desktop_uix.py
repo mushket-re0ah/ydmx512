@@ -71,7 +71,11 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         dependencies=("value_2_minimum", "value_2_maximum")
     )
 
-    player: DesktopUixPlayer = NestedField(DesktopUixPlayer, default_factory=DesktopUixPlayer, rebind=True)
+    player: DesktopUixPlayer = NestedField(
+        DesktopUixPlayer,
+        default_factory=DesktopUixPlayer,
+        rebind=True
+    )
     def __init__(self, *args: Any, **kwargs: Any):
         self.trigger_update_active = Clock.create_trigger(self.update_active, -1)
         self.bind(link_active=self.trigger_update_active)
@@ -149,7 +153,8 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
     )
 
     value_2_allow: bool = AliasProperty(
-        lambda self: self.fixture_param_2_index is not None and self.uix_type is DesktopUixType.SLIDER_2D,
+        lambda self: self.fixture_param_2_index is not None\
+                     and self.uix_type is DesktopUixType.SLIDER_2D,
         bind=("fixture_param_2_index",)
     )
 

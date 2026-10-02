@@ -3,7 +3,7 @@ from typing import Any, List
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, ListProperty
 
-import libs.uix.menu_components  # lazy kv import initialize
+import libs.uix.menu_components  # lazy kv import initialize  # noqa: F401
 from database.playback.playback import RowPlayback
 from libs.uix.layouts import ModalBoxLayout
 

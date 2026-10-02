@@ -34,7 +34,7 @@ def apply_patch():
                 not self.disable_multitouch
                 and (button != 'left' or 'ctrl' in modifiers)
             )
-            touch = self.create_touch(
+            self.create_touch(
                 win, nx, ny, False, do_graphics, button
             )
 

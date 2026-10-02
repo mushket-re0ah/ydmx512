@@ -9,8 +9,6 @@ from kivy.properties import AliasProperty, ListProperty, NumericProperty, Object
 from kivy.uix.widget import Widget
 from kivy.utils import boundary
 
-import ui.mdi.editor.automation.rows  # lazy kv import initialize
-import ui.mdi.editor.automation.toolbar  # lazy kv import initialize
 from database.patch import RowPatch
 from database.playback import RowPlayback
 from database.playback.player import PlaybackPlayer

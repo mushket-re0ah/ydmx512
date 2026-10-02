@@ -113,7 +113,13 @@ def _processing_contexts(hotkey: FrozenSet[str],
                 return True
     return stop_on_first and bool(contexts)
 
-def _on_key_down(window: WindowBase, _keycode: str, scancode: int, _codepoint: int, _modifiers: List[str]):
+def _on_key_down(
+        window: WindowBase,
+        keycode: str,
+        scancode: int,
+        codepoint: int,
+        modifiers: List[str]
+    ):
     global _last_keyboard_text
     _last_keyboard_text = window.last_keyboard_text
 
@@ -128,11 +134,13 @@ def _on_key_down(window: WindowBase, _keycode: str, scancode: int, _codepoint: i
         return
     _processing_contexts(hotkey, other_contexts, scancode, _last_keyboard_text, False)
 
-def _processing_contexts_up(hotkey: FrozenSet[str],
-                            contexts: List[KeyboardInputContext],
-                            scancode: int,
-                            codepoint: str,
-                            stop_on_first: bool) -> bool:
+def _processing_contexts_up(
+        hotkey: FrozenSet[str],
+        contexts: List[KeyboardInputContext],
+        scancode: int,
+        codepoint: str,
+        stop_on_first: bool
+    ) -> bool:
     for ctx in contexts:
         if ctx.hotkeys_up and hotkey in ctx.hotkeys_up:
             ctx.hotkeys_up[hotkey]()

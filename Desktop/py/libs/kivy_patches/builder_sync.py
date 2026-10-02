@@ -2,6 +2,7 @@
 
 def apply_patch():
     from types import MethodType
+
     from kivy.lang import builder
     def patch_sync(self):
         next_args = builder._delayed_start

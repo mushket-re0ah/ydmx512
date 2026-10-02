@@ -4,13 +4,14 @@ from typing import Any, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.properties import AliasProperty
+from kivy.utils import boundary
 
 from libs.beat_counter import BeatCounter
 from libs.kivy_json_orm.fields import ClampedNumericField, NumericField, RefField, StringField
 from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 from libs.kivy_utils import detach_event_dispatcher
 from libs.midi import midi
-from libs.typecheck import Number, OptionalNumber
+from libs.typecheck import Number
 from misc import constants
 
 
@@ -19,9 +20,21 @@ class RowScene(DatabaseRow):
     note: str = StringField("")
     date_add: float = NumericField()
     date_edit: float = NumericField()
-    temp: Number = ClampedNumericField(120, constants.TEMP_MINIMUM, constants.TEMP_MAXIMUM)
-    dimmer: Number = ClampedNumericField(100, constants.DIMMER_MINIMUM, constants.DIMMER_MAXIMUM)
-    beats_count: int = ClampedNumericField(4, constants.BEATS_COUNT_MINIMIUM, constants.BEATS_COUNT_MAXIMUM)
+    temp: Number = ClampedNumericField(
+        120,
+        constants.TEMP_MINIMUM,
+        constants.TEMP_MAXIMUM
+    )
+    dimmer: Number = ClampedNumericField(
+        100,
+        constants.DIMMER_MINIMUM,
+        constants.DIMMER_MAXIMUM
+    )
+    beats_count: int = ClampedNumericField(
+        4,
+        constants.BEATS_COUNT_MINIMIUM,
+        constants.BEATS_COUNT_MAXIMUM
+    )
 
     def on_temp(self, _, temp: int):
         if self._table.scene_now is self:
@@ -81,27 +94,20 @@ class TableScene(DatabaseTable):
         scene_now_bc.link()
         self.scene_now_bc = scene_now_bc
 
-    def on_midi_set_global_temp(self, _, channel:int, intensive:int):
-        res: OptionalNumber = None
+    def on_midi_set_global_temp(self, _, channel: int, intensive: int):
         if channel == 126:
-            intensive = int(max(0, intensive))
-            cache_channel_126 = intensive
-            cache_channel_126 = cache_channel_126 if cache_channel_126 < 100 else 100
-            self.cache_channel_126 = cache_channel_126
-            cache_channel_127 = self.cache_channel_127
-            res = cache_channel_126 + cache_channel_127 if cache_channel_126 + cache_channel_127 > 0 else 1
-        if channel == 127:
-            intensive = int(max(0, intensive))
-            cache_channel_127 = intensive
-            cache_channel_126 = self.cache_channel_126
-            self.cache_channel_127 = cache_channel_127
-            res = cache_channel_126 + cache_channel_127 if cache_channel_126 + cache_channel_127 > 0 else 1
-        def set_temp(_):
-            if res is None:
-                raise ValueError("how?")
+            self.cache_channel_126 = int(boundary(intensive, 0, 100))
+        elif channel == 127:
+            self.cache_channel_127 = max(0, intensive)
+        else:
+            return
+
+        res = max(1, self.cache_channel_126 + self.cache_channel_127)
+
+        def set_temp(dt: float):
             self.scene_now_temp = int(res)
-        if res is not None:
-            Clock.schedule_once(set_temp, -1)
+
+        Clock.schedule_once(set_temp, -1)
 
     def change_scene(self, new_scene: RowScene):
         old_scene = self.scene_now
@@ -125,7 +131,7 @@ class TableScene(DatabaseTable):
         bind=("scene_now",)
     )
 
-    def set_scene_now_dimmer(self, dimmer: float):
+    def set_scene_now_dimmer(self, dimmer: float) -> bool:
         if self.scene_now.dimmer != dimmer:
             self.scene_now.edit(dimmer=dimmer)
         return True
@@ -134,7 +140,7 @@ class TableScene(DatabaseTable):
         bind=("scene_now",)
     )
 
-    def set_scene_now_beats_count(self, beats_count: float):
+    def set_scene_now_beats_count(self, beats_count: float) -> bool:
         if self.scene_now.beats_count != beats_count:
             self.scene_now.edit(beats_count=beats_count)
         return True

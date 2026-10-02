@@ -13,7 +13,8 @@ from libs.properties import ClampedNumericProperty
 from libs.typecheck import RGBA
 from libs.uix.input.numeric_input import NumericInput
 from libs.uix.label import RestrictedLabel
-from libs.uix.layouts import SectionPanel
+from libs.uix.layouts import SectionPanel, StencilRelativeLayout
+from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
 from libs.uix.scroll_layout import ScrollLayout
 from libs.uix.slider import HoverSlider  # lazy kv import initialize
 from misc import colorscheme as cs
@@ -111,10 +112,10 @@ class PatchOverlayWidget(BoxLayout):
 
 
 class CheckerOverlay(BoxLayout):
-    checker = ObjectProperty()
-    channel_titles = ObjectProperty()
-    channel_sliders = ObjectProperty()
-    patch_overlay = ObjectProperty()
+    checker: "MDIChecker" = ObjectProperty()
+    channel_titles: RecycleRestrictedScrollView = ObjectProperty()
+    channel_sliders: CheckerChannelsUiList = ObjectProperty()
+    patch_overlay: StencilRelativeLayout = ObjectProperty()
 
     def __init__(self, **kwargs: Any):
         self._trigger_update_patch_overlay = Clock.create_trigger(self.update_patch_overlay, 0)
@@ -178,6 +179,6 @@ class CheckerOverlay(BoxLayout):
 
 
 class CheckerChannelsUi(SectionPanel):
-    checker = ObjectProperty()
-    overlay = ObjectProperty()
-    channel_sliders = ObjectProperty()
+    checker: "MDIChecker" = ObjectProperty()
+    overlay: CheckerOverlay = ObjectProperty()
+    channel_sliders: CheckerChannelsUiList = ObjectProperty()

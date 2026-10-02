@@ -2,7 +2,7 @@
 
 def apply_patch():
     from kivy.uix.recycleview import views
-    def get_view(self, index, data_item, viewclass):
+    def get_view(self, index, data_item, viewclass):  # noqa: ANN202
         dirty_views = self.dirty_views
         if viewclass is None:
             return

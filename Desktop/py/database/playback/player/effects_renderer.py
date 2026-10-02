@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class PlayerEffectsRenderer:
     def __init__(self, player: "PlaybackPlayer"):
-        self.player: "PlaybackPlayer" = player
+        self.player = player
         self.soft_renderer: SoftEffectsRenderer = player.soft_renderer
         self.do_cycle_last_frame: bool = False
 

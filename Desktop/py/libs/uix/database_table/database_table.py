@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.input.motionevent import MotionEvent
@@ -63,7 +63,13 @@ Builder.load_string("""
 
     DatabaseTableHeader:
         id: header
-        padding: [0, 0, "{}dp".format(scroll_layout.scrollbar_vertical.width if scroll_layout.scrollbar_vertical else 0), 0]
+        padding: [\
+            0,\
+            0,\
+            "{}dp".format(scroll_layout.scrollbar_vertical.width\
+                        if scroll_layout.scrollbar_vertical else 0),\
+            0\
+        ]
     ScrollLayout:
         id: scroll_layout
         scrollview: scrollview

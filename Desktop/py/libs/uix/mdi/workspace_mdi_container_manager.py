@@ -31,7 +31,7 @@ Builder.load_string("""
 
 
 <WorkspaceMDIContainerManager>:  # WorskpaceManager
-"""
+"""  # noqa: E501
 )
 
 class LayoutModeSwitcher(HoverToggleButton):
