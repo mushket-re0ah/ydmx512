@@ -36,10 +36,15 @@ class EditorTool:
 
 class AddDotTool(EditorTool):
     def on_touch_down(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
-        frame_x, value_y = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=False, do_clamp=False)
+        frame_x, value_y = source_widget.to_frame_coords(
+            *touch.pos,
+            ignore_dot_radius=False,
+            do_clamp=False
+        )
         self._start_frame = (frame_x, value_y)
 
-        dot_type = InterpolationType.SPLINE if keyboard_manager.check_shift() else InterpolationType.LINEAR
+        dot_type = InterpolationType.SPLINE if keyboard_manager.check_shift() else\
+                   InterpolationType.LINEAR
 
         selected_rows = self.row_panel.selected_render_rows
         if not selected_rows:
@@ -109,10 +114,18 @@ class MoveDotsTool(EditorTool):
         }
 
     def on_touch_down(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
-        self.start_frame = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=False, do_clamp=False)
+        self.start_frame = source_widget.to_frame_coords(
+            *touch.pos,
+            ignore_dot_radius=False,
+            do_clamp=False
+        )
 
     def on_touch_move(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
-        current_frame = source_widget.to_frame_coords(*touch.pos, ignore_dot_radius=True, do_clamp=False)
+        current_frame = source_widget.to_frame_coords(
+            *touch.pos,
+            ignore_dot_radius=True,
+            do_clamp=False
+        )
         diff_x = current_frame[0] - self.start_frame[0]
         diff_y = current_frame[1] - self.start_frame[1]
 
@@ -184,7 +197,11 @@ class SelectAreaTool(EditorTool):
         area_height = boundary(current[1] - self.start_frame[1],
                                -self.start_frame[1],
                                255 - self.start_frame[1])
-        self.row_panel.update_area_selection(self.start_frame, (area_width, area_height), source_widget.data_row)
+        self.row_panel.update_area_selection(
+            self.start_frame,
+            (area_width, area_height),
+            source_widget.data_row
+        )
 
     def on_touch_up(self, touch: MotionEvent, source_widget: "RowParamTactBox"):
         self.row_panel.stop_area_selection()
@@ -245,7 +262,12 @@ class PasteTool(EditorTool):
             x, y, dot_type = dot_info
             norm_x = self.xy_grid.to_normalized_x(x + cursor_frame)
             norm_y = self.xy_grid.to_normalized_y(y)
-            created_dots, success = self.renderer.add_dot_by_x(norm_x, norm_y, dot_type, self.render_rows)
+            created_dots, success = self.renderer.add_dot_by_x(
+                norm_x,
+                norm_y,
+                dot_type,
+                self.render_rows
+            )
             if success:
                 for dot in created_dots:
                     if dot not in dots:
@@ -303,7 +325,12 @@ class DiscardAllTool(EditorTool):
 class SetRowActiveTool(EditorTool):
     auto_execute = True
 
-    def __init__(self, automation: "Automation", active: bool, render_rows: List[PlaybackRenderRow]):
+    def __init__(
+            self,
+            automation: "Automation",
+            active: bool,
+            render_rows: List[PlaybackRenderRow]
+        ):
         super().__init__(automation)
         self.active = active
         self.render_rows = render_rows
@@ -316,7 +343,12 @@ class SetRowActiveTool(EditorTool):
 class LoadParamPresetTool(EditorTool):
     auto_execute = True
 
-    def __init__(self, automation: "Automation", preset: ParamPresetData, render_rows: List[PlaybackRenderRow]):
+    def __init__(
+            self,
+            automation: "Automation",
+            preset: ParamPresetData,
+            render_rows: List[PlaybackRenderRow]
+        ):
         super().__init__(automation)
         self.preset = preset
         self.render_rows = render_rows

@@ -48,40 +48,53 @@ def _resolve_table(table_source: TableSource, obj:Optional[SerializableMixin]=No
     return table_source()
 
 def table_ref_serializer(id_attr:str="_id") -> Serializer:
-    def serialize(_self: SerializableMixin, value: Optional["DatabaseRow"]) -> Optional[int]:
+    def serialize(self: SerializableMixin, value: Optional["DatabaseRow"]) -> Optional[int]:
         if value is None:
             return None
         return getattr(value, id_attr)
     return serialize
 
-def table_ref_deserializer(table_source: TableSource, id_attr:str="_id", fallback_fn:Optional[FallbackCb]=None) -> Deserializer:
-    def deserialize(self: SerializableMixin, id_value: Optional[int]) -> Optional["DatabaseRow"]:
-        if id_value is None:
-            return (fallback_fn(self.database) if isinstance(table_source, str) else fallback_fn()) if fallback_fn else None
-        table = _resolve_table(table_source, self)
-        row = table.get_row_by_id(id_value)
-        if row is not None:
-            return row
-        if fallback_fn:
-            return fallback_fn(self.database) if isinstance(table_source, str) else fallback_fn()
-        return None
+def table_ref_deserializer(
+    table_source: TableSource,
+    id_attr:str="_id",
+    fallback_fn: Optional[FallbackCb]=None,
+) -> Deserializer:
+    def deserialize(
+        self: SerializableMixin,
+        id_value: Optional[int],
+    ) -> Optional["DatabaseRow"]:
+        if id_value is not None:
+            table = _resolve_table(table_source, self)
+            row = table.get_row_by_id(id_value)
+            if row is not None:
+                return row
+        if fallback_fn is None:
+            return None
+        return fallback_fn(self.database) if isinstance(table_source, str) else fallback_fn()
+
     return deserialize
 
 def list_of_refs_serializer(id_attr:str="_id") -> Serializer:
-    def serialize(_self: SerializableMixin, value: List["DatabaseRow"]):
+    def serialize(self: SerializableMixin, value: List["DatabaseRow"]) -> List[int]:
         return [getattr(item, id_attr) for item in value]
     return serialize
 
-def list_of_refs_deserializer(table_source: TableSource, id_attr:str="_id", fallback_fn:Optional[FallbackCb]=None) -> Deserializer:
+def list_of_refs_deserializer(
+        table_source: TableSource,
+        id_attr:str="_id",
+        fallback_fn:Optional[FallbackCb]=None
+    ) -> Deserializer:
     def deserialize(self: SerializableMixin, value: List[int]) -> List["DatabaseRow"]:
         table = _resolve_table(table_source, self)
-        result: List["DatabaseRow"] = []
+        result: List["DatabaseRow"] = []  # noqa: UP037
         for id_val in value:
             row = table.get_row_by_id(id_val)
             if row is not None:
                 result.append(row)
             elif fallback_fn:
-                result.append(fallback_fn(self.database) if isinstance(table_source, str) else fallback_fn())
+                result.append(
+                    fallback_fn(self.database) if isinstance(table_source, str) else fallback_fn()
+                )
         return result
     return deserialize
 
@@ -164,12 +177,18 @@ class RefField(FieldMixin, ObjectProperty):
 
     def __init__(self, table_source: TableSource, *args: Any, **kwargs: Any):
         self.serialize = table_ref_serializer()
-        self.deserialize = table_ref_deserializer(table_source, fallback_fn=kwargs.get("fallback_fn", None))
+        self.deserialize = table_ref_deserializer(
+            table_source,
+            fallback_fn=kwargs.get("fallback_fn", None)
+        )
         super().__init__(*args, **kwargs)
 
 
 def _nested_deserializer(prop: "NestedField") -> Deserializer:
-    def deserialize(self: SerializableMixin, value: Optional[Dict[str, Any]]):
+    def deserialize(
+            self: SerializableMixin,
+            value: Optional[Dict[str, Any]]
+        ) -> Optional[SerializableMixin]:
         if value is None:
             return None
         current = getattr(self, prop.name, None)
@@ -203,7 +222,10 @@ class BindableObjectRefField(FieldMixin, BindableObjectProperty):
             on_set:Optional[Union[str, Callable[[EventDispatcher], Any]]]=None,
             **kwargs: Any):
         self.serialize = table_ref_serializer()
-        self.deserialize = table_ref_deserializer(table_source, fallback_fn=kwargs.get("fallback_fn", None))
+        self.deserialize = table_ref_deserializer(
+            table_source,
+            fallback_fn=kwargs.get("fallback_fn", None)
+        )
         super().__init__(*args, bind=bind, on_set=on_set, **kwargs)
 
 class ObjectField(FieldMixin, ObjectProperty):

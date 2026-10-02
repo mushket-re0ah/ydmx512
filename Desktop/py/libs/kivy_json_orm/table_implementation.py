@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Type
 
 from kivy.properties import NumericProperty
 
@@ -106,8 +106,10 @@ class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
     def database(self) -> "Database":
         return self._table.database
 
-    def __repr__(self):
-        attrs = ', '.join(f'{k}={getattr(self, k)!r}' for k in self.__class__._get_serialization_keys(self.__class__))
+    def __repr__(self) -> str:
+        attrs = ', '.join(f'{k}={getattr(self, k)!r}'
+            for k in self.__class__.get_serialization_keys(self.__class__)
+        )
         return f'{type(self).__name__}({attrs})'
 
 
@@ -127,8 +129,6 @@ class DatabaseTable(BaseTable):
         serialize=lambda self, rs: {_id: r.serialize() for _id, r in rs.items()},
         deserialize=deserialize_rows
     )
-
-    default_rows: List[Dict[str, Any]] = []  # Должен быть переопределен
 
     __events__ = ("on_add_row", "on_remove_row")
 
@@ -185,8 +185,11 @@ class DatabaseTable(BaseTable):
         return _id
 
     def _create_default(self):
-        for kwargs in self.default_rows:
+        for kwargs in self._get_default_rows_for_create():
             self.add_row(**kwargs)
+
+    def _get_default_rows_for_create(self) -> Tuple[Dict[str, Any], ...]:
+        return tuple()
 
     def __getattr__(self, name: str) -> Optional[DatabaseRow]:
         if name.startswith('by_'):

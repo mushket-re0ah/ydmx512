@@ -99,7 +99,11 @@ class ViewContextSaverMixin:
             for attr in obj_path.split('.'):
                 child = getattr(obj, attr, None)
                 if child is None:
-                    obj.bind(**{attr: lambda i, v, a=attr, p=path, pr=params: self._rebind_path(p, pr) if v else None})
+                    obj.bind(
+                        **{attr: lambda i, v, a=attr, p=path, pr=params:
+                            self._rebind_path(p, pr) if v else None
+                        }
+                    )
                     return
                 obj = child
         else:

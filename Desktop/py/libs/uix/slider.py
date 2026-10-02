@@ -44,16 +44,48 @@ Builder.load_string("""
         Color:
             rgb: (1, 1, 1)
         Rectangle:
-            pos: (self.x + self.padding, self.center_y - self.background_width / 2) if self.orientation == 'horizontal' else (self.center_x - self.background_width / 2, self.y + self.padding)
-            size: (self.width - self.padding * 2, self.background_width) if self.orientation == 'horizontal' else (self.background_width, self.height - self.padding * 2)
+            pos: (\
+                        self.x + self.padding,\
+                        self.center_y - self.background_width / 2.0\
+                    )\
+                    if self.orientation == 'horizontal' else\
+                    (\
+                        self.center_x - self.background_width / 2.0,\
+                        self.y + self.padding\
+                    )
+            size: (\
+                        self.width - self.padding * 2,\
+                        self.height\
+                    )\
+                    if self.orientation == 'horizontal' else\
+                    (\
+                        self.background_width,\
+                        self.height - self.padding * 2\
+                    )
             source: self.background_image
         Color:
             rgba: root.value_track_color
         Line:
             width: self.value_track_width
-            points: (self.x + self.padding, self.center_y, self.value_pos[0], self.center_y) if self.orientation == 'horizontal' else (self.center_x, self.y + self.padding, self.center_x, self.value_pos[1])
+            points: (\
+                        self.x + self.padding, self.center_y,\
+                        self.value_pos[0], self.center_y\
+                    )\
+                    if self.orientation == 'horizontal' else\
+                    (\
+                        self.center_x, self.y + self.padding,\
+                        self.center_x, self.value_pos[1]\
+                    )
     ImageButton:
-        pos: (root.value_pos[0] - root.cursor_width / 2, root.center_y - root.cursor_height / 2) if root.orientation == 'horizontal' else (root.center_x - root.cursor_width / 2, root.value_pos[1] - root.cursor_height / 2)
+        pos: (\
+                root.value_pos[0] - root.cursor_width / 2,\
+                root.center_y - root.cursor_height / 2\
+            )\
+            if root.orientation == 'horizontal' else\
+            (\
+                root.center_x - root.cursor_width / 2,\
+                root.value_pos[1] - root.cursor_height / 2\
+            )
         size: (root.cursor_width, root.cursor_height)
         -background_normal: root.cursor_image
         on_hover: root.hover = self.hover

@@ -1,10 +1,13 @@
 def patch_window_sdl2_keyboard_input():
-    from kivy.compat import unichr
     import sys
-    from kivy.logger import Logger
+
     from kivy.base import EventLoop
-    from kivy.config import Config
     from kivy.clock import Clock
+    from kivy.compat import unichr
+    from kivy.config import Config
+    from kivy.core.window.window_sdl2 import SDL2MotionEventProvider
+    from kivy.logger import Logger
+    from kivy.utils import platform
     def mainloop(self):
     # for android/iOS, we don't want to have any event nor executing our
     # main loop while the pause is going on. This loop wait any event (not
@@ -262,7 +265,7 @@ def patch_window_sdl2_keyboard_input():
 
             # unhandled event !
             else:
-                Logger.trace('WindowSDL: Unhandled event %s' % str(event))
+                Logger.trace('WindowSDL: Unhandled event %s' % str(event))  # noqa: UP031
 
 
     from kivy.core.window.window_sdl2 import WindowSDL

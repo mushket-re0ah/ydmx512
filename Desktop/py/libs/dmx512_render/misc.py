@@ -9,7 +9,11 @@ class XYGrid:
     size_x_getter: Callable[[], int]
     size_y_getter: Callable[[], int]
 
-    def __init__(self, size_x_getter: Callable[[], int], size_y_getter: Callable[[], int]=lambda: 255):
+    def __init__(
+            self,
+            size_x_getter: Callable[[], int],
+            size_y_getter: Callable[[], int]=lambda: 255
+        ):
         self.size_x_getter = size_x_getter
         self.size_y_getter = size_y_getter
 
@@ -36,7 +40,12 @@ class XYGrid:
         _frame_y: Number = self._boundary(frame_y, self.size_y_getter(), allow_negative)
         return _frame_y / self.size_y_getter()
 
-    def _boundary(self, value: Union[int, float], maximum: Union[int, float], allow_negative: bool) -> Number:
+    def _boundary(
+            self,
+            value: Union[int, float],
+            maximum: Union[int, float],
+            allow_negative: bool
+        ) -> Number:
         if allow_negative:
             return min(max(value, -maximum), maximum)
         return min(max(value, 0), maximum)

@@ -34,8 +34,16 @@ class TableMisc(ConfigTable):
     database_backup_max_count: int = ClampedNumericField(50, 1, 500)
 
     # metrics
-    density: float = ClampedNumericField(1.0, constants.DENSITY_MINIMUM, constants.DENSITY_MAXIMUM)
-    scale_font: float = ClampedNumericField(1.0, constants.DENSITY_MINIMUM, constants.DENSITY_MAXIMUM)
+    density: float = ClampedNumericField(
+        1.0,
+        constants.DENSITY_MINIMUM,
+        constants.DENSITY_MAXIMUM
+    )
+    scale_font: float = ClampedNumericField(
+        1.0,
+        constants.DENSITY_MINIMUM,
+        constants.DENSITY_MAXIMUM
+    )
 
     # graphics
     fps: int = ClampedNumericField(60, 10, 240)

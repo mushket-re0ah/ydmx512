@@ -40,13 +40,19 @@ if TYPE_CHECKING:
 
 class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
     playback: "RowPlayback" = ObjectProperty()
-    def _serialize_rows_by_patch(self, value: Dict[RowPatch, List[PlaybackRenderRow]]) -> Dict[str, List[Dict[str, Any]]]:
+    def _serialize_rows_by_patch(
+            self,
+            value: Dict[RowPatch, List[PlaybackRenderRow]]
+        ) -> Dict[str, List[Dict[str, Any]]]:
         data: Dict[str, List[Dict[str, Any]]] = {}
         for patch, rows in value.items():
             data[str(patch._id)] = [row.serialize() for row in rows]
         return data
 
-    def _deserialize_rows_by_patch(self, value: Dict[str, Dict[str, Any]]) -> Dict[RowPatch, List[PlaybackRenderRow]]:
+    def _deserialize_rows_by_patch(
+            self,
+            value: Dict[str, Dict[str, Any]]
+        ) -> Dict[RowPatch, List[PlaybackRenderRow]]:
         restored: Dict[RowPatch, List[PlaybackRenderRow]] = {}
         for patch_id_str, rows_data in value.items():
             patch_id = int(patch_id_str)
@@ -69,13 +75,19 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         deserialize=_deserialize_rows_by_patch,
     )
 
-    def _serialize_row_phase_specs_by_patch(self, value: Dict[RowPatch, List[RowPhaseSpec]]) -> Dict[str, List[Dict[str, Any]]]:
+    def _serialize_row_phase_specs_by_patch(
+            self,
+            value: Dict[RowPatch, List[RowPhaseSpec]]
+        ) -> Dict[str, List[Dict[str, Any]]]:
         data: Dict[str, List[Dict[str, Any]]] = {}
         for patch, specs in value.items():
             data[str(patch._id)] = [spec.serialize() for spec in specs]
         return data
 
-    def _deserialize_row_phase_specs_by_patch(self, value: Dict[str, List[Dict[str, Any]]]) -> Dict[RowPatch, List[RowPhaseSpec]]:
+    def _deserialize_row_phase_specs_by_patch(
+            self,
+            value: Dict[str, List[Dict[str, Any]]]
+        ) -> Dict[RowPatch, List[RowPhaseSpec]]:
         restored: Dict[RowPatch, List[RowPhaseSpec]] = {}
         for patch_id_str, specs_data in value.items():
             patch_id = int(patch_id_str)
@@ -94,7 +106,10 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         deserialize=_deserialize_row_phase_specs_by_patch
     )
 
-    def _serialize_interpatch_specs(self, value: Dict[RowPatch, InterpatchSpec]) -> Dict[str, Dict[str, Any]]:
+    def _serialize_interpatch_specs(
+            self,
+            value: Dict[RowPatch, InterpatchSpec]
+        ) -> Dict[str, Dict[str, Any]]:
         unique_specs = set(value.values())
         data: Dict[str, Dict[str, Any]] = {}
         for spec in unique_specs:
@@ -104,7 +119,10 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             data[str(master_patch_id)] = spec.serialize()
         return data
 
-    def _deserialize_interpatch_specs(self, value: Dict[str, Dict[str, Any]]) -> Dict[RowPatch, InterpatchSpec]:
+    def _deserialize_interpatch_specs(
+            self,
+            value: Dict[str, Dict[str, Any]]
+        ) -> Dict[RowPatch, InterpatchSpec]:
         restored: Dict[RowPatch, InterpatchSpec] = {}
         for master_patch_id_str, spec_data in value.items():
             spec = InterpatchSpec()
@@ -236,11 +254,13 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         self.dispatch("on_render_changed")
 
     def set_row_active(self, active: bool, render_rows: List[PlaybackRenderRow]):
-        self.execute_command(CommandSetActive(self, render_rows, {row: active for row in render_rows}))
+        self.execute_command(
+            CommandSetActive(self, render_rows, {row: active for row in render_rows})
+        )
 
     def add_dot_by_x(
             self,
-            x: int, y: int, dot_type: InterpolationType,
+            x: float, y: float, dot_type: InterpolationType,
             render_rows: List[PlaybackRenderRow]) -> Tuple[List[DMXRenderDot], bool]:
         self._activate_rows_if_needed(render_rows)
         source_rows = self._get_dots_source_rows(render_rows)
@@ -248,7 +268,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         success = self.execute_command(command)
         return command.added_dots, success
 
-    def remove_dot_by_x(self, x: int, render_rows: List[PlaybackRenderRow]):
+    def remove_dot_by_x(self, x: float, render_rows: List[PlaybackRenderRow]):
         self._activate_rows_if_needed(render_rows)
         source_rows = self._get_dots_source_rows(render_rows)
         rows_dots = render_utils.get_rows_to_dots_by_x(source_rows, x)
@@ -281,7 +301,11 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             diff_y: float) -> Optional[List[DMXRenderDot]]:
         self._activate_rows_if_needed(render_rows)
         source_rows = self._get_dots_source_rows(render_rows)
-        rows_dots = self._filter_dots_for_rows(render_utils.get_rows_to_dots_all(source_rows), dots, reverse=diff_x > 0)
+        rows_dots = self._filter_dots_for_rows(
+            render_utils.get_rows_to_dots_all(source_rows),
+            dots,
+            reverse=diff_x > 0
+        )
         command = CommandMoveDot(self, source_rows, rows_dots, start_positions, diff_x, diff_y)
         success = self.execute_command(command)
         if not success:
@@ -296,7 +320,12 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
                     dots_to_remove.append(dot)
         self.remove_dot(render_rows, dots_to_remove)
 
-    def clear_rows(self, render_rows: List[PlaybackRenderRow], deactivate:bool=False, clear_phases:bool=False):
+    def clear_rows(
+            self,
+            render_rows: List[PlaybackRenderRow],
+            deactivate:bool=False,
+            clear_phases:bool=False
+        ):
         if clear_phases:
             self.clear_row_phase(render_rows)
             self.remove_interpatch_linked_rows(render_rows)
@@ -314,7 +343,8 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             group = self.get_interpatch_spec(patch)
             if group:
                 # Ищем среди выбранных строк индексы, уже присутствующие в linked_shifts
-                existing_in_rows = [row.fixture_index for row in rows if row.fixture_index in group.linked_shifts]
+                existing_in_rows = [row.fixture_index for row in rows
+                                    if row.fixture_index in group.linked_shifts]
                 if existing_in_rows:
                     ref_amount = group.linked_shifts[existing_in_rows[0]]
                     # Добавляем недостающие индексы с эталонным amount
@@ -335,7 +365,8 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             indices = sorted({row.fixture_index for row in p_render_rows})
             cmd = self._prepare_row_phase_command(
                 patch, indices, phase_amount, phase_curve, phase_inverted,
-                dots=p_render_rows[0].dots if not self._get_existing_row_phase_spec(patch, indices) else None
+                dots=p_render_rows[0].dots if not self._get_existing_row_phase_spec(patch, indices)
+                                           else None
             )
             if cmd:
                 self.execute_command(cmd)
@@ -546,7 +577,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
             patches: List[RowPatch],
             render_rows: List[PlaybackRenderRow]
         ):
-        """Копирует row phase с мастер-патча на slave-патчи перед созданием/обновлением interpatch."""
+        """Копирует row phase с мастер-патча на slave-патчи."""
         master_patch = patches[0]
         master_specs: List[RowPhaseSpec] = []
         for row in render_rows:
@@ -576,7 +607,9 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
     def remove_interpatch_linked_rows(self, render_rows: List[PlaybackRenderRow]):
         if not render_rows:
             return
-        _specs: Set[Optional[InterpatchSpec]] = {self.get_interpatch_spec(row.patch) for row in render_rows}
+        _specs: Set[Optional[InterpatchSpec]] = {
+            self.get_interpatch_spec(row.patch) for row in render_rows
+        }
         _specs.discard(None)
         specs: FrozenSet[InterpatchSpec] = frozenset(_specs)
         for spec in specs:
@@ -588,7 +621,9 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
                     rp_spec = self.get_row_phase_spec(row.patch, row.fixture_index)
                     if rp_spec:
                         indices_to_remove.update(rp_spec.indices)
-            new_shifts = {idx: val for idx, val in spec.linked_shifts.items() if idx not in indices_to_remove}
+            new_shifts = {
+                idx: val for idx, val in spec.linked_shifts.items() if idx not in indices_to_remove
+            }
             if not new_shifts:
                 self.clear_interpatch_phase(spec.master_patch)
             else:
@@ -601,7 +636,10 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         if inactive:
             self.set_row_active(True, inactive)
 
-    def _get_dots_source_rows(self, render_rows: List[PlaybackRenderRow]) -> List[PlaybackRenderRow]:
+    def _get_dots_source_rows(
+            self,
+            render_rows: List[PlaybackRenderRow]
+        ) -> List[PlaybackRenderRow]:
         sources: List[PlaybackRenderRow] = []
         seen: Set[int] = set()
         for row in render_rows:
@@ -659,12 +697,12 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
 
     def _prepare_interpatch_command(
             self,
-            existing_spec: InterpatchSpec,
+            existing_spec: Optional[InterpatchSpec],
             patches: List[RowPatch],
             linked_shifts: Dict[int, float]
             ) -> Union[CommandUpdateInterpatchSpec, CommandCreateInterpatchSpec]:
         """Возвращает команду для создания/обновления interpatch спецификации."""
-        if existing_spec:
+        if existing_spec is not None:
             new_shifts = existing_spec.linked_shifts.copy()
             new_shifts.update(linked_shifts)
             return CommandUpdateInterpatchSpec(

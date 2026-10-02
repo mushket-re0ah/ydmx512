@@ -44,7 +44,12 @@ class PatchMapSection(AutoUnbindBehavior, SectionPanel):
     def _dispatch_selected(self, _: WorkspaceBehavior, selected: Tuple[PatchUi, ...]):
         self.property("selected").dispatch(self)
 
-    def on_workspace_opened(self, _: WorkspaceManager, workspace_index: int, workspace: WorkspaceBehavior):
+    def on_workspace_opened(
+            self,
+            _: WorkspaceManager,
+            workspace_index: int,
+            workspace: WorkspaceBehavior
+        ):
         self.unbind_from(self.workspace_now)
         self.workspace_now = workspace
         self.bind_to(workspace, selected=self._dispatch_selected)

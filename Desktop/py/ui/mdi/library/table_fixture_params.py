@@ -20,7 +20,9 @@ _columns_config = (
             config.data_attribute,
             "Динамический" if db_row.is_dynamic else "Статический",
         ),
-        sync_setter_row=lambda db_row, config, widget, value: db_row.edit(is_dynamic=value == "Динамический"),
+        sync_setter_row=lambda db_row, config, widget, value: db_row.edit(
+                is_dynamic=value == "Динамический"
+        ),
         sorting_rule=lambda db_row: "Динамический" if db_row.is_dynamic else "Статический",
         other_attributes={
             "values": ("Статический", "Динамический"),

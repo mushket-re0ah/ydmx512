@@ -23,7 +23,12 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
     is_attack: bool = BooleanField(False)
     is_release: bool = BooleanField(False)
     soft_play: bool = BooleanField(False)
-    midi_channel: Optional[int] = ClampedNumericField(None, 0, constants.MIDI_MAXIMUM_CHANNEL, allownone=True)
+    midi_channel: Optional[int] = ClampedNumericField(
+        None,
+        0,
+        constants.MIDI_MAXIMUM_CHANNEL,
+        allownone=True
+    )
     hotkey: str = StringField("A")
 
     status: PlayerStatus = EnumProperty(PlayerStatus, PlayerStatus.STOP, rebind=True)
@@ -90,7 +95,7 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
             self._remove_beat_counter()
             self.soft_renderer.reset(status)
 
-    def on_soft_play(self, _, _soft_play: bool):
+    def on_soft_play(self, _, soft_play: bool):
         self.soft_renderer.reset(PlayerStatus.STOP)
 
     beat_counter: Optional[BeatCounter] = BindableObjectProperty(

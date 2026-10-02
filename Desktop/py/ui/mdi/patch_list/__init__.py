@@ -29,7 +29,10 @@ class MDIPatchList(DatabaseMDIWindow):
         "menu.input_fixture/selected": {
             "default": db.fixture.get_default_row(),
             "serialize": table_ref_serializer(),
-            "deserialize": table_ref_deserializer(lambda: db.fixture, fallback_fn=lambda: db.fixture.get_default_row())
+            "deserialize": table_ref_deserializer(
+                lambda: db.fixture,
+                fallback_fn=lambda: db.fixture.get_default_row()
+            )
         },
         "menu.input_add_address/value": 1,
         "menu.input_set_universe/value": 1,

@@ -118,7 +118,10 @@ class DesktopMapSection(SectionPanel):
 
     def on_remove_desktop_uix(self, _: TableDesktopUix, desktop_uix: RowDesktopUix):
         workspace = self.workspace_manager.workspace_now
-        desktop_uix_ui = next((i for i in workspace.grid_items if i.desktop_uix is desktop_uix), None)
+        desktop_uix_ui = next(
+            (i for i in workspace.grid_items if i.desktop_uix is desktop_uix),
+            None
+        )
         if desktop_uix_ui is not None:
             desktop_uix_ui._self_destroy()
 

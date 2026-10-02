@@ -40,7 +40,13 @@ class RenderDots(List[DMXRenderDot]):
         pos = bisect.bisect_left([d.x for d in self], dot.x)
         self.insert(pos, dot)
 
-    def add_dot(self, x: float, y: float, dot_type: InterpolationType, grid: XYGrid) -> Optional[DMXRenderDot]:
+    def add_dot(
+            self,
+            x: float,
+            y: float,
+            dot_type: InterpolationType,
+            grid: XYGrid
+        ) -> Optional[DMXRenderDot]:
         frame = grid.to_frame_x(x)
         if any(grid.to_frame_x(dot.x) == frame for dot in self):
             return None
@@ -101,7 +107,13 @@ class RenderDots(List[DMXRenderDot]):
                 return dot
         return None
 
-    def find_dots_by_area(self, x: float, y: float, width: float, height: float) -> List[DMXRenderDot]:
+    def find_dots_by_area(
+            self,
+            x: float,
+            y: float,
+            width: float,
+            height: float
+        ) -> List[DMXRenderDot]:
         x_min = min(x, x + width)
         x_max = max(x, x + width)
         y_min = min(y, y + height)
@@ -116,7 +128,10 @@ class RowPhaseSpec(SerializableMixin):
     patch: RowPatch = ObjectProperty()
     indices: List[int] = ListField()  # упорядоченный список fixture_index
     amount: float = ClampedNumericField(0.0, -1.0, 1.0)
-    curve: RowPhaseCurveType = RefField(lambda: db.phase_curve_type, default_factory=lambda: db.phase_curve_type.get_default_row())
+    curve: RowPhaseCurveType = RefField(
+        lambda: db.phase_curve_type,
+        default_factory=lambda: db.phase_curve_type.get_default_row()
+    )
     inverted: bool = BooleanField(False)
     dots: RenderDots = ObjectField(
         default_factory=lambda: RenderDots([]),

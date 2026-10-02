@@ -26,7 +26,9 @@ from ui.mdi.scenes import MDIScenes
 from ui.mdi.settings import MDISettings
 
 if TYPE_CHECKING:
-    from ui.components.database_workspace_mdi_container_manager import DatabaseWorkspaceMDIContainerManager
+    from ui.components.database_workspace_mdi_container_manager import (
+        DatabaseWorkspaceMDIContainerManager,
+    )
 
 
 Builder.load_file("ui/main_ribbon/main_ribbon.kv")

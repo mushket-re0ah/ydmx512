@@ -1,4 +1,4 @@
-from typing import Any, Callable, Literal, Optional, Tuple
+from typing import Any, Literal, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher

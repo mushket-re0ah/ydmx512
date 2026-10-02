@@ -6,3 +6,8 @@ from libs.sdl2_keyboard.manager import (
     register_context,
     unregister_context,
 )
+
+__all__ = (
+    "KeyboardBehavior", "KeyboardInputContext", "hotkey_to_str", "init", "register_context",
+    "unregister_context"
+)

@@ -8,7 +8,10 @@ from libs.serialize import serializable_or_raw_serializer
 class RowMDIWindow(DatabaseRow):
     title_id: str = StringField()
     layout_state: Dict[str, Any] = DictField()
-    view_context: Dict[str, Any] = ObjectField(serialize=serializable_or_raw_serializer(), deserialize=lambda self, v: v, allownone=True)
+    view_context: Dict[str, Any] = ObjectField(
+        serialize=serializable_or_raw_serializer(),
+        deserialize=lambda self, v: v, allownone=True
+    )
 
 
 class TableMDIWindow(DatabaseTable):

@@ -9,7 +9,7 @@ from kivy.uix.widget import Widget
 from libs import logger
 
 
-def _values_differ(obj: EventDispatcher, prop: Property, old: Any, new: Any):
+def _values_differ(obj: EventDispatcher, prop: Property, old: Any, new: Any) -> bool:
     comparator = getattr(prop, "comparator", None)
     if comparator is not None:
         try:
@@ -21,7 +21,7 @@ def _values_differ(obj: EventDispatcher, prop: Property, old: Any, new: Any):
             return True
     try:
         return not bool(old == new)
-    except Exception:
+    except Exception as e:
         logger.warning(
             f'Property: Value comparison failed for {obj} with "{e}". Consider setting '
             'force_dispatch to True to avoid this.')

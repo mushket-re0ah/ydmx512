@@ -10,8 +10,9 @@ if TYPE_CHECKING:
 
 
 class PlaybackMasterPlayer:
+    player_list: List["PlaybackPlayer"]
     def __init__(self):
-        self.player_list: List["PlaybackPlayer"] = []
+        self.player_list = []
         self.loop = ThrottledCall(self._loop, constants.DMX_WRITE_INTERVAL)
 
     def add_playback(self, player: "PlaybackPlayer"):

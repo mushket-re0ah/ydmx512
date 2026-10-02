@@ -45,11 +45,13 @@ class MDIChecker(DatabaseMDIWindow):
             scroll_element=self.setter("address_start")
         )
 
+    def get_address_start(self) -> int:
+        return self.channels_ui.channel_sliders.scroll_element + 1
     def set_address_start(self, scroll_element: int) -> bool:
         self.channels_ui.channel_sliders.scroll_element = scroll_element
         return True
     address_start: int = AliasProperty(
-        lambda self: self.channels_ui.channel_sliders.scroll_element + 1 if self.channels_ui.channel_sliders.scroll_element else 0,
+        get_address_start,
         set_address_start
     )
 

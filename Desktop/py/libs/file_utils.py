@@ -49,7 +49,7 @@ def atomic_json_save(
 def json_load(filepath: Path) -> Optional[Dict[str, Any]]:
     data = None
     try:
-        with open(filepath, "r", encoding="utf8") as fptr:
+        with open(filepath, "r", encoding="utf8") as fptr:  # noqa: UP015
             data = json.loads(fptr.read())
     except Exception as e:
         logger.debug(f"{filepath} not exist, about: {e}")

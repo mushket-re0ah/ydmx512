@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Dict, FrozenSet, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, FrozenSet, List, Optional, Tuple, TypedDict
 
 from kivy.input.motionevent import MotionEvent
 
@@ -21,6 +21,13 @@ class FlexMode(str, Enum):
     LEFT = "left"
     RIGHT = "right"
     VERTICAL = "vertical"
+
+
+class FlexStateDict(TypedDict):
+    mode: FlexMode
+    size_hint: Tuple[float, float]
+    size: Tuple[float, float]
+    pos: Tuple[float, float]
 
 
 class FloatingLayoutMode(ILayoutMode):
@@ -216,15 +223,15 @@ class FloatingLayoutMode(ILayoutMode):
     def _reset_flex(self, mdi: MDIWindow):
         if self._get_mdi_flex_mode(mdi) is not None:
             mdi.size_hint = mdi.get_layout_state("size_hint", (None, None))
-            mdi.size = mdi.get_layout_state("size", mdi.size[:])
-            mdi.pos = mdi.get_layout_state("pos", mdi.pos[:])
+            mdi.size = mdi.get_layout_state("size", tuple(mdi.size))
+            mdi.pos = mdi.get_layout_state("pos", tuple(mdi.pos))
             mdi.set_layout_state(flex=None)
             mdi.opacity = 1
 
-    def _get_mdi_flex_state(self, mdi: MDIWindow):
+    def _get_mdi_flex_state(self, mdi: MDIWindow) -> Optional[FlexStateDict]:
         return mdi.get_layout_state("flex", None)
 
-    def _get_mdi_flex_mode(self, mdi: MDIWindow):
+    def _get_mdi_flex_mode(self, mdi: MDIWindow) -> Optional[FlexMode]:
         flex = mdi.get_layout_state("flex", None)
 
         if flex is None:
@@ -292,7 +299,10 @@ class FloatingLayoutMode(ILayoutMode):
         if mdi.parent is not None:
             self.mdi_container.layout_remove_widget(mdi)
         self.mdi_container.layout_add_widget(mdi)
-        for locked_mdi in (i for i in self.mdi_container.mdi_list_showed if i.get_layout_state("locked", False)):
+        for locked_mdi in (
+                i for i in self.mdi_container.mdi_list_showed
+                if i.get_layout_state("locked", False)
+            ):
             self.mdi_container.layout_remove_widget(locked_mdi)
             self.mdi_container.layout_add_widget(locked_mdi)
 

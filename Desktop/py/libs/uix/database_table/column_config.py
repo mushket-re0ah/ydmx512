@@ -155,7 +155,9 @@ class ColumnConfigTemplates:
     def button_copy(**kwargs: Any) -> ColumnConfig:
         return ColumnConfigTemplates.button(**merge_kwargs({
             "header_text": "Копировать",
-            "value_setter": lambda widget, db_row: ColumnConfigTemplates.static_value_setter(widget, "text", "Копировать"),
+            "value_setter": lambda widget, db_row: ColumnConfigTemplates.static_value_setter(
+                widget, "text", "Копировать"
+            ),
             "sorting_block": True,
             "other_attributes": {
                 "__custom_event__on_release": ColumnConfigTemplates._on_copy_press
@@ -170,7 +172,9 @@ class ColumnConfigTemplates:
     def button_edit(**kwargs: Any) -> ColumnConfig:
         return ColumnConfigTemplates.button(**merge_kwargs({
             "header_text": "Редактировать",
-            "value_setter": lambda widget, db_row: ColumnConfigTemplates.static_value_setter(widget, "text", "Редактировать"),
+            "value_setter": lambda widget, db_row: ColumnConfigTemplates.static_value_setter(
+                widget, "text", "Редактировать"
+            ),
             "sorting_block": True,
             "other_attributes": {
                 "__custom_event__on_release": ColumnConfigTemplates._on_edit_press
@@ -185,7 +189,9 @@ class ColumnConfigTemplates:
     def button_remove(**kwargs: Any) -> ColumnConfig:
         return ColumnConfigTemplates.button(**merge_kwargs({
             "header_text": "Удалить",
-            "value_setter": lambda widget, db_row: ColumnConfigTemplates.static_value_setter(widget, "text", "Удалить"),
+            "value_setter": lambda widget, db_row: ColumnConfigTemplates.static_value_setter(
+                widget, "text", "Удалить"
+            ),
             "sorting_block": True,
             "other_attributes": {
                 "__custom_event__on_release": ColumnConfigTemplates._on_remove_press,

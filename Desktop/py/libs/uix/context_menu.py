@@ -62,7 +62,11 @@ Builder.load_string("""
         Color:
             rgba: (0.6, 0.6, 0.6, 1)
         SmoothTriangle:
-            points: [self.right - dp(13), self.center_y + dp(3), self.right - dp(13), self.center_y - dp(3), self.right - dp(6), self.center_y]
+            points: [\
+                self.right - dp(13), self.center_y + dp(3),\
+                self.right - dp(13), self.center_y - dp(3),\
+                self.right - dp(6), self.center_y\
+            ]
 
 
 

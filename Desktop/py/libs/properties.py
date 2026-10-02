@@ -57,7 +57,11 @@ class BindableObjectProperty(ObjectProperty):
         self._call_on_set(obj, value)
         return True
 
-    def _resolve_callback(self, obj: EventDispatcher, spec: Union[str, KivyCallback]) -> Optional[KivyCallback]:
+    def _resolve_callback(
+            self,
+            obj: EventDispatcher,
+            spec: Union[str, KivyCallback]
+        ) -> Optional[KivyCallback]:
         if isinstance(spec, str):
             return getattr(obj, spec, None)
         return spec
@@ -95,8 +99,10 @@ class ContextualNumericProperty(NumericProperty):
             decimals_getter: Optional[Callable[[EventDispatcher], Number]]=None,
             **kwargs: Any):
         super().__init__(default, **kwargs)
-        self._min_getter = min_getter if min_getter is not None else ContextualNumericProperty._default_min_getter
-        self._max_getter = max_getter if max_getter is not None else ContextualNumericProperty._default_max_getter
+        self._min_getter = min_getter if min_getter is not None else\
+                           ContextualNumericProperty._default_min_getter
+        self._max_getter = max_getter if max_getter is not None else\
+                           ContextualNumericProperty._default_max_getter
         self._dependencies = tuple(dependencies) if dependencies is not None else ()
         self._bound_objects = {}
         self._decimals_getter = decimals_getter
@@ -189,8 +195,8 @@ class DeepAliasProperty(AliasProperty):
             if current is None:
                 break
 
-            def make_callback(self_ref=ref(self), obj_ref=self._obj_ref):
-                def cb(*_l, **_k):
+            def make_callback(self_ref=ref(self), obj_ref=self._obj_ref) -> Callable[..., None]:
+                def cb(*_l: Any, **_k: Any):
                     instance = obj_ref()
                     prop = self_ref()
                     if instance is not None and prop is not None:

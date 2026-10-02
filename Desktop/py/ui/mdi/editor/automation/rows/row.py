@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.graphics import Color, SmoothEllipse, SmoothLine
@@ -155,7 +155,10 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
     def to_pixel_coords(self, frame_x: int, frame_y: int) -> Tuple[float, float]:
         """Конвертирует фреймы (кадр, значение 0-255) в пиксели внутри такт-бокса."""
         x_pixel = self.x + self.padding_x + frame_x * self.automation.quant_width
-        y_pixel = self.y + self.padding_y + (frame_y / self.row_panel.xy_grid.size_y_getter()) * (self.height - 2 * self.padding_y)
+        y_pixel = (
+            self.y + self.padding_y +
+            (frame_y / self.row_panel.xy_grid.size_y_getter()) * (self.height - 2 * self.padding_y)
+        )
         return (x_pixel, y_pixel)
 
     def to_frame_coords(
@@ -208,8 +211,16 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
             for x_beat, x_halfbeat in self.automation.beats_x_pos:
                 x_beat = self.to_widget(x_beat, 0)[0]
                 x_halfbeat = self.to_widget(x_halfbeat, 0)[0]
-                beat_line_points.extend([x_beat, y, x_beat, self.top, float("nan"), float("nan")])
-                halfbeat_line_points.extend([x_halfbeat, y, x_halfbeat, y + self.HALFBEAT_HEIGHT, float("nan"), float("nan")])
+                beat_line_points.extend([
+                    x_beat, y,
+                    x_beat, self.top,
+                    float("nan"), float("nan")
+                ])
+                halfbeat_line_points.extend([
+                    x_halfbeat, y,
+                    x_halfbeat, y + self.HALFBEAT_HEIGHT,
+                    float("nan"), float("nan")
+                ])
             x_beat = self.right - self.padding_x
             beat_line_points.extend([x_beat, self.y, x_beat, self.top, float("nan"), float("nan")])
         self.beat_line_points = tuple(beat_line_points)
@@ -231,7 +242,12 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
         return render[frame] if render else None
 
     def draw_render_lines(self):
-        if not self.playback or not self.row_param or not self.row_param.render_rows or not self.data_row.active:
+        if (
+            not self.playback or
+            not self.row_param or
+            not self.row_param.render_rows or
+            not self.data_row.active
+        ):
             return
         quant_width, quant_height = self.quant_size
         x = self.x + self.padding_x
@@ -337,7 +353,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
     def get_dot_radius(self) -> float:
         quant_width, _ = self.quant_size
         return max(quant_width / 2, 1)
-    dot_radius: Tuple[float, float] = AliasProperty(
+    dot_radius: float = AliasProperty(
         get_dot_radius,
         bind=("quant_size",)
     )
@@ -538,7 +554,12 @@ class RowParam(RecycleDataViewBehavior, AutoUnbindBehavior, BoxLayout):
         super().__init__(**kwargs)
         self._update_trigger = Clock.create_trigger(self.update, -1)
 
-    def refresh_view_attrs(self, rv: RecycleRestrictedScrollView, index: int, data_row: RowParamData):
+    def refresh_view_attrs(
+            self,
+            rv: RecycleRestrictedScrollView,
+            index: int,
+            data_row: RowParamData
+        ):
         if self.data_row is not data_row:
             if self.data_row:
                 self.unbind_from(self.data_row)

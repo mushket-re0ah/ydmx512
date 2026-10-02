@@ -60,7 +60,10 @@ _columns_config = (
         value_setter=_select_button_setter,
         sorting_block=True,
         other_attributes={
-            "__custom_event__on_release": lambda instance: instance.table_row_ui.data["table_ui"].table.change_scene(instance.table_row_ui.data["row"])
+            "__custom_event__on_release": lambda instance:\
+                instance.table_row_ui.data["table_ui"].table.change_scene(
+                    instance.table_row_ui.data["row"]
+            )
         }
     )
 )

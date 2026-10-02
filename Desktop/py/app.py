@@ -96,7 +96,7 @@ class DesktopApp(KeyboardBehavior, App):
             summ = summary.summarize(all_objects)
             summary.print_(summ)
 
-    def build(self):
+    def build(self) -> Root:
         Builder.load_file("ui/root.kv")
         self.root = Root()
         return self.root
@@ -114,10 +114,10 @@ class DesktopApp(KeyboardBehavior, App):
                     left=self._window_position_trigger,
                     top=self._window_position_trigger)
 
-    def _on_window_size(self, _dt: float):
+    def _on_window_size(self, dt: float):
         db.misc.edit(window_size=Window.size)
 
-    def _on_window_position(self, _dt: float):
+    def _on_window_position(self, dt: float):
         db.misc.edit(window_position=(Window.left, Window.top))
 
     def __init_metrics(self):
@@ -147,15 +147,15 @@ class DesktopApp(KeyboardBehavior, App):
             Window.fullscreen = "auto"
             db.misc.edit(fullscreen=True)
 
-    def _on_window_maximize(self, _):
+    def _on_window_maximize(self, _: Any):
         db.misc.edit(maximize=True)
         self._save_maximize = True
 
-    def _on_window_minimize(self, _):
+    def _on_window_minimize(self, _: Any):
         self._if_window_minimize = True
         self._save_maximize = db.misc.maximize
 
-    def _on_window_restore(self, _):
+    def _on_window_restore(self, _: Any):
         if self._if_window_minimize:
             db.misc.edit(maximize=self._save_maximize)
         else:

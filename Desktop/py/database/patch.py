@@ -31,7 +31,11 @@ class RowPatch(SceneRowMixin, DatabaseRow):
     invert_tilt: bool = BooleanField(False)
     correction_pan: int = ClampedNumericField(0, -255, 255)
     correction_tilt: int = ClampedNumericField(0, -255, 255)
-    virtual_dimmer: Number = ClampedNumericField(100, constants.DIMMER_MINIMUM, constants.DIMMER_MAXIMUM)
+    virtual_dimmer: Number = ClampedNumericField(
+        100,
+        constants.DIMMER_MINIMUM,
+        constants.DIMMER_MAXIMUM
+    )
     grid_pos: Tuple[int, int] = ListField([None, None])
     workspace: int = NumericField(0)
 
@@ -137,7 +141,11 @@ class TablePatch(SceneTableMixin, DatabaseTable):
 
         self.address_info = address_info
 
-    def get_address_info(self, universe: int, address: int) -> Optional[List[Tuple[RowPatch, RowFixtureParam]]]:
+    def get_address_info(
+            self,
+            universe: int,
+            address: int
+        ) -> Optional[List[Tuple[RowPatch, RowFixtureParam]]]:
         return self.address_info.get((universe, address), None)
 
     def check_address_conflict(self, universe: int):
@@ -180,7 +188,9 @@ class TablePatch(SceneTableMixin, DatabaseTable):
             if start + length - 1 < used_start:
                 return start
             start = max(start, used_end + 1)
-        return start if start + length - 1 <= constants.DMX_ADDRESS_COUNT else constants.DMX_ADDRESS_COUNT
+        if start + length - 1 <= constants.DMX_ADDRESS_COUNT:
+            return start
+        return constants.DMX_ADDRESS_COUNT
 
     def on_workspace_any_patch(self, patch: RowPatch, workspace: int):
         pass

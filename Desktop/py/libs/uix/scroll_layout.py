@@ -403,7 +403,11 @@ class ScrollLayout(BoxLayout):
         need_h = self.do_scroll_x and (vp.width > sv.width)
         need_v = self.do_scroll_y and (vp.height > sv.height)
         if need_h and not need_v:
-            if (vp.height != sv.height) and vp.height > sv.height - self._get_hbar_thickness() and self.do_scroll_y:
+            if (
+                (vp.height != sv.height)
+                and vp.height > sv.height - self._get_hbar_thickness()
+                and self.do_scroll_y
+            ):
                 need_v = True
 
         self._set_scrollbar_horizontal(need_h)

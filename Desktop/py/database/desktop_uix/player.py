@@ -108,10 +108,14 @@ class DesktopUixPlayer(BasePlayer):
     def set_force_value(self, n: int):
         if self.status is not PlayerStatus.STOP and getattr(self.desktop_uix, f"value_{n}_allow"):
             universe = self.desktop_uix.patch.universe
-            address = self.desktop_uix.patch.start_address + getattr(self.desktop_uix, f"fixture_param_{n}_index")
+            address = self.desktop_uix.patch.start_address +\
+                      getattr(self.desktop_uix, f"fixture_param_{n}_index")
             setattr(self, f"force_full_addr_{n}", FullAddress(universe, address))
 
-            value = self.apply_modifiers(getattr(self.desktop_uix, f"value_{n}"), getattr(self.desktop_uix, f"fixture_param_{n}"))
+            value = self.apply_modifiers(
+                getattr(self.desktop_uix, f"value_{n}"),
+                getattr(self.desktop_uix, f"fixture_param_{n}")
+            )
             self.set_force_delay(universe, address, value)
         else:
             setattr(self, f"force_full_addr_{n}", None)

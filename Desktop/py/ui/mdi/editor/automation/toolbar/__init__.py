@@ -18,7 +18,7 @@ from database.patch import RowPatch
 from database.phase_curve_type import RowPhaseCurveType
 from database.playback import RowPlayback
 from database.playback.renderer import PlaybackRenderer
-from database.playback.renderer.render_data import InterpatchSpec, PlaybackRenderRow, RowPhaseSpec
+from database.playback.renderer.render_data import PlaybackRenderRow, RowPhaseSpec
 from libs.typecheck import OptionalNumber
 from libs.uix.button import HoverToggleButton, OptionToggleButton, OptionToggleButtonContextMenu
 from libs.uix.input.numeric_input import NumericInput

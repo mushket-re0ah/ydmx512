@@ -27,7 +27,10 @@ Builder.load_string("""
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+            pos: (\
+                int(self.center_x - self.texture_size[0] / 2.0),\
+                int(self.center_y - self.texture_size[1] / 2.0)\
+            )
 """
 )
 

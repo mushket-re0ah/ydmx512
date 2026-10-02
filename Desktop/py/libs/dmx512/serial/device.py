@@ -39,7 +39,7 @@ class DMXSerialDevice(SerialDevice):
             **kwargs
         )
 
-    def on_universe(self, _, _universe: int):
+    def on_universe(self, _, universe: int):
         from libs.dmx512 import dmx512
         dmx512.trigger_sync_universe_device()
 
@@ -65,11 +65,13 @@ class DMXSerialDevice(SerialDevice):
             try:
                 code = DMXResultCode(pending_code)
             except ValueError:
-                logger.warning(f"Неизвестный код сообщения: {pending_code:#x}, device.in_waiting={self.device.in_waiting}")
+                logger.warning(f"Неизвестный код сообщения: {pending_code:#x}, "
+                               f"device.in_waiting={self.device.in_waiting}")
                 self.device.reset_input_buffer()
                 return
             if code == DMXResultCode.WATCHDOG_ERROR:
-                logger.warning("WATCHDOG_ERROR в _process_pending_input! Перезагрузка прошивки прошла успешно...")
+                logger.warning("WATCHDOG_ERROR в _process_pending_input!"
+                               "Перезагрузка прошивки прошла успешно...")
                 self.device.reset_input_buffer()
                 # Соединение не потеряно
                 # self._lost_connection()
@@ -89,12 +91,14 @@ class DMXSerialDevice(SerialDevice):
         try:
             exit_code = DMXResultCode(end_msg)
         except ValueError:
-            raise ValueError(f"end_msg={end_msg:#x}, не является известным кодом, msg={data, str(data)}, msg_len={len(data)}")
+            raise ValueError(f"end_msg={end_msg:#x}, не является известным кодом, "
+                             f"msg={data, str(data)}, msg_len={len(data)}")
         if exit_code != DMXResultCode.SUCCESS:
             if exit_code == DMXResultCode.TERMINATE_CONNECTION:
                 logger.info("Соединение завершено корректно")
             else:
-                logger.warning(f"end_msg={exit_code.name} (0x{exit_code.value:02X}), msg={data}, msg_len={len(data)}")
+                logger.warning(f"end_msg={exit_code.name} (0x{exit_code.value:02X}), "
+                               f"msg={data}, msg_len={len(data)}")
         if exit_code == DMXResultCode.WATCHDOG_ERROR:
             logger.error("WATCHDOG_ERROR после записи! Перезагрузка прошивки...")
             raise serial.SerialException("WATCHDOG_ERROR")

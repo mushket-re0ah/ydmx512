@@ -4,7 +4,6 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty
 from kivy.uix.widget import Widget
-from typing_extensions import Self
 
 from libs.uix.behaviors.modal import ModalBehavior
 from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView

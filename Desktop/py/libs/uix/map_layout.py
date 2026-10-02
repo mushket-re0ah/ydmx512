@@ -173,14 +173,20 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
     cell_size: Tuple[float, float] = ReferenceListProperty(cell_width, cell_height)
 
     bg_color: RGBA = ColorProperty(uix_cs.MapLayout.bg)
-    grid_padding: Tuple[float, float, float, float] = VariableListProperty([0, 0, 0, 0], length=4)
+    grid_padding: Tuple[float, float, float, float] = VariableListProperty(
+        (0, 0, 0, 0),
+        length=4
+    )
     grid_show: bool = BooleanProperty(True)
     grid_color: RGBA = ColorProperty(uix_cs.MapLayout.grid_color)
     grid_line_width: float = NumericProperty("1dp")
 
     grid_spacing_width: float = NumericProperty(0)
     grid_spacing_height: float = NumericProperty(0)
-    grid_spacing: Tuple[float, float] = ReferenceListProperty(grid_spacing_width, grid_spacing_height)
+    grid_spacing: Tuple[float, float] = ReferenceListProperty(
+        grid_spacing_width,
+        grid_spacing_height
+    )
 
     max_columns: int = NumericProperty(24)
     max_rows: int = NumericProperty(24)

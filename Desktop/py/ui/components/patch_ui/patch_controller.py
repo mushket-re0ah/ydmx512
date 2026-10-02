@@ -5,11 +5,11 @@ from kivy.lang import Builder
 from kivy.properties import AliasProperty, NumericProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 
-import libs.uix.menu_components  # lazy kv import initialize
+import libs.uix.menu_components  # lazy kv import initialize  # noqa: F401
 from database.fixture_param import RowFixtureParam
 from database.patch import RowPatch
 from libs.dmx512 import dmx512
-from libs.uix import slider  # lazy kv import initialize
+from libs.uix import slider  # lazy kv import initialize  # noqa: F401
 from libs.uix.layouts import ModalBoxLayout
 from libs.uix.scroll_layout import ScrollLayout
 
