@@ -1,4 +1,4 @@
-from typing import Any, Literal, Tuple
+from typing import Any, Literal, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.core.text import DEFAULT_FONT
@@ -36,11 +36,12 @@ Builder.load_string("""
 
 
 class RestrictedLabel(Widget):
-    _font_properties = (
+    _font_properties: Tuple[str, ...] = (
         "text", "font_size", "font_name", "color",
         "halign", "valign", "padding", "text_size",
     )
 
+    _label: Optional[CoreLabel]
     def __init__(self, **kwargs: Any):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
         super().__init__(**kwargs)
@@ -63,43 +64,43 @@ class RestrictedLabel(Widget):
         dkw["usersize"] = self.text_size
         self._label = CoreLabel(**dkw)
 
-    def _trigger_texture_update(self, name=None, source=None, value=None):
+    def _trigger_texture_update(self, name:str="", source:Optional[Widget]=None, value:Any=None):
         # check if the label core class need to be switch to a new one
         if source:
             if name == "text":
-                self._label.text = value
+                self._label.text = value  # pyright: ignore[reportOptionalMemberAccess]
             elif name == "text_size":
-                self._label.usersize = value
+                self._label.usersize = value  # pyright: ignore[reportOptionalMemberAccess]
             elif name == "font_size":
-                self._label.options[name] = value
+                self._label.options[name] = value  # pyright: ignore[reportOptionalMemberAccess]
             else:
-                self._label.options[name] = value
+                self._label.options[name] = value  # pyright: ignore[reportOptionalMemberAccess]
 
         self._trigger_texture()
 
-    def texture_update(self, *_):
+    def texture_update(self, *_:Any):
         self.texture = None
 
-        if (not self._label.text or
+        if (not self._label.text or  # pyright: ignore[reportOptionalMemberAccess]
                 (self.halign == "justify") and
-                not self._label.text.strip()):
+                not self._label.text.strip()):  # pyright: ignore[reportOptionalMemberAccess]
             self.texture_size = (0, 0)
         else:
-            self._label.refresh()
-            texture = self._label.texture
+            self._label.refresh()  # pyright: ignore[reportOptionalMemberAccess]
+            texture = self._label.texture  # pyright: ignore[reportOptionalMemberAccess]
             if texture is not None:
-                self.texture = self._label.texture
-                self.texture_size = list(self.texture.size)
+                self.texture = self._label.texture  # pyright: ignore[reportOptionalMemberAccess]
+                self.texture_size = list(self.texture.size)  # pyright: ignore[reportOptionalMemberAccess, reportAttributeAccessIssue]
 
     text: str = StringProperty("")
 
-    text_size: Tuple[float, float] = ListProperty([None, None])
+    text_size: Tuple[float, float] = ListProperty([None, None])  # pyright: ignore[reportArgumentType]
 
     font_name: str = StringProperty(DEFAULT_FONT)
 
     font_size: float = NumericProperty("15sp")
 
-    padding: Tuple[float, float, float, float] = VariableListProperty([0, 0, 0, 0])
+    padding: Tuple[float, float, float, float] = VariableListProperty([0, 0, 0, 0])  # pyright: ignore[reportArgumentType]
 
     halign: Literal["left", "center", "right", "justify", "auto"] = OptionProperty(
                         "auto", options=["left", "center", "right", "justify", "auto"])
@@ -114,6 +115,6 @@ class RestrictedLabel(Widget):
         }
     )
 
-    texture: Texture = ObjectProperty(None, allownone=True)
+    texture: Optional[Texture] = ObjectProperty(None, allownone=True)
 
-    texture_size: Tuple[int, int] = ListProperty([0, 0])
+    texture_size: Tuple[int, int] = ListProperty([0, 0])  # pyright: ignore[reportArgumentType]

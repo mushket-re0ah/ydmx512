@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class MDIPatchList(DatabaseMDIWindow):
-    _db_title_id: str = "patch_list"
+    db_title_id: str = "patch_list"
     title: str = StringProperty("Патч-лист")
 
     menu: "PatchListMenu" = ObjectProperty()

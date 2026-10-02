@@ -38,7 +38,7 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
             float_layout = workspace_layout
         elif db_row.layout_mode == TilingLayoutMode.layout_state_key:
             float_layout = list(chain.from_iterable(workspace_layout))
-        mdi_focused = next(mdi for mdi in float_layout if mdi._db_title_id == db_row.mdi_focused)
+        mdi_focused = next(mdi for mdi in float_layout if mdi.db_title_id == db_row.mdi_focused)
         workspace.set_focus(mdi_focused)
 
     def on_workspace_opened(self, workspace_index: int, workspace: WorkspaceBehavior):
@@ -99,7 +99,7 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
         if mdi_focused is None:
             db_row.edit(mdi_focused=None)
         else:
-            db_row.edit(mdi_focused=mdi_focused._db_title_id)
+            db_row.edit(mdi_focused=mdi_focused.db_title_id)
 
     def _get_serialized_workspace_layout(
             self,
@@ -107,10 +107,10 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
         ) -> Union[List[str], List[List[str]]]:
         layout_mode = workspace.layout_mode
         if isinstance(layout_mode, FloatingLayoutMode):
-            return [i._db_title_id for i in layout_mode.get_layout()]
+            return [i.db_title_id for i in layout_mode.get_layout()]
         if isinstance(layout_mode, TilingLayoutMode):
             return [
-                [mdi._db_title_id for mdi in mdi_group]
+                [mdi.db_title_id for mdi in mdi_group]
                 for mdi_group in layout_mode.get_layout()
             ]
         raise RuntimeError()
@@ -120,7 +120,7 @@ class DatabaseWorkspaceMDIContainerManager(WorkspaceMDIContainerManager):
             layout: Union[List[str], List[List[str]]],
             mdi_list: List[MDIWindow]
         ) -> List[MDIWindow]:
-        mdi_by_title_id = {mdi._db_title_id: mdi for mdi in mdi_list}
+        mdi_by_title_id = {mdi.db_title_id: mdi for mdi in mdi_list}
         def deserialize(value: Union[str, List[str]]) -> Union[MDIWindow, List[MDIWindow]]:
             if isinstance(value, list):
                 return [deserialize(item) for item in value]

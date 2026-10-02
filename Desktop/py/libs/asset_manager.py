@@ -35,13 +35,13 @@ class FileAssetManager:
         return None
 
     def add_asset(self, key: Any, asset: SerializableMixin) -> bool:
-        asset_dir = self._get_asset_dirname(key)
+        asset_dir = self.get_asset_dirname(key)
         asset_dir.mkdir(exist_ok=True)
         filepath = asset_dir / self._get_asset_filename(asset)
         return self._save_asset(filepath, asset)
 
     def get_asset_list(self, key: Any) -> List[Any]:
-        asset_dir = self._get_asset_dirname(key)
+        asset_dir = self.get_asset_dirname(key)
         if not asset_dir.is_dir():
             return []
         return [
@@ -49,6 +49,9 @@ class FileAssetManager:
             for fp in asset_dir.iterdir()
             if fp.is_file() and fp.suffix == self.extension
         ]
+
+    def get_asset_dirname(self, key: Any) -> Path:
+        return self.dirname / self._key_to_string(key)
 
     def _serialize(self, asset: Any) -> Any:
         return asset.serialize()
@@ -60,7 +63,7 @@ class FileAssetManager:
         return f"{self._get_asset_stem(asset)}{self.extension}"
 
     def _get_asset_stem(self, asset: SerializableMixin) -> str:
-        return asset.title
+        raise NotImplementedError()
 
     def _save_asset(self, filepath: Path, asset: SerializableMixin) -> bool:
         try:
@@ -72,9 +75,6 @@ class FileAssetManager:
 
     def _load_asset(self, filepath: Path) -> Any:
         return json_load(filepath)
-
-    def _get_asset_dirname(self, key: Any) -> Path:
-        return self.dirname / self._key_to_string(key)
 
     def _key_to_string(self, key: Any) -> str:
         return str(key)

@@ -7,7 +7,7 @@ from kivy.uix.widget import Widget
 
 from database import db
 from database.patch import RowPatch
-from database.scene import RowScene
+from database.scene import RowScene, TableScene
 from libs.uix.layouts import MenuPanel
 from libs.uix.workspace_manager import WorkspaceBehavior
 from ui.mdi.editor.maps.patch.patch_ui import EditorPatchUi
@@ -81,7 +81,7 @@ class PatchEditorMap(MenuPanel):
         patch_ui.parent.remove_widget(patch_ui)
         workspace.add_widget(patch_ui)
 
-    def on_scene_change(self, _table, _old_scene: RowScene, _new_scene: RowScene):
+    def on_scene_change(self, table: TableScene, _old_scene: RowScene, _new_scene: RowScene):
         self.__init_workspace_manager()
 
     def __init_workspace_manager(self):

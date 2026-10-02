@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from kivy.event import EventDispatcher
 from kivy.properties import AliasProperty, NumericProperty
@@ -6,9 +6,9 @@ from kivy.properties import AliasProperty, NumericProperty
 from libs.properties import ClampedNumericProperty
 
 
-def _raise_error(*args, **kwargs):
+def _raise_error(*args: Any, **kwargs: Any):
     raise RuntimeError("beat_counter module is not initialized")
-BeatCounter = _raise_error
+BeatCounter = _raise_error  # pyright: ignore[reportAssignmentType]
 loop = _raise_error
 def init(
         TEMP_MINIMUM: int,

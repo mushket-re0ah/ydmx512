@@ -47,16 +47,15 @@ def _resolve_table(table_source: TableSource, obj:Optional[SerializableMixin]=No
         return obj.database.get(table_source)
     return table_source()
 
-def table_ref_serializer(id_attr:str="_id") -> Serializer:
+def table_ref_serializer() -> Serializer:
     def serialize(self: SerializableMixin, value: Optional["DatabaseRow"]) -> Optional[int]:
         if value is None:
             return None
-        return getattr(value, id_attr)
+        return value.id_
     return serialize
 
 def table_ref_deserializer(
     table_source: TableSource,
-    id_attr:str="_id",
     fallback_fn: Optional[FallbackCb]=None,
 ) -> Deserializer:
     def deserialize(
@@ -74,14 +73,13 @@ def table_ref_deserializer(
 
     return deserialize
 
-def list_of_refs_serializer(id_attr:str="_id") -> Serializer:
+def list_of_refs_serializer() -> Serializer:
     def serialize(self: SerializableMixin, value: List["DatabaseRow"]) -> List[int]:
-        return [getattr(item, id_attr) for item in value]
+        return [item.id_ for item in value]
     return serialize
 
 def list_of_refs_deserializer(
         table_source: TableSource,
-        id_attr:str="_id",
         fallback_fn:Optional[FallbackCb]=None
     ) -> Deserializer:
     def deserialize(self: SerializableMixin, value: List[int]) -> List["DatabaseRow"]:
@@ -114,7 +112,7 @@ class FieldMixin(SerializableMixinProperty):
         if hasattr(obj, "_it_is_table"):
             is_loading = obj.is_loading
         else:
-            is_loading = obj._table.is_loading if hasattr(obj, "_table") else False
+            is_loading = obj.table.is_loading if hasattr(obj, "table") else False
         if result and hasattr(obj, "save") and not is_loading:
             obj.save()
         return result
@@ -206,8 +204,8 @@ class NestedField(FieldMixin, ObjectProperty):
         super().__init__(*args, **kwargs)
 
     def set(self, obj: SerializableMixin, value: Optional[SerializableMixin]) -> Any:
-        if value is not None and hasattr(obj, "_table"):
-            value._table = obj._table
+        if value is not None and hasattr(obj, "table"):
+            value.table = obj.table
         return super().set(obj, value)
 
 

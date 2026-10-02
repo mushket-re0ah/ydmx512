@@ -1,4 +1,4 @@
-from typing import List
+from typing import Tuple
 
 import rtmidi
 from kivy.event import EventDispatcher
@@ -9,7 +9,7 @@ from libs.midi.device import MidiDevice
 
 
 class MidiObserver(EventDispatcher):
-    devices: List[MidiDevice] = ListProperty()
+    devices: Tuple[MidiDevice, ...] = ListProperty()
 
     __events__ = ("on_new_device", "on_remove_device")
 
@@ -30,14 +30,14 @@ class MidiObserver(EventDispatcher):
                                   for device in self.devices)
             if not is_device_found:
                 device = MidiDevice(midi)
-                self.devices.append(device)
+                self.devices = tuple([*self.devices, device])
                 self.dispatch("on_new_device", device)
 
         for device in self.devices:
             is_device_found = any(device.port == midi
                                   for midi in midi_list)
             if not is_device_found:
-                self.devices.remove(device)
+                self.devices = tuple([x for x in self.devices if x is not device])
                 self.dispatch("on_remove_device", device)
 
         for device in self.devices:

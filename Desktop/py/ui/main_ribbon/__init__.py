@@ -68,7 +68,7 @@ class MDIMenuRibbonBox(KeyboardBehavior, OverflowLayout):
                 MDIProcessing, MDIEditor, MDIPatchList, MDILibrary,
                 MDIChecker, MDIMonitor, MDIScenes, MDIDesktops
             ):
-            mdi_id = mdi_cls._db_title_id
+            mdi_id = mdi_cls.db_title_id
             mdi = self.create_mdi(mdi_cls, mdi_id)
             self.add_widget(self.create_toggle(mdi, mdi_id))
             self.mdi_list.append(mdi)
@@ -119,7 +119,7 @@ class MainRibbon(BoxLayout):
     def on_kv_post(self, base_widget: Widget):
         self.mdi_menu.box.init(self.mdi_container_manager)
         mdi_cls = MDISettings
-        mdi_id = mdi_cls._db_title_id
+        mdi_id = mdi_cls.db_title_id
         mdi = self.mdi_menu.box.create_mdi(mdi_cls, mdi_id)
         self.settings = mdi
         self.mdi_menu.box.mdi_list.append(mdi)

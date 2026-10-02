@@ -4,16 +4,16 @@ from kivy.clock import Clock
 from kivy.event import EventDispatcher
 
 from libs.serialize import Deserializer, Serializer
-from libs.typecheck import KivyCallback
+from libs.typecheck import AnyCallback, EventDispatcherProtocol, KivyCallback
 
 
-class AutoUnbindBehavior:
+class AutoUnbindBehavior(EventDispatcherProtocol):
     """Миксин для управления внешними привязками"""
     def __init__(self, *args: Any, **kwargs: Any):
-        self._bindings_to: Dict[str, KivyCallback] = {}
+        self._bindings_to: Dict[str, AnyCallback] = {}
         super().__init__(*args, **kwargs)
 
-    def bind_to(self, obj: EventDispatcher, **kwargs: KivyCallback):
+    def bind_to(self, obj: EventDispatcher, **kwargs: AnyCallback):
         """Привязаться к другому объекту и запомнить это."""
         obj.bind(**kwargs)
         if obj not in self._bindings_to:
@@ -35,7 +35,7 @@ class AutoUnbindBehavior:
         self._bindings_to.clear()
 
 
-class ViewContextSaverMixin:
+class ViewContextSaverMixin(EventDispatcherProtocol):
     """Микшин для MDIWindow. Автоматически сохраняет состояние виджетов
     по плоскому списку путей, в том числе с динамическими ключами @var."""
     view_context_template: Dict[str, Any] = {}  # переопределить в наследнике

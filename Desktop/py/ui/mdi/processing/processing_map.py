@@ -104,7 +104,7 @@ class PlaybackMap(MapLayout):
     def edit_selected(self, *_: Any):
         from ui.components.playback_ui.playback_context_menu import PlaybackContextMenu
         PlaybackContextMenu(
-            playback_list=[ui.playback for ui in self.selected]
+            playback_list=tuple(ui.playback for ui in self.selected)
         ).open(self)
 
     def _create_context_menu(self) -> ContextMenu:

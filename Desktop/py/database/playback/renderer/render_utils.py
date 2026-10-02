@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 from database.patch import RowPatch
 from database.playback.renderer.render_data import PlaybackRenderRow
@@ -7,7 +7,7 @@ from libs.dmx512_render import DMXRenderDot
 
 
 def get_rows_to_dots_all(
-    render_rows: Tuple[PlaybackRenderRow, ...]
+    render_rows: Sequence[PlaybackRenderRow]
 ) -> Dict[PlaybackRenderRow, List[DMXRenderDot]]:
     rows_dots: Dict[PlaybackRenderRow, List[DMXRenderDot]] = defaultdict(list)
     for row in render_rows:
@@ -15,7 +15,7 @@ def get_rows_to_dots_all(
     return rows_dots
 
 def get_rows_to_dots_by_x(
-    render_rows: Tuple[PlaybackRenderRow, ...], x: float
+    render_rows: Sequence[PlaybackRenderRow], x: float
 ) -> Dict[PlaybackRenderRow, List[DMXRenderDot]]:
     rows_dots: Dict[PlaybackRenderRow, List[DMXRenderDot]] = defaultdict(list)
     for row in render_rows:
@@ -25,7 +25,7 @@ def get_rows_to_dots_by_x(
     return rows_dots
 
 def get_dots_by_x(
-    render_rows: Tuple[PlaybackRenderRow, ...], x: float
+    render_rows: Sequence[PlaybackRenderRow], x: float
 ) -> Tuple[DMXRenderDot, ...]:
     dots: List[DMXRenderDot] = []
     for row in render_rows:
@@ -35,7 +35,7 @@ def get_dots_by_x(
     return tuple(dots)
 
 def get_dots_by_area(
-    render_rows: Tuple[PlaybackRenderRow, ...],
+    render_rows: Sequence[PlaybackRenderRow],
     x: float, y: float, width: float, height: float
 ) -> Tuple[DMXRenderDot, ...]:
     dots: List[DMXRenderDot] = []
@@ -46,7 +46,7 @@ def get_dots_by_area(
     return tuple(dots)
 
 def get_patch_render_rows(
-    render_rows: Tuple[PlaybackRenderRow, ...]
+    render_rows: Sequence[PlaybackRenderRow]
 ) -> Dict[RowPatch, List[PlaybackRenderRow]]:
     rows: Dict[RowPatch, List[PlaybackRenderRow]] = defaultdict(list)
     for row in render_rows:

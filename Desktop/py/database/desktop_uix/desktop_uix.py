@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Any, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.properties import AliasProperty
@@ -24,6 +24,9 @@ from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 from libs.typecheck import RGBA
 from misc.player.status import PlayerStatus
 
+if TYPE_CHECKING:
+    from database import YdmxDatabase
+
 
 class DesktopUixType(Enum):
     ROTARY_BUTTON = auto()
@@ -31,6 +34,9 @@ class DesktopUixType(Enum):
 
 
 class RowDesktopUix(SceneRowMixin, DatabaseRow):
+    database: "YdmxDatabase"  # pyright: ignore[reportIncompatibleMethodOverride]
+    table: "TableDesktopUix" # pyright: ignore[reportIncompatibleVariableOverride]
+
     title: str = StringField("")
     uix_type: DesktopUixType = EnumField(DesktopUixType, DesktopUixType.ROTARY_BUTTON)
     grid_pos: Tuple[int, int] = ListField([None, None])
@@ -57,8 +63,8 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
     value_1_inversion: bool = BooleanField(False)
     _value_1: int = ContextualNumericField(
         default=0,
-        min_getter=lambda self: self.value_1_minimum,
-        max_getter=lambda self: self.value_1_maximum,
+        min_getter=lambda self: self.value_1_minimum,  # pyright: ignore[reportUnknownLambdaType, reportUnknownMemberType]
+        max_getter=lambda self: self.value_1_maximum,  # pyright: ignore[reportUnknownLambdaType, reportUnknownMemberType]
         dependencies=("value_1_minimum", "value_1_maximum")
     )
     value_2_minimum: int = ClampedNumericField(0, 0, 255)
@@ -66,8 +72,8 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
     value_2_inversion: bool = BooleanField(False)
     _value_2: int = ContextualNumericField(
         default=0,
-        min_getter=lambda self: self.value_2_minimum,
-        max_getter=lambda self: self.value_2_maximum,
+        min_getter=lambda self: self.value_2_minimum,  # pyright: ignore[reportUnknownLambdaType, reportUnknownMemberType]
+        max_getter=lambda self: self.value_2_maximum,  # pyright: ignore[reportUnknownLambdaType, reportUnknownMemberType]
         dependencies=("value_2_minimum", "value_2_maximum")
     )
 
@@ -97,7 +103,7 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         self._active = active
         return True
 
-    active = AliasProperty(
+    active: bool = AliasProperty(
         lambda self: self._active, set_active
     )
 
@@ -107,7 +113,7 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         self.player.trigger_update_force_value()
 
     def get_fixture_param(self, n: int) -> Optional[RowFixtureParam]:
-        fparam_index = getattr(self, f"fixture_param_{n}_index")
+        fparam_index: Optional[int] = getattr(self, f"fixture_param_{n}_index")
         if self.patch and fparam_index is not None:
             return self.patch.param_list_unpacked[fparam_index]
         return None
@@ -132,7 +138,7 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         bind=("patch", "fixture_param_1_index", "fixture_param_2_index")
     )
 
-    def update_active(self, _):
+    def update_active(self, _: Any):
         if not self.link_active:
             self.active = False
 
@@ -141,9 +147,14 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         bind=("fixture_param_1_index",)
     )
 
+    def set_value_1(self, value: int) -> bool:
+        if self._value_1 == value:
+            return False
+        self._value_1 = value
+        return True
     value_1: int = AliasProperty(
         lambda self: self._value_1 ^ 255 if self.value_1_inversion else self._value_1,
-        lambda self, val: setattr(self, "_value_1", val),
+        set_value_1,
         bind=("_value_1", "value_1_inversion")
     )
 
@@ -158,9 +169,14 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         bind=("fixture_param_2_index",)
     )
 
+    def set_value_2(self, value: int) -> bool:
+        if self._value_2 == value:
+            return False
+        self._value_2 = value
+        return True
     value_2: int = AliasProperty(
         lambda self: self._value_2 ^ 255 if self.value_2_inversion else self._value_2,
-        lambda self, val: setattr(self, "_value_2", val),
+        set_value_2,
         bind=("_value_2", "value_2_inversion")
     )
 
@@ -171,4 +187,14 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
 
 
 class TableDesktopUix(SceneTableMixin, DatabaseTable):
+    database: "YdmxDatabase" # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_id: Callable[[int], Optional[RowDesktopUix]] # pyright: ignore[reportIncompatibleMethodOverride]
+    rows: Dict[int, RowDesktopUix] # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_attribute: Callable[[str, Any], Optional[RowDesktopUix]] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_add_row: Callable[[RowDesktopUix], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_remove_row: Callable[[RowDesktopUix], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    add_row: Callable[..., RowDesktopUix] # pyright: ignore[reportIncompatibleMethodOverride]
+    remove_row: Callable[[RowDesktopUix], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    __getattr__: Callable[[str], Callable[[Any], Optional[RowDesktopUix]]] # pyright: ignore[reportIncompatibleMethodOverride]
+
     cls_row = RowDesktopUix

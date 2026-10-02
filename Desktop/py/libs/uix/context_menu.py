@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, FrozenSet, List, Tuple, Type
 
 from kivy.clock import Clock
 from kivy.core.text import Label as CoreLabel
-from kivy.core.window import Window
+from kivy.core.window import Window, WindowBase
 from kivy.graphics import Rectangle
 from kivy.graphics.texture import Texture
 from kivy.lang import Builder
@@ -124,7 +124,7 @@ class ContextMenuButton(ContextMenuBehavior, HoverButton):
         self.hotkey_label.refresh()
         self.hotkey_texture = self.hotkey_label.texture
 
-    def _update_canvas(self, *_):
+    def _update_canvas(self, *_:Any):
         self.canvas.after.clear()
 
         with self.canvas.after:
@@ -173,7 +173,7 @@ class ContextMenu(ModalBoxLayout):
                     self.button_list.append(widget)
         Clock.schedule_once(self.processing_hotkey_button_list, -1)
 
-    def processing_hotkey_button_list(self, _):
+    def processing_hotkey_button_list(self, _:Any):
         hotkey_buttons = self.hotkey_button_list
         normal_buttons = self.button_list
         all_buttons = hotkey_buttons + normal_buttons
@@ -231,13 +231,13 @@ class SubMenu(ContextMenuBehavior, RestrictedLabel):
             self.open_submenu, 1.0)
         self.items = items
 
-    def on_mouse_pos(self, _, mouse_pos: Tuple[float, float]):
+    def on_mouse_pos(self, _: WindowBase, mouse_pos: Tuple[float, float]):
         if self.collide_point(*mouse_pos):
             self._open_submenu_trigger()
         elif self._open_submenu_trigger.is_triggered:
             self._open_submenu_trigger.cancel()
 
-    def open_submenu(self, _):
+    def open_submenu(self, _:Any):
         self.menu = ContextMenu(items=self.items)
         self.menu.open(self, pos=(self.right, self.top))
 

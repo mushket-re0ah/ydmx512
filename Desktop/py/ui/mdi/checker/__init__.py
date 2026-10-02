@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class MDIChecker(DatabaseMDIWindow):
-    _db_title_id: str = "checker"
+    db_title_id: str = "checker"
 
     title: str = StringProperty("Прозвон")
     universe_now: int = ClampedNumericProperty(1, 1, constants.DMX_UNIVERSE_COUNT)

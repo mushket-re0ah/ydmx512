@@ -18,7 +18,7 @@ class MidiUi(DeviceUi):
 
 class MidiDevices(DeviceListPanel):
     device_cls: Type[DeviceUi] = ObjectProperty(MidiUi)
-    observer: MidiObserver = ObjectProperty(midi_observer)
+    observer: MidiObserver = ObjectProperty(midi_observer)  # pyright: ignore[reportIncompatibleVariableOverride]
 
     title: str = StringProperty("MIDI устройства")
     bg_scrollview: RGBA = ColorProperty(colorscheme.MidiDevices.bg)

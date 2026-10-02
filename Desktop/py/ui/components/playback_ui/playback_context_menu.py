@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, Tuple
 
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, ListProperty
@@ -11,7 +11,7 @@ Builder.load_file("ui/components/playback_ui/playback_context_menu.kv")
 
 
 class PlaybackContextMenu(ModalBoxLayout):
-    playback_list: List[RowPlayback] = ListProperty()
+    playback_list: Tuple[RowPlayback, ...] = ListProperty()
     first_playback: RowPlayback = AliasProperty(
         lambda self: self.playback_list[0],
         bind=("playback_list",)

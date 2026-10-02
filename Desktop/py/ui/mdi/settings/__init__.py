@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class MDISettings(DatabaseMDIWindow):
-    _db_title_id: str = "settings"
+    db_title_id: str = "settings"
     title: str = StringProperty("Настройки")
 
     content: "SettingsContent" = ObjectProperty()

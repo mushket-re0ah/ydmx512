@@ -38,7 +38,7 @@ class MDIStateToggleBehavior:
         mdi.bind(state=self.on_mdi_state)
         self.on_mdi_state(mdi, mdi.state)
 
-    def on_mdi_state(self, _, state: Dict[str, Any]):
+    def on_mdi_state(self, _: Any, state: Dict[str, Any]):
         self.is_down = self.mdi.get_layout_state(self.state_key, False)
         self.set_disabled_by_state(state)
 

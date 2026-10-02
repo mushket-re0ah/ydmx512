@@ -9,9 +9,10 @@ from kivy.uix.widget import Widget
 
 from libs.kivy_mixins import AutoUnbindBehavior
 from libs.sdl2_keyboard import KeyboardBehavior
+from libs.typecheck import WidgetProtocol
 
 
-class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior):
+class ModalBehavior(AutoUnbindBehavior, KeyboardBehavior, WidgetProtocol):
     attach_to: Optional[Widget] = ObjectProperty(None, allownone=True)
     opacity_animation_duration: float = NumericProperty(0.2)
     dismiss_on_attach_click: bool = True

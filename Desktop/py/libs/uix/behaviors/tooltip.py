@@ -7,6 +7,7 @@ from kivy.lang import Builder
 from kivy.properties import StringProperty
 
 from libs.mouse_manager.hover import HoverBehavior
+from libs.typecheck import WidgetProtocol
 from libs.uix.label import RestrictedLabel
 
 Builder.load_string("""
@@ -33,7 +34,7 @@ class TooltipLabel(RestrictedLabel):
     window_hover_ignore = True
 
 
-class TooltipBehavior(HoverBehavior):
+class TooltipBehavior(HoverBehavior, WidgetProtocol):
     tooltip_text: str = StringProperty('')
 
     def __init__(self, **kwargs):

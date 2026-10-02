@@ -30,7 +30,7 @@ class PlaybackMasterPlayer:
                 p_renderer = p.playback.renderer
                 if universe in p_renderer.universe_addresses:
                     clear_address_list -= p_renderer.universe_addresses[universe]
-            dmx512.clear_matrix_by_address_list(universe, clear_address_list)
+            dmx512.clear_matrix_by_address_list(universe, tuple(clear_address_list))
 
     def _loop(self):
         if not self.player_list:
@@ -39,6 +39,7 @@ class PlaybackMasterPlayer:
         for player in reversed(self.player_list):
             if player.beat_counter is None:
                 logger.debug("player not work, but in player_list")
+                player.stop()
                 continue
             for patch, address_list in player.playback.renderer.patch_addresses.items():
                 universe = patch.universe
@@ -46,13 +47,18 @@ class PlaybackMasterPlayer:
                     fulladdress = (universe, address)
                     if fulladdress in used_fulladdresses:
                         continue
+                    fixture_param_index = address - patch.start_address
+                    mapped_index = patch.mapper[fixture_param_index]
+                    if mapped_index is None:
+                        continue
                     value = player.get_patch_render(
                         patch,
-                        address - patch.start_address,
+                        fixture_param_index,
                         player.beat_counter.frame_now
                     )
                     if value is not None:
-                        dmx512.set_value(universe, address, value)
+                        mapped_address = mapped_index + patch.start_address
+                        dmx512.set_value(universe, mapped_address, value)
                         used_fulladdresses.add(fulladdress)
 
 master_player = PlaybackMasterPlayer()

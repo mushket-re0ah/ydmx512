@@ -21,6 +21,9 @@ class ParamPresetsManager(FileAssetManager):
     def _key_to_string(self, key: RowFixtureParam) -> str:
         return key.title_id if key.title_id is not None else key.title
 
+    def _get_asset_stem(self, asset: RowFixtureParam) -> str:
+        return asset.title
+
     def _create_default(self):
         self.add_asset(db.fixture_param.by_title_id("pan"), ParamPresetData(
             title="Круг",

@@ -170,7 +170,7 @@ class EditorState(ContextState):
 
 
 class MDILibrary(DatabaseMDIWindow):
-    _db_title_id: str = "library"
+    db_title_id: str = "library"
     title: str = StringProperty("Библиотека")
 
     menu: "LibraryMenu" = ObjectProperty()

@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Any, Callable, Dict, Optional, Type
 
 from kivy.lang import Builder
 from kivy.properties import NumericProperty, ObjectProperty
@@ -9,7 +9,7 @@ from libs.uix.button import HoverToggleButton
 from libs.uix.mdi.layout_mode import FloatingLayoutMode, TilingLayoutMode
 from libs.uix.mdi.mdi_window import MDIWindow
 from libs.uix.mdi.workspace_mdi_container import WorkspaceMDIContainer
-from libs.uix.workspace_manager import WorkspaceBehavior, WorkspaceManager
+from libs.uix.workspace_manager import WorkspaceManager
 
 Builder.load_string("""
 #:import TilingLayoutMode libs.uix.mdi.layout_mode.TilingLayoutMode
@@ -50,7 +50,18 @@ class TilingOrientationSwitcher(HoverToggleButton):
 
 
 class WorkspaceMDIContainerManager(AutoUnbindBehavior, WorkspaceManager):
-    workspace_cls: Type[WorkspaceMDIContainer] = ObjectProperty(WorkspaceMDIContainer)
+    workspace_now: Optional[WorkspaceMDIContainer]
+    workspaces: Dict[int, Optional[WorkspaceMDIContainer]]
+    on_workspace_opened: Callable[[int, WorkspaceMDIContainer], None]  # pyright: ignore[reportIncompatibleMethodOverride]
+    on_workspace_closed: Callable[[int, WorkspaceMDIContainer], None]  # pyright: ignore[reportIncompatibleMethodOverride]
+    on_workspace_created: Callable[[int, WorkspaceMDIContainer], None]  # pyright: ignore[reportIncompatibleMethodOverride]
+    on_workspace_removed: Callable[[int, WorkspaceMDIContainer], None]  # pyright: ignore[reportIncompatibleMethodOverride]
+    create_workspace: Callable[[int], WorkspaceMDIContainer]  # pyright: ignore[reportIncompatibleMethodOverride]
+    _show_workspace: Callable[[int, WorkspaceMDIContainer], None]  # pyright: ignore[reportIncompatibleMethodOverride]
+
+    workspace_cls: Type[WorkspaceMDIContainer] = ObjectProperty(  # pyright: ignore[reportIncompatibleVariableOverride]
+        WorkspaceMDIContainer
+    )
     workspace_count: int = NumericProperty(9)
     window_switcher: LayoutModeSwitcher = ObjectProperty()
     orientation_switcher: TilingOrientationSwitcher = ObjectProperty(allownone=True)
@@ -63,7 +74,7 @@ class WorkspaceMDIContainerManager(AutoUnbindBehavior, WorkspaceManager):
         self.bind(workspace_now=self.refresh_menu)
         self.refresh_menu()
 
-    def refresh_menu(self, *_):
+    def refresh_menu(self, *_:Any):
         workspace = self.workspace_now
         if workspace is None:
             return
@@ -97,7 +108,7 @@ class WorkspaceMDIContainerManager(AutoUnbindBehavior, WorkspaceManager):
         if mdi.mdi_container is not None:
             mdi.mdi_container.remove_widget(mdi)
 
-    def _create_workspace_instance(self, workspace_index: int) -> WorkspaceBehavior:
+    def _create_workspace_instance(self, workspace_index: int) -> WorkspaceMDIContainer:
         return self.workspace_cls(index=workspace_index)
 
 

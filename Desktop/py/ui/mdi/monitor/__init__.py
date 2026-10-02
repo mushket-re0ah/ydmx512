@@ -4,5 +4,5 @@ from ui.components.database_mdi_window import DatabaseMDIWindow
 
 
 class MDIMonitor(DatabaseMDIWindow):
-    _db_title_id: str = "monitor"
+    db_title_id: str = "monitor"
     title: str = StringProperty("DMX512 монитор")

@@ -17,10 +17,11 @@
 <BasePatchUi>:  # RelativeLayout
     input_start_address: input_start_address.__self__
     input_universe: input_universe.__self__
+    toggle_controller: toggle_controller.__self__
     lbl_addr_info: lbl_addr_info.__self__
     image_fixture: image_fixture.__self__
-    toggle_controller: toggle_controller.__self__
     input_title: input_title.__self__
+    toggle_mapper: toggle_mapper.__self__
 
     size_hint: (None, None)
     grid_size: [5, 5]
@@ -32,20 +33,27 @@
             size: self.size
     NumericInput:
         id: input_start_address
-        pos_hint: {"x": 0, "y": 0.75}
-        size_hint: [0.25, 0.25]
+        pos_hint: {"x": 0, "y": 0.78}
+        size_hint: [0.25, 0.22]
         minimum: 1
         maximum: constants.DMX_ADDRESS_COUNT
         value: root.patch.start_address
         on_value: root.patch.edit(start_address=self.value)
     NumericInput:
         id: input_universe
-        pos_hint: {"x": 0, "y": 0.5}
-        size_hint: [0.25, 0.25]
+        pos_hint: {"x": 0, "y": 0.56}
+        size_hint: [0.25, 0.22]
         minimum: 1
         maximum: constants.DMX_UNIVERSE_COUNT
         value: root.patch.universe
         on_value: root.patch.edit(universe=self.value)
+    HoverToggleButton:
+        id: toggle_controller
+        pos_hint: {"x": 0.0, "y": 0.375}
+        size_hint: (0.25, 0.18)
+        text: "c"
+        font_size: "13sp"
+        on_press: root.open_controller_menu()
     RestrictedLabel:
         id: lbl_addr_info
         size_hint: (None, None)
@@ -60,16 +68,17 @@
         size_hint: (0.52, 0.52)
         pos: ("{}dp".format((root.width - self.size[0]) // 2), "{}dp".format(root.height - self.size[1] - 10))
         source: (constants.FIXTURE_IMGS_PATH / root.patch.fixture.icon).as_posix()
-    HoverToggleButton:
-        id: toggle_controller
-        size_hint: (0.25, 0.1785)
-        text: "c"
-        pos_hint: {"x": 0.75, "y": 0.375}
-        on_is_down: root.open_controller_menu()
     HoverInput:
         id: input_title
-        size_hint: (1, 0.25)
         pos_hint: {"x": 0, "y": 0.146}
+        size_hint: (1, 0.25)
         multiline: False
         text: root.patch.title
         on_text: root.patch.edit(title=self.text)
+    HoverToggleButton:
+        id: toggle_mapper
+        pos_hint: {"x": 0.75, "y": 0.376}
+        size_hint: (0.25, 0.18)
+        text: "m"
+        font_size: "13sp"
+        on_press: root.open_mapper_menu()

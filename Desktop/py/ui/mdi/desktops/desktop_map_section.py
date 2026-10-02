@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, ObjectProperty
@@ -12,14 +12,12 @@ from database.scene import RowScene, TableScene
 from libs.uix.button import HoverToggleButton
 from libs.uix.layouts import SectionPanel
 from libs.uix.map_layout import MapLayout
-from libs.uix.workspace_manager import WorkspaceBehavior, WorkspaceManager
+from libs.uix.workspace_manager import WorkspaceManager
+from ui.mdi.desktops import MDIDesktops
 from ui.mdi.desktops.desktop_map import DesktopMap
 from ui.mdi.desktops.desktop_rotary import DesktopRotaryUix
 from ui.mdi.desktops.desktop_slider_2d import DesktopSlider2D
 from ui.mdi.desktops.desktop_uix import DesktopUix
-
-if TYPE_CHECKING:
-    from ui.mdi.desktops import MDIDesktops
 
 Builder.load_file("ui/mdi/desktops/desktop_map_section.kv")
 
@@ -41,7 +39,7 @@ class MapFreezeToggleDesktop(HoverToggleButton):
 
 
 class DesktopMapSection(SectionPanel):
-    desktops: "MDIDesktops" = ObjectProperty()
+    desktops: MDIDesktops = ObjectProperty()
     workspace_manager: WorkspaceManager = ObjectProperty()
     freeze_toggle: MapFreezeToggleDesktop = ObjectProperty()
 
@@ -93,7 +91,7 @@ class DesktopMapSection(SectionPanel):
     def _dispatch_selected(self, _: Any, selected: List[DesktopUix]):
         self.property("selected").dispatch(self)
 
-    def on_workspace_opened(self, _: MapLayout, workspace_index: int, workspace: WorkspaceBehavior):
+    def on_workspace_opened(self, _: MapLayout, workspace_index: int, workspace: DesktopMap):
         self.workspace_now.unbind(selected=self._dispatch_selected)
         self.workspace_now = workspace
         workspace.bind(selected=self._dispatch_selected)
@@ -108,7 +106,7 @@ class DesktopMapSection(SectionPanel):
     def _create_desktop_uix(
             self,
             desktop_uix: RowDesktopUix,
-            workspace: WorkspaceBehavior,
+            workspace: DesktopMap,
             create_animation:bool=True) -> RowDesktopUix:
         return desktop_uix_type_to_widget[desktop_uix.uix_type](
             create_animation=create_animation,

@@ -83,7 +83,7 @@ class FloatingLayoutMode(ILayoutMode):
         )
         self._on_mdi_state(mdi, mdi.state)
 
-    def _save_mdi_state(self, mdi: MDIWindow, *_):
+    def _save_mdi_state(self, mdi: MDIWindow, *_: Any):
         expanded = mdi.get_layout_state("expanded", False)
         if expanded or self._save_lock:
             return
@@ -312,10 +312,14 @@ class FloatingLayoutMode(ILayoutMode):
 
     def _limiter_x(self, x: float) -> float:
         mdi = self._focused_mdi()
+        if mdi is None:
+            return max(0, x)
         return max(0, min(x, self.mdi_container.width - mdi.width))
 
     def _limiter_y(self, y: float) -> float:
         mdi = self._focused_mdi()
+        if mdi is None:
+            return max(0, y)
         return max(0, min(y, self.mdi_container.height - mdi.height))
 
     def _hide_mdi_focused(self):

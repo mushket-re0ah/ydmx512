@@ -7,11 +7,12 @@ from kivy.uix.widget import Widget
 
 from libs import logger
 from libs.kivy_mixins import AutoUnbindBehavior
+from libs.typecheck import WidgetProtocol
 from libs.uix.button import HoverButton
 from libs.uix.recycle_dropdown import RecycleDropdown
 
 
-class RecycleDropdownBehavior(AutoUnbindBehavior):
+class RecycleDropdownBehavior(AutoUnbindBehavior, WidgetProtocol):
     values: Optional[List[Any]] = ObjectProperty(allownone=True)
     host_attr: str = StringProperty(None)
     viewclass: Type[Widget] = ObjectProperty(HoverButton)
@@ -55,7 +56,7 @@ class RecycleDropdownBehavior(AutoUnbindBehavior):
         return self.values_getter(self)
     filter_values_getter: Callable[[Any], List[Any]] = ObjectProperty(default_filter_values_getter)
 
-    def _set_host_value(self, _):
+    def _set_host_value(self, _:Any):
         host_value = self.force_host_value if self.force_host_value is not None\
                      else self.value_to_host(self.selected)
         setattr(self, self.host_attr, host_value)
