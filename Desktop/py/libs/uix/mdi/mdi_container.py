@@ -20,7 +20,7 @@ Builder.load_string("""
 
 class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
     mdi_focused: Optional[MDIWindow] = ObjectProperty(None, allownone=True)
-    mdi_list_showed: List[MDIWindow] = ListProperty()
+    mdi_list_showed: Tuple[MDIWindow, ...] = ListProperty()
 
     if_contain: bool = AliasProperty(
         lambda self: len(self.mdi_list_showed) > 0,
@@ -58,7 +58,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         super().on_kv_post(base_widget)
         self._kv_ready = True
 
-    def _on_mdi_kv_post(self, mdi: MDIWindow, _):
+    def _on_mdi_kv_post(self, mdi: MDIWindow, _: MDIWindow):
         mdi.unbind(on_kv_post=self._on_mdi_kv_post)
         if not mdi.hidden:
             self._add_mdi_widget(mdi)
@@ -78,7 +78,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
 
         mdi.mdi_container = self
         self.layout_mode.show_mdi(mdi)
-        self.mdi_list_showed.append(mdi)
+        self.mdi_list_showed = tuple([*self.mdi_list_showed, mdi])
         self.set_focus(mdi)
         was_hidden = mdi.hidden
         mdi.hidden = False
@@ -91,7 +91,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         widget.mdi_container = None
         if widget in self.mdi_list_showed:
             self.layout_mode.hide_mdi(widget)
-            self.mdi_list_showed.remove(widget)
+            self.mdi_list_showed = tuple([x for x in self.mdi_list_showed if x is not widget])
         if not self.mdi_list_showed:
             self.set_focus(None)
         widget.hidden = True
@@ -149,7 +149,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         touch.pop()
         return ret
 
-    def on_mouse_move(self, pos):
+    def on_mouse_move(self, pos: Tuple[float, float]):
         self.layout_mode.handle_mouse_move(self.to_local(*pos))
 
     def set_focus(self, mdi_window: Optional[MDIWindow]):
@@ -185,7 +185,7 @@ class MDIContainer(AutoUnbindBehavior, StencilRelativeLayout):
         ])
         ctx_menu.open(self, pos=self.to_window(*pos))
 
-    def close_all_windows(self, _):
+    def close_all_windows(self, _:Any):
         for mdi in self.mdi_list_showed[:]:
             self.remove_widget(mdi)
 

@@ -53,7 +53,7 @@ class FileListButton(HoverButton):
         self.bind(is_dir_button=set_colors_ev)
         super().__init__(**kwargs)
 
-    def update_colors(self, _):
+    def update_colors(self, _: Any):
         self._set_colors()
 
     def on_release(self):
@@ -66,7 +66,7 @@ class FileListButton(HoverButton):
 class Filelist(ScrollLayout):
     cls_height: float = NumericProperty("26dp")
 
-    scrollview: RecycleRestrictedScrollView = ObjectProperty()
+    scrollview: RecycleRestrictedScrollView = ObjectProperty()  # pyright: ignore[reportIncompatibleVariableOverride]
 
     rootpath: Path = ObjectProperty()
     path: Path = ObjectProperty()

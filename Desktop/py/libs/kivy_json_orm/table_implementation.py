@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type
 
 from kivy.properties import NumericProperty
 
@@ -68,14 +68,14 @@ class ConfigTable(BaseTable):
 
 
 class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
-    _id: int = NumericProperty()
-    _table: "DatabaseTable"
+    id_: int = NumericProperty()
+    table: "DatabaseTable"
 
     __events__ = ("on_remove",)
 
-    def __init__(self, _id: int, table: "DatabaseTable", **kwargs: Any):
-        self._id = _id
-        self._table = table
+    def __init__(self, id_: int, table: "DatabaseTable", **kwargs: Any):
+        self.id_ = id_
+        self.table = table
         super().__init__(**kwargs)
 
     def on_remove(self):
@@ -90,21 +90,21 @@ class DatabaseRow(SerializableMixin, AutoUnbindBehavior):
         self.save()
 
     def save(self):
-        self._table.save()
+        self.table.save()
 
     def copy(self, **kwargs: Any) -> "DatabaseRow":
-        return self._table.add_row(
+        return self.table.add_row(
             **{attr: kwargs[attr] if attr in kwargs else getattr(self, attr)
                                   for attr in self.serialization_keys}
         )
 
     def remove(self):
-        self._table.remove_row(self)
+        self.table.remove_row(self)
         self.dispatch("on_remove")
 
     @property
     def database(self) -> "Database":
-        return self._table.database
+        return self.table.database  # pyright: ignore[reportReturnType]
 
     def __repr__(self) -> str:
         attrs = ', '.join(f'{k}={getattr(self, k)!r}'
@@ -119,14 +119,14 @@ class DatabaseTable(BaseTable):
 
     def deserialize_rows(self, rows: Dict[int, Dict[str, Any]]) -> Dict[int, DatabaseRow]:
         result: Dict[int, DatabaseRow] = {}
-        for _id, row_data in rows.items():
-            row = self.cls_row(int(_id), self)
+        for id_, row_data in rows.items():
+            row = self.cls_row(int(id_), self)
             row.deserialize(row_data)
-            result[int(_id)] = row
+            result[int(id_)] = row
         return result
 
     rows: Dict[int, DatabaseRow] = DictField(
-        serialize=lambda self, rs: {_id: r.serialize() for _id, r in rs.items()},
+        serialize=lambda self, rs: {id_: r.serialize() for id_, r in rs.items()},
         deserialize=deserialize_rows
     )
 
@@ -139,9 +139,9 @@ class DatabaseTable(BaseTable):
         pass
 
     def add_row(self, **kwargs: Any) -> DatabaseRow:
-        _id = self._get_next_id()
-        row = self.cls_row(_id, self)
-        self.rows[_id] = row
+        id_ = self._get_next_id()
+        row = self.cls_row(id_, self)
+        self.rows[id_] = row
         atomic_setattrs(row, **kwargs)
         row.after_deserialize()
         if not self._events_block:
@@ -150,14 +150,14 @@ class DatabaseTable(BaseTable):
         return row
 
     def remove_row(self, row: DatabaseRow):
-        del self.rows[row._id]
+        del self.rows[row.id_]
         self.dispatch("on_remove_row", row)
         self._save_flag = True
 
-    def get_row_by_id(self, _id: int) -> Optional[DatabaseRow]:
-        _id = int(_id)
-        if _id in self.rows:
-            return self.rows[_id]
+    def get_row_by_id(self, id_: int) -> Optional[DatabaseRow]:
+        id_ = int(id_)
+        if id_ in self.rows:
+            return self.rows[id_]
         return None
 
     def get_row_by_attribute(self,
@@ -180,9 +180,9 @@ class DatabaseTable(BaseTable):
         self.is_loading = False
 
     def _get_next_id(self) -> int:
-        _id = self.counter_id
+        id_ = self.counter_id
         self.counter_id += 1
-        return _id
+        return id_
 
     def _create_default(self):
         for kwargs in self._get_default_rows_for_create():
@@ -191,7 +191,7 @@ class DatabaseTable(BaseTable):
     def _get_default_rows_for_create(self) -> Tuple[Dict[str, Any], ...]:
         return tuple()
 
-    def __getattr__(self, name: str) -> Optional[DatabaseRow]:
+    def __getattr__(self, name: str) -> Callable[[Any], Optional[DatabaseRow]]:
         if name.startswith('by_'):
             attr = name[3:]
             return lambda val: self.get_row_by_attribute(attr, val)

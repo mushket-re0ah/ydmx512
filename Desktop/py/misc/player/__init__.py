@@ -6,7 +6,7 @@ from libs.beat_counter import BeatCounter
 from libs.kivy_json_orm.fields import BooleanField, ClampedNumericField, StringField
 from libs.kivy_json_orm.table_implementation import DatabaseRow
 from libs.kivy_mixins import AutoUnbindBehavior
-from libs.midi import midi
+from libs.midi import MIDIDispatcher, midi
 from libs.properties import BindableObjectProperty, EnumProperty
 from libs.serialize import SerializableMixin
 from libs.typecheck import Number
@@ -44,22 +44,22 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
             on_note_off=self.on_midi_note_off
         )
 
-    def on_parent_row(self, _, parent_row: DatabaseRow):
+    def on_parent_row(self, _: "BasePlayer", parent_row: DatabaseRow):
         parent_row.bind(
             on_remove=self.on_remove
         )
 
     def save(self):
         if self.parent_row:
-            self.parent_row._table.save()
+            self.parent_row.table.save()
 
-    def on_remove(self, _):
+    def on_remove(self, _: Any):
         self.unbind_all()
 
-    def on_midi_note_on(self, _, channel: int, intensive: Number):
+    def on_midi_note_on(self, _: MIDIDispatcher, channel: int, intensive: Number):
         pass
 
-    def on_midi_note_off(self, _, channel: int, intensive: Number):
+    def on_midi_note_off(self, _: MIDIDispatcher, channel: int, intensive: Number):
         pass
 
     def edit(self, **kwargs: Any):
@@ -126,5 +126,5 @@ class BasePlayer(SerializableMixin, AutoUnbindBehavior):
     def _create_beat_counter(self) -> BeatCounter:
         raise NotImplementedError
 
-    def _remove_beat_counter(self):
+    def _remove_beat_counter(self) -> None:
         raise NotImplementedError

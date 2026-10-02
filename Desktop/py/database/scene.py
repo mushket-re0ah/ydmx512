@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import Any, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.properties import AliasProperty
@@ -14,8 +14,14 @@ from libs.midi import midi
 from libs.typecheck import Number
 from misc import constants
 
+if TYPE_CHECKING:
+    from database import YdmxDatabase
+
 
 class RowScene(DatabaseRow):
+    database: "YdmxDatabase"  # pyright: ignore[reportIncompatibleMethodOverride]
+    table: "TableScene" # pyright: ignore[reportIncompatibleVariableOverride]
+
     title: str = StringField("default")
     note: str = StringField("")
     date_add: float = NumericField()
@@ -37,16 +43,16 @@ class RowScene(DatabaseRow):
     )
 
     def on_temp(self, _, temp: int):
-        if self._table.scene_now is self:
-            self._table.scene_now_temp = temp
+        if self.table.scene_now is self:
+            self.table.scene_now_temp = temp
 
     def on_dimmer(self, _, dimmer: int):
-        if self._table.scene_now is self:
-            self._table.scene_now_dimmer = dimmer
+        if self.table.scene_now is self:
+            self.table.scene_now_dimmer = dimmer
 
     def on_beats_count(self, _, beats_count: int):
-        if self._table.scene_now is self:
-            self._table.scene_now_beats_count = beats_count
+        if self.table.scene_now is self:
+            self.table.scene_now_beats_count = beats_count
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
@@ -55,6 +61,16 @@ class RowScene(DatabaseRow):
 
 
 class TableScene(DatabaseTable):
+    database: "YdmxDatabase" # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_id: Callable[[int], Optional[RowScene]] # pyright: ignore[reportIncompatibleMethodOverride]
+    rows: Dict[int, RowScene] # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_attribute: Callable[[str, Any], Optional[RowScene]] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_add_row: Callable[[RowScene], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_remove_row: Callable[[RowScene], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    add_row: Callable[..., RowScene] # pyright: ignore[reportIncompatibleMethodOverride]
+    remove_row: Callable[[RowScene], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    __getattr__: Callable[[str], Callable[[Any], Optional[RowScene]]] # pyright: ignore[reportIncompatibleMethodOverride]
+
     cls_row = RowScene
     filename = "scene.json"
 
@@ -67,7 +83,7 @@ class TableScene(DatabaseTable):
     )
     __events__ = ("on_scene_change",)
 
-    scene_now_bc: Optional[BeatCounter] = None
+    scene_now_bc: BeatCounter
     def __init__(self, scene_tables_order: Tuple[str, ...], **kwargs: Any):
         self.SCENE_TABLES_ORDER = scene_tables_order
         super().__init__(**kwargs)
@@ -151,13 +167,25 @@ class TableScene(DatabaseTable):
 
     def on_scene_change(self, old_scene: RowScene, new_scene: RowScene):
         for table_name in self.SCENE_TABLES_ORDER:
-            self.database[table_name].sync_scene_change(old_scene, new_scene)
+            table: SceneTableMixin = self.database[table_name]  # pyright: ignore[reportAssignmentType]
+            table.sync_scene_change(old_scene, new_scene)
 
 
-class SceneTableMixin:
+if TYPE_CHECKING:
+    DatabaseTableProtocol = DatabaseTable
+    DatabaseRowProtocol = DatabaseRow
+else:
+    DatabaseTableProtocol = object
+    DatabaseRowProtocol = object
+
+
+class SceneTableMixin(DatabaseTableProtocol):
     """Таблица, данные которой хранятся отдельным файлом на каждую сцену.
     Наследник может переопределить on_scene_change для пост-обработки
     """
+    database: "YdmxDatabase"  # pyright: ignore[reportIncompatibleVariableOverride]
+    rows: Dict[int, "SceneRowMixin"]  # pyright: ignore[reportIncompatibleVariableOverride]
+    name: str  # pyright: ignore[reportIncompatibleVariableOverride]
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
@@ -175,13 +203,13 @@ class SceneTableMixin:
         pass
 
     def _make_filepath(self) -> Path:
-        scene_id = self.database.scene.scene_now._id
+        scene_id = self.database.scene.scene_now.id_
         table_dir = constants.DATABASE_PATH / self.name
         table_dir.mkdir(parents=True, exist_ok=True)
         return table_dir / f"{scene_id}.json"
 
 
-class SceneRowMixin:
+class SceneRowMixin(DatabaseRowProtocol):
     """Строка сценозависимой таблицы. При выгрузке сцены снимает бинды.
     Требует дополнительного наследования от AutoUnbindBehavior.
     """

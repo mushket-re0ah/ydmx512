@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type
 
 from kivy.event import EventDispatcher
 from kivy.input.motionevent import MotionEvent
@@ -302,7 +302,7 @@ class OptionToggleButton(ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLa
     def on_kv_post(self, base_widget: Widget):
         self.property("state").dispatch(self)
 
-    last_touch = None
+    last_touch: Optional[MotionEvent] = None
     def on_touch_down(self, touch: MotionEvent) -> bool:
         self.last_touch = touch
         if self.collide_point(*touch.pos) and not self.disabled:
@@ -329,7 +329,7 @@ class OptionToggleButton(ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLa
         self._release_group(self)
 
         direction = 1
-        if self.last_touch.button == "right":
+        if self.last_touch.button == "right":  # pyright: ignore[reportOptionalMemberAccess]
             direction = -direction
         self.state = self.get_state_step(direction)
 
@@ -342,7 +342,7 @@ class OptionToggleButton(ButtonBase, ExpansiveToggleButtonBehavior, RestrictedLa
         self._release_group(self)
         if self.discard_state_release:
             direction = -1
-            if self.last_touch.button == "right":
+            if self.last_touch.button == "right":  # pyright: ignore[reportOptionalMemberAccess]
                 direction = -direction
             self.state = self.get_state_step(direction)
 

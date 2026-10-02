@@ -554,7 +554,7 @@ class RowParam(RecycleDataViewBehavior, AutoUnbindBehavior, BoxLayout):
         super().__init__(**kwargs)
         self._update_trigger = Clock.create_trigger(self.update, -1)
 
-    def refresh_view_attrs(
+    def refresh_view_attrs( # pyright: ignore[reportIncompatibleMethodOverride]
             self,
             rv: RecycleRestrictedScrollView,
             index: int,

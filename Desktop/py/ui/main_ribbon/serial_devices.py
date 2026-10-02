@@ -29,7 +29,7 @@ class TitleFilterSerialDeviceBox(BoxLayout):
 
 class SerialDevices(DeviceListPanel):
     device_cls: Type[DeviceUi] = ObjectProperty(SerialUi)
-    observer: SerialObserver = ObjectProperty(serial_observer)
+    observer: SerialObserver = ObjectProperty(serial_observer)  # pyright: ignore[reportIncompatibleVariableOverride]
 
     title: str = StringProperty("DMX устройства")
     bg_scrollview: RGBA = ColorProperty(colorscheme.SerialDevices.bg)

@@ -27,10 +27,9 @@ class PatchControllerMenuChannel(BoxLayout):
 
     _write_allow = False
 
-    _update_trigger = None
     def __init__(self, *args: Any, **kwargs: Any):
-        super().__init__(*args, **kwargs)
         self._update_trigger = Clock.create_trigger(self.update, -1)
+        super().__init__(*args, **kwargs)
         self.bind(
             patch=self._update_trigger,
             fixture_param=self._update_trigger,

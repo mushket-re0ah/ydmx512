@@ -95,7 +95,7 @@ class ColumnConfigTemplates:
         return ColumnConfigTemplates._apply_kwargs({
             "header_text": "ID",
             "widget_class": HoverToggleButton,
-            "data_attribute": "_id",
+            "data_attribute": "id_",
             "value_getter": ColumnConfigTemplates._checkbox_id_value_getter,
             "other_attributes": {
                 "__custom_event__on_press": ColumnConfigTemplates._on_checkbox_id_press
@@ -108,7 +108,7 @@ class ColumnConfigTemplates:
 
     @staticmethod
     def _checkbox_id_value_getter(db_row: DatabaseRow) -> str:
-        return str(int(db_row._id))
+        return str(int(db_row.id_))
 
     @staticmethod
     def text_field(**kwargs: Any) -> ColumnConfig:

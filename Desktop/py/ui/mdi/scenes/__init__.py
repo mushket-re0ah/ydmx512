@@ -10,11 +10,11 @@ if TYPE_CHECKING:
 
 
 class MDIScenes(DatabaseMDIWindow):
-    _db_title_id: str = "scene"
+    db_title_id: str = "scene"
     title: str = StringProperty("Сцены")
 
-    menu: SceneMenu = ObjectProperty()
-    table: SceneTable = ObjectProperty()
+    menu: "SceneMenu" = ObjectProperty()
+    table: "SceneTable" = ObjectProperty()
 
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)

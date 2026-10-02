@@ -9,6 +9,7 @@ from database.playback.player.master_player import master_player
 from libs.beat_counter import BeatCounter
 from libs.dmx512 import dmx512
 from libs.kivy_json_orm.fields import BooleanField, ClampedNumericField
+from libs.midi import MIDIDispatcher
 from libs.typecheck import Number
 from misc import constants
 from misc.player import BasePlayer
@@ -42,11 +43,12 @@ class PlaybackPlayer(BasePlayer):
     play: bool = BooleanProperty(False)
 
     effects_renderer: PlayerEffectsRenderer
+    time_start: Optional[float]
     def __init__(self, *args: Any, **kwargs: Any):
         self.time_start = None
         super().__init__(*args, **kwargs)
 
-    def on_parent_row(self, _, parent_row: "RowPlayback"):
+    def on_parent_row(self, _, parent_row: "RowPlayback"): # pyright: ignore[reportIncompatibleMethodOverride]
         super().on_parent_row(_, parent_row)
         self.playback = parent_row
         self.effects_renderer = PlayerEffectsRenderer(self)
@@ -56,28 +58,31 @@ class PlaybackPlayer(BasePlayer):
             scene_now_beats_count=self._update_real_beats_count
         )
 
-    def on_remove(self, instance: "RowPlayback"):
+    def on_remove(self, instance: "RowPlayback"): # pyright: ignore[reportIncompatibleMethodOverride]
         self.stop()
         super().on_remove(instance)
 
-    def _update_real_beats_count(self, *_):
+    def _update_real_beats_count(self, *_:Any):
         self.property("is_link_global_temp").dispatch(self)
 
-    _save_intensive: Optional[int] = None
-    def on_midi_note_on(self, _, channel: int, intensive: Number):
+    _save_intensive: Optional[Number] = None
+    def on_midi_note_on(self, _: MIDIDispatcher, channel: int, intensive: Number):
         renderer = self.playback.renderer
         if channel == self.midi_channel:
             self._save_intensive = renderer.intensive
             renderer.intensive = intensive
             self.start()
 
-    def on_midi_note_off(self, _, channel: int, intensive: Number):
+    def on_midi_note_off(self, _: MIDIDispatcher, channel: int, intensive: Number):
         renderer = self.playback.renderer
         if channel == self.midi_channel:
-            renderer.intensive = self._save_intensive
+            if self._save_intensive is not None:
+                renderer.intensive = self._save_intensive
+            else:
+                renderer.intensive = 100
             self.stop()
 
-    def on_blackout(self, _):
+    def on_blackout(self, _: Any):
         if self.blackout_activate:
             if self.status in (PlayerStatus.STOP, PlayerStatus.RELEASE):
                 self.start()
@@ -128,6 +133,7 @@ class PlaybackPlayer(BasePlayer):
 
     def on_stop(self, _: BeatCounter):
         self.play = False
+        self.time_start = None
 
     def on_status(self, _, status: PlayerStatus):
         self.add_or_remove_player_list(status)

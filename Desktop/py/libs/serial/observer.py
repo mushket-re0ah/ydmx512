@@ -11,7 +11,7 @@ from libs.serial.get_name_serial_usb import get_product_name_by_port
 
 
 class SerialObserver(EventDispatcher):
-    devices: List[SerialDevice] = ListProperty()
+    devices: Tuple[SerialDevice, ...] = ListProperty()
     do_filter_devices: bool = BooleanProperty(False)
     filter_name_list: FrozenSet[str] = ObjectProperty()  # set of str
     device_cls: Type[SerialDevice] = ObjectProperty(SerialDevice)
@@ -35,7 +35,7 @@ class SerialObserver(EventDispatcher):
                     port_info=port_info,
                     product_name=product_name
                 )
-                self.devices.append(device)
+                self.devices = tuple([*self.devices, device])
                 self.dispatch("on_new_device", device)
 
         for device in self.devices:
@@ -43,7 +43,7 @@ class SerialObserver(EventDispatcher):
                                   for port_info in port_info_list)
             if not is_device_found:
                 if device.state is SerialState.OFF:
-                    self.devices.remove(device)
+                    self.devices = tuple([x for x in self.devices if x is not device])
                     self.dispatch("on_remove_device", device)
 
     def _get_list_ports(self) -> List[Tuple[ListPortInfo, Optional[str]]]:

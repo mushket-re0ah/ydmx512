@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Dict, FrozenSet, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, FrozenSet, List, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
@@ -297,12 +297,12 @@ class ILayoutMode(AutoUnbindBehavior, KeyboardBehavior, EventDispatcher):
     def _can_start_move(self, touch: MotionEvent, mdi: MDIWindow, side: WidgetSide) -> bool:
         return False
 
-    def _apply_resize(self, _):
+    def _apply_resize(self, _: Any):
         mdi = self._focused_mdi()
         if mdi and self._resize_side is not None:
             self.resize_mdi(self._resize_side, mdi, self._last_mouse_pos)
 
-    def _apply_move(self, _):
+    def _apply_move(self, _: Any):
         mdi = self._focused_mdi()
         if mdi and self._moving:
             self.move_mdi(mdi, self._start_mdi_pos, self._start_mouse_pos, self._last_mouse_pos)

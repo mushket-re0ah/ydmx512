@@ -1,10 +1,16 @@
-from typing import Any, Dict, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple
 
 from libs.kivy_json_orm.fields import ListField, StringField
 from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 
+if TYPE_CHECKING:
+    from database import YdmxDatabase
+
 
 class RowPhaseCurveType(DatabaseRow):
+    database: "YdmxDatabase"  # pyright: ignore[reportIncompatibleMethodOverride]
+    table: "TablePhaseCurveType" # pyright: ignore[reportIncompatibleVariableOverride]
+
     title_id = StringField(allownone=True)  # None - пользовательский
     title = StringField("Без названия")
     dots = ListField()
@@ -17,6 +23,16 @@ EXP_TITLE_ID = "exp"
 LINEAR_WITH_SPEEDUP_TITLE_ID = "linear_with_speedup"
 LINEAR_WITH_SPEEDDOWN_TITLE_ID = "linear_with_speeddown"
 class TablePhaseCurveType(DatabaseTable):
+    database: "YdmxDatabase" # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_id: Callable[[int], Optional[RowPhaseCurveType]] # pyright: ignore[reportIncompatibleMethodOverride]
+    rows: Dict[int, RowPhaseCurveType] # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_attribute: Callable[[str, Any], Optional[RowPhaseCurveType]] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_add_row: Callable[[RowPhaseCurveType], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_remove_row: Callable[[RowPhaseCurveType], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    add_row: Callable[..., RowPhaseCurveType] # pyright: ignore[reportIncompatibleMethodOverride]
+    remove_row: Callable[[RowPhaseCurveType], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    __getattr__: Callable[[str], Callable[[Any], Optional[RowPhaseCurveType]]] # pyright: ignore[reportIncompatibleMethodOverride]
+
     filename = "phase_curve_type.json"
     cls_row = RowPhaseCurveType
 

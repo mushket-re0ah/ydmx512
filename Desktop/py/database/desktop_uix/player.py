@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from kivy.clock import Clock
 from kivy.properties import AliasProperty, ObjectProperty
@@ -22,12 +22,12 @@ class DesktopUixPlayer(BasePlayer):
     BEATS_COUNT: int = 4
     FRAME_COUNT: int = BEATS_COUNT * constants.FRAMES_IN_BEAT
 
-    def on_parent_row(self, _, row: "RowDesktopUix"):
+    def on_parent_row(self, _: "DesktopUixPlayer", parent_row: "RowDesktopUix"): # pyright: ignore[reportIncompatibleMethodOverride]
         self.trigger_update_force_value = Clock.create_trigger(self.update_force_value, -1)
-        super().on_parent_row(_, row)
-        self.desktop_uix = row
+        super().on_parent_row(_, parent_row)
+        self.desktop_uix = parent_row
 
-        row.bind(
+        parent_row.bind(
             patch=self.trigger_update_force_value,
             fixture_param_1_index=self.trigger_update_force_value,
             fixture_param_2_index=self.trigger_update_force_value,
@@ -35,12 +35,12 @@ class DesktopUixPlayer(BasePlayer):
             value_1=self.trigger_update_force_value,
             value_2=self.trigger_update_force_value,
         )
-        row.bind(active=self.on_active)
+        parent_row.bind(active=self.on_active)
         db.scene.bind(scene_now_dimmer=self.trigger_update_force_value)
-        self.on_active(self, row.active)
+        self.on_active(self, parent_row.active)
         self.trigger_update_force_value()
 
-    def on_remove(self, instance: "RowDesktopUix"):
+    def on_remove(self, instance: "RowDesktopUix"): # pyright: ignore[reportIncompatibleMethodOverride]
         self.desktop_uix.active = False
         super().on_remove(instance)
 
@@ -64,7 +64,7 @@ class DesktopUixPlayer(BasePlayer):
         if self.soft_play and self.is_release:
             self.set_value_delay(self.start_value_1, self.start_value_2)
 
-    def on_active(self, _, active: bool):
+    def on_active(self, _: Any, active: bool):
         if active and self.status is PlayerStatus.STOP:
             self.start()
         elif self.status is PlayerStatus.WORK or self.status is PlayerStatus.ATTACK:
@@ -93,7 +93,7 @@ class DesktopUixPlayer(BasePlayer):
         self.set_value_delay(*vals)
 
     def set_value_delay(self, value_1: Optional[int], value_2: Optional[int]):
-        def set_value(_):
+        def set_value(_:float):
             if value_1 is not None:
                 self.desktop_uix.value_1 = value_1
             if value_2 is not None:
@@ -101,14 +101,19 @@ class DesktopUixPlayer(BasePlayer):
         Clock.schedule_once(set_value, -1)
 
     def set_force_delay(self, universe: int, address: int, value: int):
-        def set_value(_):
+        def set_value(_:float):
             dmx512.set_force_value(universe, address, value)
         Clock.schedule_once(set_value, -1)
 
     def set_force_value(self, n: int):
-        if self.status is not PlayerStatus.STOP and getattr(self.desktop_uix, f"value_{n}_allow"):
-            universe = self.desktop_uix.patch.universe
-            address = self.desktop_uix.patch.start_address +\
+        patch = self.desktop_uix.patch
+        if (
+            self.status is not PlayerStatus.STOP and
+            getattr(self.desktop_uix, f"value_{n}_allow") and
+            patch is not None
+        ):
+            universe = patch.universe
+            address = patch.start_address +\
                       getattr(self.desktop_uix, f"fixture_param_{n}_index")
             setattr(self, f"force_full_addr_{n}", FullAddress(universe, address))
 
@@ -149,14 +154,14 @@ class DesktopUixPlayer(BasePlayer):
         set_force_full_addr_2,
     )
 
-    def update_force_value(self, _):
+    def update_force_value(self, _: Any):
         self.set_force_value(1)
         self.set_force_value(2)
 
     def apply_modifiers(self, value: int, fixture_param: Optional[RowFixtureParam]) -> int:
-        if fixture_param is None:
-            return value
         patch = self.desktop_uix.patch
+        if fixture_param is None or patch is None:
+            return value
         return render_utils.apply_value_modifiers(
             value, fixture_param.title_id, patch.invert_pan, patch.invert_tilt
         )

@@ -1,11 +1,17 @@
-from typing import Any, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple
 
 from libs.kivy_json_orm.fields import BooleanField, ColorField, NumericField, StringField
 from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 from libs.typecheck import RGBA
 
+if TYPE_CHECKING:
+    from database import YdmxDatabase
+
 
 class RowFixtureParam(DatabaseRow):
+    database: "YdmxDatabase"  # pyright: ignore[reportIncompatibleMethodOverride]
+    table: "TableFixtureParam" # pyright: ignore[reportIncompatibleVariableOverride]
+
     title_id: Optional[str] = StringField(allownone=True)  # None - пользовательский
     title: str = StringField("Без названия")
     is_dynamic: bool = BooleanField(False)
@@ -42,6 +48,16 @@ FUNC_SPD_TITLE_ID = "func_spd"
 RESET_TITLE_ID = "reset"
 RESERVE_TITLE_ID = "reserve"
 class TableFixtureParam(DatabaseTable):
+    database: "YdmxDatabase" # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_id: Callable[[int], Optional[RowFixtureParam]] # pyright: ignore[reportIncompatibleMethodOverride]
+    rows: Dict[int, RowFixtureParam] # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_attribute: Callable[[str, Any], Optional[RowFixtureParam]] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_add_row: Callable[[RowFixtureParam], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_remove_row: Callable[[RowFixtureParam], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    add_row: Callable[..., RowFixtureParam] # pyright: ignore[reportIncompatibleMethodOverride]
+    remove_row: Callable[[RowFixtureParam], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    __getattr__: Callable[[str], Callable[[Any], Optional[RowFixtureParam]]] # pyright: ignore[reportIncompatibleMethodOverride]
+
     cls_row = RowFixtureParam
     filename = "fixture_param.json"
 

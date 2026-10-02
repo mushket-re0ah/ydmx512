@@ -59,7 +59,7 @@ class HoverInput(CentralizedHotkeyTextInput):
         super().__init__(**kwargs)
         self.bind(focus=self.focus_set_global)
 
-    def focus_set_global(self, _, focus: bool):
+    def focus_set_global(self, _: "HoverInput", focus: bool):
         self.visible_focus = focus
 
     def on_touch_down(self, touch: MotionEvent) -> bool:

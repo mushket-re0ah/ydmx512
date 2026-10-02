@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Literal, Optional, Tuple
 
 from libs.kivy_json_orm.fields import (
     BooleanField,
@@ -11,8 +11,13 @@ from libs.kivy_json_orm.table_implementation import ConfigTable
 from libs.midi.notes import MIDI_NOTES
 from misc import constants
 
+if TYPE_CHECKING:
+    from database import YdmxDatabase
+
 
 class TableMisc(ConfigTable):
+    database: "YdmxDatabase" # pyright: ignore[reportIncompatibleVariableOverride]
+
     filename = "misc.json"
 
     # fields
@@ -48,7 +53,7 @@ class TableMisc(ConfigTable):
     # graphics
     fps: int = ClampedNumericField(60, 10, 240)
     multisamples: int = ClampedNumericField(0, 0, 8)
-    vsync: str = OptionField("Off", options=["Off", "On", "Adaptive"])
+    vsync: Literal["Off", "On", "Adaptive"] = OptionField("Off", options=["Off", "On", "Adaptive"])
     use_system_cursor: bool = BooleanField(True)
 
     midi_notes: str = OptionField("CUBASE", options=list(MIDI_NOTES.keys()))

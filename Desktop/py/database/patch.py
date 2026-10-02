@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple
 
 from kivy.clock import Clock
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ObjectProperty
@@ -11,6 +11,7 @@ from libs.dmx512 import dmx512
 from libs.kivy_json_orm.fields import (
     BooleanField,
     ClampedNumericField,
+    DictField,
     ListField,
     NumericField,
     RefField,
@@ -20,11 +21,19 @@ from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 from libs.typecheck import Number
 from misc import constants
 
+if TYPE_CHECKING:
+    from database import YdmxDatabase
+
 
 class RowPatch(SceneRowMixin, DatabaseRow):
-    title: str = StringField("Без названия")
+    database: "YdmxDatabase"  # pyright: ignore[reportIncompatibleMethodOverride]
+    table: "TablePatch" # pyright: ignore[reportIncompatibleVariableOverride]
 
-    fixture: RowFixture = RefField("fixture", fallback_fn=lambda db: db.fixture.get_default_row())
+    title: str = StringField("Без названия")
+    fixture: RowFixture = RefField(
+        "fixture",
+        fallback_fn=lambda db: db.fixture.get_default_row()
+    )
     universe: int = ClampedNumericField(1, 1, constants.DMX_UNIVERSE_COUNT)
     start_address: int = ClampedNumericField(1, 1, constants.DMX_ADDRESS_COUNT)
     invert_pan: bool = BooleanField(False)
@@ -38,17 +47,22 @@ class RowPatch(SceneRowMixin, DatabaseRow):
     )
     grid_pos: Tuple[int, int] = ListField([None, None])
     workspace: int = NumericField(0)
+    mapper: Dict[int, Optional[int]] = DictField(
+        deserialize=lambda self, mapper: {
+            int(map_fixture): map_patch for map_fixture, map_patch in mapper.items()
+        }
+    )
 
     is_address_conflict: bool = BooleanProperty(False)
     param_list_unpacked: Tuple[RowFixtureParam, ...] = ObjectProperty()
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
-        self._table.update_address_info(self.universe)
+        self.table.update_address_info()
 
     def after_deserialize(self):
-        self._table.check_address_conflict(self.universe)
-        self._table.update_address_info(self.universe)
+        self.table.check_address_conflict(self.universe)
+        self.table.update_address_info()
 
     _prev_fixture = None
     def on_fixture(self, _, fixture: RowFixture):
@@ -59,20 +73,38 @@ class RowPatch(SceneRowMixin, DatabaseRow):
             self._prev_fixture = fixture
             self.param_list_unpacked = fixture.param_list_unpacked
 
+    def on_param_list_unpacked(self, _, param_list_unpacked: Tuple[RowFixtureParam, ...]):
+        if not self.mapper:
+            self._create_mapper(param_list_unpacked)
+
+    def _create_mapper(self, param_list_unpacked: Tuple[RowFixtureParam, ...]):
+        if self.mapper:
+            return
+        self.mapper = {
+            i: i
+            for i in range(len(param_list_unpacked))
+        }
+
+    def remap(self, fixture_index: int, patch_index: Optional[int]):
+        mapper = self.mapper.copy()
+        mapper[fixture_index] = patch_index
+        self.mapper = mapper
+        dmx512.clear_matrix_all()
+
     def on_start_address(self, *_):
-        self._table.check_address_conflict(self.universe)
-        self._table.update_address_info(self.universe)
+        self.table.check_address_conflict(self.universe)
+        self.table.update_address_info()
 
     _prev_universe: Optional[int] = None
     def on_universe(self, _, universe: int):
         if universe != self._prev_universe:
-            self._table.check_address_conflict(self._prev_universe)
-            self._table.check_address_conflict(universe)
+            self.table.check_address_conflict(self._prev_universe) # pyright: ignore[reportArgumentType]
+            self.table.check_address_conflict(universe)
             self._prev_universe = universe
-            self._table.update_address_info(self.universe)
+            self.table.update_address_info()
 
     def get_end_address(self) -> int:
-        self._table.check_address_conflict(self.universe)
+        self.table.check_address_conflict(self.universe)
         return int(boundary(
             self.start_address + len(self.param_list_unpacked) - 1,
             1, constants.DMX_ADDRESS_COUNT
@@ -84,25 +116,34 @@ class RowPatch(SceneRowMixin, DatabaseRow):
     )
 
     def on_remove(self):
-        self._table.check_address_conflict(self.universe)
-        self._table.update_address_info(self.universe)
+        self.table.check_address_conflict(self.universe)
+        self.table.update_address_info()
 
     def on_workspace(self, _, workspace: int):
-        self._table.dispatch("on_workspace_any_patch", self, workspace)
+        self.table.dispatch("on_workspace_any_patch", self, workspace)
 
 
 class TablePatch(SceneTableMixin, DatabaseTable):
+    database: "YdmxDatabase" # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_id: Callable[[int], Optional[RowPatch]] # pyright: ignore[reportIncompatibleMethodOverride]
+    rows: Dict[int, RowPatch] # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_attribute: Callable[[str, Any], Optional[RowPatch]] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_add_row: Callable[[RowPatch], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_remove_row: Callable[[RowPatch], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    remove_row: Callable[[RowPatch], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    __getattr__: Callable[[str], Callable[[Any], Optional[RowPatch]]] # pyright: ignore[reportIncompatibleMethodOverride]
+
     cls_row = RowPatch
 
     __events__ = ("on_workspace_any_patch",) + DatabaseTable.__events__
 
     address_info: Dict[Tuple[int, int], List[Tuple[RowPatch, RowFixtureParam]]] = DictProperty()
 
-    _universes_need_to_check = None
+    _universes_need_to_check: Set[int]
     def __init__(self, **kwargs: Any):
         self.trigger_check_address_conflict = Clock.create_trigger(self._check_address_conflict, -1)
-        self.update_address_info = Clock.create_trigger(self._update_address_info)
-        self._universes_need_to_check: Set[int] = set()
+        self.update_address_info = Clock.create_trigger(self._update_address_info, 0)
+        self._universes_need_to_check = set()
         super().__init__(**kwargs)
 
     def on_scene_change(self, old_scene: RowScene, new_scene: RowScene):
@@ -117,7 +158,7 @@ class TablePatch(SceneTableMixin, DatabaseTable):
             )
         return super().add_row(**kwargs)
 
-    def _update_address_info(self, _dt:Optional[float]=None):
+    def _update_address_info(self, _:Any=None):
         address_info: Dict[Tuple[int, int], List[Tuple[RowPatch, RowFixtureParam]]] = {}
 
         dmx512.clear_default_matrix_all()
@@ -152,7 +193,7 @@ class TablePatch(SceneTableMixin, DatabaseTable):
         self._universes_need_to_check.add(universe)
         self.trigger_check_address_conflict()
 
-    def _check_address_conflict(self, _):
+    def _check_address_conflict(self, _:Any):
         def inner(patch_list: Tuple[RowPatch, ...]):
             sorted_patches = list(sorted(patch_list, key=lambda x: x.start_address))
             n = len(sorted_patches)

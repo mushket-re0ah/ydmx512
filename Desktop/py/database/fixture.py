@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, NamedTuple, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional, Tuple, cast
 
 from kivy.properties import AliasProperty
 
@@ -19,6 +19,9 @@ from libs.kivy_json_orm.table_implementation import DatabaseRow, DatabaseTable
 from libs.serialize import SerializableMixin
 from misc import constants
 
+if TYPE_CHECKING:
+    from database import YdmxDatabase
+
 
 class FixtureParamMapKey(NamedTuple):
     param: RowFixtureParam
@@ -33,6 +36,9 @@ class FixtureChannelsGroup(SerializableMixin):
 
 
 class RowFixture(DatabaseRow):
+    database: "YdmxDatabase"  # pyright: ignore[reportIncompatibleMethodOverride]
+    table: "TableFixture" # pyright: ignore[reportIncompatibleVariableOverride]
+
     title: str = StringField("Noname")
     note: str = StringField("")
     brand: RowBrand = RefField("brand", default_factory=lambda: db.brand.get_default_row())
@@ -78,15 +84,27 @@ class RowFixture(DatabaseRow):
 
 
 class TableFixture(DatabaseTable):
+    database: "YdmxDatabase" # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_id: Callable[[int], Optional[RowFixture]] # pyright: ignore[reportIncompatibleMethodOverride]
+    rows: Dict[int, RowFixture] # pyright: ignore[reportIncompatibleVariableOverride]
+    get_row_by_attribute: Callable[[str, Any], Optional[RowFixture]] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_add_row: Callable[[RowFixture], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    on_remove_row: Callable[[RowFixture], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    add_row: Callable[..., RowFixture] # pyright: ignore[reportIncompatibleMethodOverride]
+    remove_row: Callable[[RowFixture], None] # pyright: ignore[reportIncompatibleMethodOverride]
+    __getattr__: Callable[[str], Callable[[Any], Optional[RowFixture]]] # pyright: ignore[reportIncompatibleMethodOverride]
+
     cls_row = RowFixture
     filename = "fixture.json"
 
     def _create_default(self):
-        def _make_param_list(str_params: List[str]) -> List[RowFixtureParam]:
-            result = [self.database.fixture_param.by_title_id(param) for param in str_params]
+        def _make_param_list(str_params: List[str]) -> Tuple[RowFixtureParam, ...]:
+            result: Tuple[Optional[RowFixtureParam], ...] = tuple(
+                self.database.fixture_param.by_title_id(param) for param in str_params
+            )
             if None in result:
                 raise ValueError("not existed fixture param")
-            return result
+            return cast(Tuple[RowFixtureParam, ...], result)
 
         self.add_row(
             title="Noname",
@@ -438,5 +456,5 @@ class TableFixture(DatabaseTable):
             ]
         )
 
-    def get_default_row(self) -> RowFixtureParam:
+    def get_default_row(self) -> RowFixture:
         return self.rows[next(iter(self.rows))]

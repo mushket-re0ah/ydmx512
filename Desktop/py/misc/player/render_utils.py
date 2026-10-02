@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from kivy.utils import boundary
 
@@ -19,7 +19,7 @@ def apply_dimmer(value: int, intensive: Number = 100, virtual_dimmer: Number = 1
 def apply_dynamic_param(value: int, invert_pan: bool, correction: int = 0) -> int:
     if correction:
         cor = -correction if invert_pan else correction
-        value = boundary(value + cor, 0, 255)
+        value = int(boundary(value + cor, 0, 255))
     if invert_pan:
         value = value ^ 255
     return value
@@ -50,27 +50,27 @@ def apply_value_modifiers(
 
 class SoftEffectsRenderer:
     def __init__(self):
-        self._attack_data: Dict[str, Tuple[int, int, float]] = {}
-        self._release_data: Dict[str, Tuple[int, int, float]]  = {}
+        self._attack_data: Dict[Any, Tuple[int, int, float]] = {}
+        self._release_data: Dict[Any, Tuple[int, int, float]]  = {}
 
-    def init_attack_step(self, key: str, frame: int, total_frames: int,
+    def init_attack_step(self, key: Any, frame: int, total_frames: int,
                          start_value: int, end_value: int):
         self._init_step(self._attack_data, key, frame, total_frames, start_value, end_value)
 
-    def get_attack_value(self, key: str, frame: int) -> Optional[int]:
+    def get_attack_value(self, key: Any, frame: int) -> Optional[int]:
         return self._get_value(self._attack_data, key, frame)
 
-    def init_release_step(self, key: str, frame: int, total_frames: int,
+    def init_release_step(self, key: Any, frame: int, total_frames: int,
                           start_value: int, end_value: int):
         self._init_step(self._release_data, key, frame, total_frames, start_value, end_value)
 
-    def get_release_value(self, key: str, frame: int) -> Optional[int]:
+    def get_release_value(self, key: Any, frame: int) -> Optional[int]:
         return self._get_value(self._release_data, key, frame)
 
     @staticmethod
     def _init_step(
             data: Dict[str, Tuple[int, int, float]],
-            key: str,
+            key: Any,
             frame: int,
             total_frames: int,
             start_value: int,
@@ -82,7 +82,7 @@ class SoftEffectsRenderer:
     @staticmethod
     def _get_value(
             data: Dict[str, Tuple[int, int, float]],
-            key: str,
+            key: Any,
             frame: int) -> Optional[int]:
         if key not in data:
             return None
@@ -105,7 +105,7 @@ class SoftEffectsRenderer:
     def get_soft_value(
         self,
         is_attack: bool,
-        key: str,
+        key: Any,
         frame: int,
         total_frames: int,
         live_value: int,      # живое значение (для атаки — конечное, для релиза — fallback-начало)

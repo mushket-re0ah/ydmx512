@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple
+from typing import Any, Callable, List, Tuple
 
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -18,6 +18,6 @@ def register_mouse_observer(callback: Callable[[Tuple[float, float]], None]):
     _callback_list.append(callback)
 
 
-def _processing_callbacks(_):
+def _processing_callbacks(_:Any):
     for callback in _callback_list:
         callback(Window.mouse_pos)

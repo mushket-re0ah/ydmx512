@@ -231,7 +231,7 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
     def __get_id_column(self) -> Optional[HoverToggleButton]:
         columns_config = self.columns_config
         for idx, config in enumerate(columns_config):
-            if config.data_attribute == "_id":
+            if config.data_attribute == "id_":
                 return self.children[len(columns_config) - idx - 1]
         return None
 
@@ -247,7 +247,12 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
         else:
             self.data["table_ui"].unselect_id_row(self.data["row"])
 
-    def refresh_view_attrs(self, rv: RecycleRestrictedScrollView, index: int, data: Dict[str, Any]):
+    def refresh_view_attrs( # pyright: ignore[reportIncompatibleMethodOverride]
+            self,
+            rv: RecycleRestrictedScrollView,
+            index: int,
+            data: Dict[str, Any]
+        ):
         self.data = data
         row = data["row"]
         columns_config = data["table_ui"].columns_config
@@ -393,16 +398,16 @@ class DatabaseTableUi(BoxLayout):
         for row_ui in self.scroll_layout.scrollview.layout_manager.children:
             row_ui._unbind_sync_database(self.columns_config)
         self.scroll_layout.scrollview.data = [
-            self.__make_row_data(row, row._id in self.selected_rows)
+            self.__make_row_data(row, row.id_ in self.selected_rows)
             for row in self.table.rows.values()
             if self.filter_function(self, row)
         ]
 
     def select_id_row(self, row: DatabaseRow):
-        self.selected_rows = tuple([*self.selected_rows, row._id])
+        self.selected_rows = tuple([*self.selected_rows, row.id_])
 
     def unselect_id_row(self, row: DatabaseRow):
-        self.selected_rows = tuple(i for i in self.selected_rows if i != row._id)
+        self.selected_rows = tuple(i for i in self.selected_rows if i != row.id_)
 
     def __make_row_data(self, row: DatabaseRow, selected: bool) -> Dict[str, Any]:
         return {

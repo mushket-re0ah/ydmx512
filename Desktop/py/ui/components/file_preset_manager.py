@@ -61,7 +61,7 @@ class MenuPresetManager(ModalBoxLayout):
     allow_create_preset: bool = BooleanProperty(False)
 
     def on_kv_post(self, base_widget: Widget):
-        rootpath = self.asset_manager._get_asset_dirname(self.category_key)
+        rootpath = self.asset_manager.get_asset_dirname(self.category_key)
         self.filelist.rootpath = rootpath
         self.filelist.bind(on_submit=self.on_filelist_submit)
 

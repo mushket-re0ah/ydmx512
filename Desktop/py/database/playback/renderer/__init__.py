@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
 from kivy.properties import DictProperty, ObjectProperty
 
@@ -46,12 +46,12 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         ) -> Dict[str, List[Dict[str, Any]]]:
         data: Dict[str, List[Dict[str, Any]]] = {}
         for patch, rows in value.items():
-            data[str(patch._id)] = [row.serialize() for row in rows]
+            data[str(patch.id_)] = [row.serialize() for row in rows]
         return data
 
     def _deserialize_rows_by_patch(
             self,
-            value: Dict[str, Dict[str, Any]]
+            value: Dict[str, List[Dict[str, Any]]]
         ) -> Dict[RowPatch, List[PlaybackRenderRow]]:
         restored: Dict[RowPatch, List[PlaybackRenderRow]] = {}
         for patch_id_str, rows_data in value.items():
@@ -81,7 +81,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         ) -> Dict[str, List[Dict[str, Any]]]:
         data: Dict[str, List[Dict[str, Any]]] = {}
         for patch, specs in value.items():
-            data[str(patch._id)] = [spec.serialize() for spec in specs]
+            data[str(patch.id_)] = [spec.serialize() for spec in specs]
         return data
 
     def _deserialize_row_phase_specs_by_patch(
@@ -115,7 +115,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         for spec in unique_specs:
             if not spec.ordered_patches:
                 continue
-            master_patch_id = str(spec.ordered_patches[0]._id)
+            master_patch_id = str(spec.ordered_patches[0].id_)
             data[str(master_patch_id)] = spec.serialize()
         return data
 
@@ -161,9 +161,10 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
                     master_index = min(spec.indices)
                     master_row = self.get_row(spec.patch, master_index)
                     if master_row:
-                        master_row._dots = spec.dots
+                        master_row._dots = spec.dots  # pyright: ignore[reportPrivateUsage]
                         master_row.invalidate_render()
-        for rows in self._rows_by_patch.values():
+        for patch, rows in self._rows_by_patch.items():
+            self._make_patch_binds(patch)
             for row in rows:
                 row.invalidate_render()
 
@@ -204,8 +205,10 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         return self._rows_by_patch[patch]
 
     def _make_patch_binds(self, patch: RowPatch):
-        patch.bind(start_address=self.set_patch_addresses)
-        patch.fixture.bind(param_list_unpacked=self.set_patch_addresses)
+        patch.bind(
+            start_address=self.set_patch_addresses,
+            param_list_unpacked=self.set_patch_addresses
+        )
 
     def get_patch_render(self, patch: RowPatch, fixture_index: int) -> bytes:
         row = self.get_row(patch, fixture_index)
@@ -233,7 +236,7 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         super().end_session()
         self.dispatch("on_render_changed")
 
-    def execute_command(self, command: PlaybackCommand) -> bool:
+    def execute_command(self, command: PlaybackCommand) -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         success = super().execute_command(command)
         if success:
             self.invalidate_all_render_cache()
@@ -607,11 +610,10 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
     def remove_interpatch_linked_rows(self, render_rows: List[PlaybackRenderRow]):
         if not render_rows:
             return
-        _specs: Set[Optional[InterpatchSpec]] = {
+        specs: Set[InterpatchSpec] = {
             self.get_interpatch_spec(row.patch) for row in render_rows
         }
-        _specs.discard(None)
-        specs: FrozenSet[InterpatchSpec] = frozenset(_specs)
+        specs.discard(None)
         for spec in specs:
             indices_to_remove: Set[int] = set()
             for row in render_rows:

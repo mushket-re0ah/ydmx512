@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class MDIEditor(DatabaseMDIWindow):
-    _db_title_id: str = "editor"
+    db_title_id: str = "editor"
     title: str = StringProperty("Редактор")
 
     playback: Optional[RowPlayback] = ObjectProperty(None, allownone=True, rebind=True)
@@ -41,7 +41,7 @@ class MDIEditor(DatabaseMDIWindow):
         "content.automation.toolbar.input_zoom_y/value": 8,
     }
 
-    content: EditorContent = ObjectProperty()
+    content: "EditorContent" = ObjectProperty()
 
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)

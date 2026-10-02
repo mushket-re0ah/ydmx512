@@ -1,6 +1,6 @@
 from typing import Callable, Dict, FrozenSet
 
-from kivy.core.window import Window
+from kivy.core.window import WindowBase
 from kivy.lang import Builder
 
 from libs.sdl2_keyboard.scancodes import SDL_SCANCODE_TO_KEYCODE_MAP
@@ -13,7 +13,7 @@ Builder.load_string("""
 
 
 class HotkeyInput(HoverInput):
-    def keyboard_on_textinput(self, window: Window, text: str):
+    def keyboard_on_textinput(self, window: WindowBase, text: str):
         # запрет на стандартный ввод текста. Только через keyboard_on_key_down
         return
 

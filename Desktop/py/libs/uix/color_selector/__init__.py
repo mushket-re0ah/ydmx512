@@ -12,9 +12,9 @@ from kivy.properties import (
 )
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
-from libs.uix.color_selector.colorpicker_utils import get_color_data
 
 from libs.typecheck import HSL, RGB
+from libs.uix.color_selector.colorpicker_utils import get_color_data
 
 Builder.load_string("""
 <ColorSelectorSquare>:  # Widget
@@ -128,7 +128,7 @@ class ColorSelectorSquare(Widget):
     lightness: float = NumericProperty(0.4)
     hsl: HSL = ReferenceListProperty(hue, saturate, lightness)
 
-    texture_size: float = NumericProperty(256)  # Размер текстуры
+    texture_size: int = NumericProperty(256)  # Размер текстуры
     texture: Texture = ObjectProperty()
     marker_x: int = NumericProperty(0)
     marker_y: int = NumericProperty(0)
@@ -141,7 +141,7 @@ class ColorSelectorSquare(Widget):
         marker_graphics_y
     )
 
-    MARKER_SIZE = 10
+    MARKER_SIZE: float = 10
 
     def __init__(self, **kwargs: Any):
         self.data: bytes = b''
@@ -171,7 +171,7 @@ class ColorSelectorSquare(Widget):
         self.marker_xy = int(self.hue * 255), int(self.saturate * 255)
         self.update_color(*self.marker_xy)
 
-    def update_texture(self, *_):
+    def update_texture(self, *_: Any):
         # Создаем массив цветов
         width: float = self.texture.width
         height: float = self.texture.height
@@ -200,7 +200,7 @@ class ColorSelectorSquare(Widget):
             return True
         return super().on_touch_move(touch)
 
-    def update_marker_graphics_pos(self, _):
+    def update_marker_graphics_pos(self, _:Any):
         x = self.marker_x / (self.texture.width - 1)
         y = self.marker_y / (self.texture.height - 1)
 

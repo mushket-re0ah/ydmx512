@@ -81,11 +81,11 @@ class RenderDots(List[DMXRenderDot]):
         else:
             right_frame = grid.size_x_getter()
 
-        target_frame = boundary(
+        target_frame = int(boundary(
             grid.to_frame_x(new_x),
             left_frame + 1,
             right_frame - 1,
-        )
+        ))
 
         self.remove(dot)
 
@@ -144,7 +144,7 @@ class RowPhaseSpec(SerializableMixin):
 
 class InterpatchSpec(SerializableMixin):
     ordered_patches: List[RowPatch] = ListField(  # упорядоченный список RowPatch
-        serialize=lambda self, value: [patch._id for patch in value],
+        serialize=lambda self, value: [patch.id_ for patch in value],
         deserialize=lambda self, value: [db.patch.get_row_by_id(pid) for pid in value]
     )
     linked_shifts: Dict[int, float] = DictField(
@@ -191,9 +191,9 @@ class PlaybackRenderRow(SerializableMixin):
         if self.row_phase_spec:
             return self.row_phase_spec.dots
         return self._dots
-    def set_dots(self, dots: RenderDots):
+    def set_dots(self, dots: RenderDots) -> bool:
         self.renderer.set_dots_for_row(self, dots)
-
+        return True
     dots: RenderDots = AliasProperty(get_dots, set_dots)
 
     def on__dots(self, *_):

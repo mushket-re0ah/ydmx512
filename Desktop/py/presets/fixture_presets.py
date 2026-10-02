@@ -76,7 +76,10 @@ class FixturePresetsManager(FileAssetManager):
         return preset
 
     def _key_to_string(self, key: RowFixture) -> str:
-        return str(key._id)
+        return str(key.id_)
+
+    def _get_asset_stem(self, asset: RowFixture) -> str:
+        return asset.title
 
     def _get_fixture_by_path(self, filepath: Path) -> Optional[RowFixture]:
         try:

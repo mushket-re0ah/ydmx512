@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional, Tuple
+from typing import Any, Callable, Dict, Literal, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
@@ -6,13 +6,11 @@ from kivy.event import EventDispatcher
 from libs.dmx512.serial.device import DMXSerialDevice
 from libs.dmx512.universe import DMX512Universe
 from libs.serial.observer import observer as serial_observer
-from libs.typecheck import KivyCallback
 
 
 class DMX512Dispatcher(EventDispatcher):
     __events__ = ("on_blackout",)
 
-    trigger_sync_universe_device = None
     def __init__(self,
             dmx_universe_count: int,
             serial_timeout: float,
@@ -72,7 +70,7 @@ class DMX512Dispatcher(EventDispatcher):
     def set_default_value(self, universe: int, address: int):
         self.universes[universe].set_default_value(address)
 
-    def clear_matrix_by_address_list(self, universe: int, address_list: Tuple[int]):
+    def clear_matrix_by_address_list(self, universe: int, address_list: Tuple[int, ...]):
         self.universes[universe].clear_matrix_by_address_list(address_list)
 
     def clear_matrix_all(self):
@@ -100,15 +98,18 @@ class DMX512Dispatcher(EventDispatcher):
     def set_universe_device(self, universe: int, device: DMXSerialDevice):
         self.universes[universe].device = device
 
-    def sync_universe_device(self, _):
-        device_dict = {device.universe: device for device in serial_observer.devices}
+    def sync_universe_device(self, _: Any):
+        device_dict: Dict[int, DMXSerialDevice] = {
+            device.universe: device
+            for device in serial_observer.devices
+        }
         for universe, universe_obj in self.universes.items():
             universe_obj.device = device_dict.get(universe, None)
 
-    def register_on_write_matrix(self, universe: int, callback: KivyCallback):
+    def register_on_write_matrix(self, universe: int, callback: Callable[[int, int], None]):
         self.universes[universe].bind(on_write_matrix=callback)
 
-    def unregister_on_write_matrix(self, universe: int, callback: KivyCallback):
+    def unregister_on_write_matrix(self, universe: int, callback: Callable[[int, int], None]):
         self.universes[universe].unbind(on_write_matrix=callback)
 
     def get_universe(self, universe: int) -> DMX512Universe:

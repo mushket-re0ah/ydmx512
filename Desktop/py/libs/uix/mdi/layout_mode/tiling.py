@@ -86,13 +86,13 @@ class TilingLayoutMode(ILayoutMode):
         super().__init__(mdi_container, from_layout_mode)
         mdi_container.layout_add_widget(self.container)
 
-    def get_layout(self) -> List[List[MDIWindow]]:
+    def get_layout(self) -> List[List[MDIWindow]]:  # pyright: ignore[reportIncompatibleMethodOverride]
         return [
             list(reversed(mdi_box.children))
             for mdi_box in reversed(self.container.children)
         ]
 
-    def load_layout(self, layout: List[List[MDIWindow]]):
+    def load_layout(self, layout: List[List[MDIWindow]]):  # pyright: ignore[reportIncompatibleMethodOverride]
         mdi_list = [
             mdi
             for mdi_group in layout
@@ -182,7 +182,7 @@ class TilingLayoutMode(ILayoutMode):
 
         # Новый box слева
         if target_box is None and target_index == "left":
-            current_box.remove_widget(mdi)
+            current_box.remove_widget(mdi)  # pyright: ignore[reportOptionalMemberAccess]
             self.__add_mdi_tiling_mdi_box(
                 mdi,
                 len(self.container.children),
@@ -191,15 +191,18 @@ class TilingLayoutMode(ILayoutMode):
 
         # Новый box справа
         if target_box is None and target_index == "right":
-            current_box.remove_widget(mdi)
+            current_box.remove_widget(mdi)  # pyright: ignore[reportOptionalMemberAccess]
             self.__add_mdi_tiling_mdi_box(mdi, 0)
             return
 
-        if current_box is target_box and current_box.mdi_index(mdi) == target_index:
+        if (
+            current_box is target_box and
+            current_box.mdi_index(mdi) == target_index  # pyright: ignore[reportOptionalMemberAccess]
+        ):
             return
 
-        current_box.remove_widget(mdi)
-        target_box.add_widget(mdi, target_index)
+        current_box.remove_widget(mdi)  # pyright: ignore[reportOptionalMemberAccess]
+        target_box.add_widget(mdi, target_index)  # pyright: ignore[reportOptionalMemberAccess, reportArgumentType]
 
     def _find_drop_location(
             self,
@@ -304,25 +307,25 @@ class TilingLayoutMode(ILayoutMode):
             neighbor_mdi_box = self.container.children[index_mdi_box_now - 1]
             master_mdi_box, slave_mdi_box = neighbor_mdi_box, mdi_box_now
 
-        master_mdi_box.size_hint_x, slave_mdi_box.size_hint_x = self.__calc_hints(
-            sum_hint=master_mdi_box.size_hint_x + slave_mdi_box.size_hint_x,
-            sum_size=master_mdi_box.width + slave_mdi_box.width,
-            mouse_local=mouse_x - slave_mdi_box.x
+        master_mdi_box.size_hint_x, slave_mdi_box.size_hint_x = self.__calc_hints(  # pyright: ignore[reportOptionalMemberAccess]
+            sum_hint=master_mdi_box.size_hint_x + slave_mdi_box.size_hint_x,  # pyright: ignore[reportOptionalMemberAccess]
+            sum_size=master_mdi_box.width + slave_mdi_box.width,  # pyright: ignore[reportOptionalMemberAccess]
+            mouse_local=mouse_x - slave_mdi_box.x  # pyright: ignore[reportOptionalMemberAccess]
         )
 
     def __change_mdi_height(self, side: WidgetSide, mdi_now: MDIWindow,
                             mouse_y: float):
         mdi_box_now = mdi_now.parent
-        index_mdi_now = mdi_box_now.mdi_index(mdi_now)
+        index_mdi_now = mdi_box_now.mdi_index(mdi_now)  # pyright: ignore[reportOptionalMemberAccess]
         if side in TOP_WIDGET_SIDES:
-            if index_mdi_now == (len(mdi_box_now.children) - 1):
+            if index_mdi_now == (len(mdi_box_now.children) - 1):  # pyright: ignore[reportOptionalMemberAccess]
                 return
-            neighbor_mdi = mdi_box_now.children[index_mdi_now + 1]
+            neighbor_mdi = mdi_box_now.children[index_mdi_now + 1]  # pyright: ignore[reportOptionalMemberAccess]
             master_mdi, slave_mdi = neighbor_mdi, mdi_now
         else:
             if index_mdi_now == 0:
                 return
-            neighbor_mdi = mdi_box_now.children[index_mdi_now - 1]
+            neighbor_mdi = mdi_box_now.children[index_mdi_now - 1]  # pyright: ignore[reportOptionalMemberAccess]
             master_mdi, slave_mdi = mdi_now, neighbor_mdi
 
         master_mdi.size_hint_y, slave_mdi.size_hint_y = self.__calc_hints(

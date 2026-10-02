@@ -82,16 +82,15 @@ class AnimationBehavior:
     animation_params: Dict[str, Dict[str, Union[ColorDiff, RGBA]]] = {}
     animation_triggers: Dict[str, Dict[str, Callable[[EventDispatcher], bool]]] = {}
     _animation_block: bool = True  # Первый кадр анимация недоступна
-    _trigger_animate = None
 
     _animation: Optional[Animation] = None
     def __init__(self, **kwargs: Any):
-        super().__init__(**kwargs)
         self._trigger_animate = Clock.create_trigger(self._animate, -1)
+        super().__init__(**kwargs)
         self._make_animation_binds()
         Clock.schedule_once(self._animation_unblock, -1)
 
-    def _animation_unblock(self, _dt: float):
+    def _animation_unblock(self, dt: float):
         self._animation_block = False
         self._set_colors()
 

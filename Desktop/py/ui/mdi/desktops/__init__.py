@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class MDIDesktops(DatabaseMDIWindow):
-    _db_title_id: str = "desktops"
+    db_title_id: str = "desktops"
     title: str = StringProperty("Рабочие столы")
 
     desktop_map: "DesktopMapSection" = ObjectProperty()

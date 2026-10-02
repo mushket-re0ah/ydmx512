@@ -1,6 +1,6 @@
 import time
 from threading import Thread
-from typing import Any, Callable, List
+from typing import Any, Callable, Tuple
 
 from database import db
 from database.playback.player import master_player as playback_master_player
@@ -40,15 +40,15 @@ midi_monitor_connections = ThrottledCall(
 
 # если где-то ошибка то цикл не пойдет дальше, последующие системы не отработают
 # поэтому нужен list
-_callback_list: List[Callable[[float], Any]] = [
-    db.save_throttled,
-    db.backup_throttled,
+_callback_list: Tuple[Callable[[float], Any], ...] = (
+    lambda dt: db.save_throttled(dt) if db.save_throttled is not None else dt,
+    lambda dt: db.backup_throttled(dt) if db.backup_throttled is not None else dt,
     serial_monitor_connections,
     midi_monitor_connections,
     dmx512.loop,
     beat_counter.loop,
     playback_master_player.loop,
-]
+)
 def _loop():
     next_time = time.monotonic() + EVENT_THREAD_TIME
     last_time = time.monotonic()

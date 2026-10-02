@@ -11,13 +11,13 @@ class Command:
     def undo(self):
         self._do_undo()
 
-    def _do_undo(self):
+    def _do_undo(self) -> None:
         raise NotImplementedError()
 
     def redo(self):
         self._do_redo()
 
-    def _do_redo(self):
+    def _do_redo(self) -> None:
         raise NotImplementedError()
 
     def merge(self, command: "Command") -> bool:

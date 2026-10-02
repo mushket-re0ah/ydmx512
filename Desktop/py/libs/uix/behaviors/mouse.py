@@ -1,8 +1,10 @@
 from kivy.input.motionevent import MotionEvent
 from kivy.properties import BooleanProperty
 
+from libs.typecheck import WidgetProtocol
 
-class TouchMouseBehavior:
+
+class TouchMouseBehavior(WidgetProtocol):
     drag_enabled: bool = BooleanProperty(False)
 
     def on_touch_down(self, touch: MotionEvent) -> bool:

@@ -8,13 +8,13 @@ from libs.uix.mdi.mdi_window import MDIWindow
 
 
 class DatabaseMDIWindow(MDIWindow):
-    _db_title_id: str
+    db_title_id: str
     mdi_db_row: RowMDIWindow = ObjectProperty(None, allownone=True)
 
     def __init__(self, *args: Any, **kwargs: Any):
-        mdi_db_row = db.mdi_window.by_title_id(self._db_title_id)
+        mdi_db_row = db.mdi_window.by_title_id(self.db_title_id)
         if mdi_db_row is None:
-            mdi_db_row = db.mdi_window.add_row(title_id=self._db_title_id)
+            mdi_db_row = db.mdi_window.add_row(title_id=self.db_title_id)
         self.mdi_db_row = mdi_db_row
         super().__init__(
             mdi_db_row.view_context,

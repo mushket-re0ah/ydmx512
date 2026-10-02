@@ -53,7 +53,7 @@ class DMX512Universe(EventDispatcher):
         for address in range(1, dmx512.DMX_ADDRESS_COUNT + 1):
             self.default_matrix[address - 1] = 0
 
-    def clear_matrix_by_address_list(self, address_list: Tuple[int]):
+    def clear_matrix_by_address_list(self, address_list: Tuple[int, ...]):
         for address in address_list:
             self.set_value(address, self.default_matrix[address])
 

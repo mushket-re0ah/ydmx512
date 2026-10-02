@@ -31,14 +31,14 @@ class BaseDatabaseGridItem(MapGridItemBehavior, RelativeLayout):
             Animation(opacity=1, duration=0.2).start(self)
 
     def _get_grid_pos(self) -> Tuple[int, int]:
-        if self.db_row.grid_pos[0] is None:
+        if self.db_row.grid_pos[0] is None:  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
             if self.map_layout is None:
                 raise RuntimeError()
             grid_pos = self.map_layout.find_empty_pos(*self.grid_size)
             if grid_pos[0] is None:
                 return (0, 0)
             return grid_pos
-        return self.db_row.grid_pos
+        return self.db_row.grid_pos  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
 
     def _self_destroy(self):
         self.disabled = True

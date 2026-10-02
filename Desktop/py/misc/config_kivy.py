@@ -1,3 +1,16 @@
+from typing import Literal, Optional, Tuple, TypedDict
+
+
+class _MiscDataTypedDict(TypedDict, total=False):
+    maximize: bool
+    fullscreen: bool
+    window_size: Optional[Tuple[int, int]]
+    window_position: Optional[Tuple[int, int]]
+    fps: int
+    multisamples: int
+    vsync: Literal["Off", "On", "Adaptive"]
+
+
 def init(backup_mode:bool=False):
     import os
 
@@ -31,7 +44,7 @@ def init(backup_mode:bool=False):
     import json
 
     from misc import constants
-    data = {}
+    data: _MiscDataTypedDict = {}
     try:
         with open(constants.DATABASE_PATH / "misc.json", "r", encoding="utf8") as fptr:  # noqa: UP015
             data = json.loads(fptr.read())
@@ -43,7 +56,7 @@ def init(backup_mode:bool=False):
     window_position = data.get("window_position", None)
     fps = data.get("fps", 60)
     multisamples = data.get("multisamples", 0)
-    vsync =  data.get("vsync", "Off")
+    vsync = data.get("vsync", "Off")
 
     if fullscreen:
         Config.set("graphics", "fullscreen", "auto")

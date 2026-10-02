@@ -94,7 +94,7 @@ class CommandSetActive(PlaybackRowCommand):
     def _do_redo_row(self, row: PlaybackRenderRow):
         row.active = self.rows_active[row]
 
-    def merge(self, command: "CommandSetActive") -> bool:
+    def merge(self, command: "CommandSetActive") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         self.rows_active.update(command.rows_active)
         for row, active in command.undo_data.items():
             if row not in self.undo_data:
@@ -133,7 +133,7 @@ class CommandSetDotType(PlaybackRowDotsCommand):
         for dot in self.rows_dots[row]:
             row.dots.set_dot_type(dot, self.dot_type)
 
-    def merge(self, command: "CommandSetDotType") -> bool:
+    def merge(self, command: "CommandSetDotType") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         self.merge_rows_dots(command)
 
         # сохраняем только первый исходный тип для каждой точки
@@ -150,8 +150,8 @@ class CommandAddDot(PlaybackRowCommand):
             self,
             renderer: "PlaybackRenderer",
             render_rows: List[PlaybackRenderRow],
-            x: int,
-            y: int,
+            x: float,
+            y: float,
             dot_type: InterpolationType
         ):
         super().__init__(renderer, render_rows)
@@ -177,7 +177,7 @@ class CommandAddDot(PlaybackRowCommand):
         for dot in self.added_dots_by_row.get(row, []):
             row.dots.insert_dot_by_x(dot)
 
-    def merge(self, command: "CommandAddDot") -> bool:
+    def merge(self, command: "CommandAddDot") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         self.merge_render_rows(command)
         for row, dots in command.added_dots_by_row.items():
             self.added_dots_by_row.setdefault(row, []).extend(dots)
@@ -216,7 +216,7 @@ class CommandRemoveDot(PlaybackRowDotsCommand):
         for dot in self.removed_dots_by_row.get(row, []):
             row.dots.remove_dot(dot)
 
-    def merge(self, command: "CommandRemoveDot") -> bool:
+    def merge(self, command: "CommandRemoveDot") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         self.merge_rows_dots(command)
 
         # Объединяем removed_dots_by_row (удалённые точки)
@@ -266,7 +266,7 @@ class CommandMoveDot(PlaybackRowDotsCommand):
             end_x, end_y = self.end_positions[dot]
             row.dots.move_dot_to(dot, end_x, end_y, self.renderer.xy_grid)
 
-    def merge(self, command: "CommandMoveDot") -> bool:
+    def merge(self, command: "CommandMoveDot") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         self.merge_rows_dots(command)
         for dot, pos in command.start_positions.items():
             if dot not in self.start_positions:
@@ -296,7 +296,7 @@ class CommandCreateRowPhaseSpec(PlaybackCommand):
     def _do_redo(self):
         self.renderer.add_row_phase_spec(self.spec)
 
-    def merge(self, command: "CommandCreateRowPhaseSpec") -> bool:
+    def merge(self, command: "CommandCreateRowPhaseSpec") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         return False
 
 
@@ -329,7 +329,7 @@ class CommandUpdateRowPhaseSpec(PlaybackCommand):
         for field, value in self.new_values.items():
             setattr(self.spec, field, value)
 
-    def merge(self, command: "CommandUpdateRowPhaseSpec") -> bool:
+    def merge(self, command: "CommandUpdateRowPhaseSpec") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         if command.spec is self.spec:
             self.new_values.update(command.new_values)
             return True
@@ -355,7 +355,7 @@ class CommandRemoveRowPhaseSpec(PlaybackCommand):
     def _do_redo(self):
         self.renderer.remove_row_phase_spec(self.spec)
 
-    def merge(self, command: "CommandRemoveRowPhaseSpec") -> bool:
+    def merge(self, command: "CommandRemoveRowPhaseSpec") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         return False
 
 
@@ -378,7 +378,7 @@ class CommandCreateInterpatchSpec(PlaybackCommand):
     def _do_redo(self):
         self.renderer.add_interpatch_spec(self.spec)
 
-    def merge(self, command: "CommandCreateInterpatchSpec") -> bool:
+    def merge(self, command: "CommandCreateInterpatchSpec") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         return False
 
 
@@ -410,7 +410,7 @@ class CommandUpdateInterpatchSpec(PlaybackCommand):
         for field, value in self.new_values.items():
             setattr(self.spec, field, value)
 
-    def merge(self, command: "CommandUpdateInterpatchSpec") -> bool:
+    def merge(self, command: "CommandUpdateInterpatchSpec") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         if command.spec is self.spec:
             self.new_values.update(command.new_values)
             return True
@@ -436,5 +436,5 @@ class CommandRemoveInterpatchSpec(PlaybackCommand):
     def _do_redo(self):
         self.renderer.remove_interpatch_spec(self.spec)
 
-    def merge(self, command: "CommandRemoveInterpatchSpec") -> bool:
+    def merge(self, command: "CommandRemoveInterpatchSpec") -> bool: # pyright: ignore[reportIncompatibleMethodOverride]
         return False

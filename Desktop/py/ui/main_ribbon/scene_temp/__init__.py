@@ -35,23 +35,23 @@ class BeatLabel(RestrictedLabel):
             frame_now=self.trigger_frame
         )
 
-    def on_frame(self, _dt: float):
+    def on_frame(self, dt: float):
         # return
         scene_bc = db.scene.scene_now_bc
-        progress = scene_bc._frame_now / (constants.FRAMES_IN_BEAT * scene_bc.beats_count)
+        progress = scene_bc.frame_now / (constants.FRAMES_IN_BEAT * scene_bc.beats_count)
         self._progressbar_width = self.width * progress
 
-    def on_beat(self, _dt: float):
+    def on_beat(self, dt: float):
         if db.scene.scene_now_bc.beat_now == 0:
             self.on_downbeat()
         else:
             self._led_color = cs.BeatLabel.default_bg
         self._fg_color = cs.BeatLabel.default_fg
 
-    def on_halfbeat(self, _dt: float):
+    def on_halfbeat(self, dt: float):
         self._led_color = cs.BeatLabel.halfbeat_bg
 
-    def on_downbeat(self, _dt: float=0.0):
+    def on_downbeat(self, dt: float=0.0):
         self._led_color = cs.BeatLabel.upbeat_bg
 
 

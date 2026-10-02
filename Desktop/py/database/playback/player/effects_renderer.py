@@ -1,8 +1,9 @@
 import time
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from database.fixture_param import DIMMER_TITLE_ID
 from database.patch import RowPatch
+from libs import logger
 from misc.player.render_utils import SoftEffectsRenderer, apply_value_modifiers
 from misc.player.status import PlayerStatus
 
@@ -54,17 +55,17 @@ class PlayerEffectsRenderer:
     def _apply_bounce(self, frame: int) -> int:
         if not self.player.bounce:
             return frame
-        if self.player._bounce_direction == -1 and frame == 0:
+        if self.player._bounce_direction == -1 and frame == 0:  # pyright: ignore[reportPrivateUsage]
             return -1
-        return self.player._bounce_direction * frame
+        return self.player._bounce_direction * frame  # pyright: ignore[reportPrivateUsage]
 
-    def _get_render_value(self, patch_render: List[int], frame: int) -> int:
+    def _get_render_value(self, patch_render: bytes, frame: int) -> int:
         if self.do_cycle_last_frame:
             return patch_render[-1]
         return patch_render[self._apply_bounce(frame)]
 
     def _get_render_soft_value(self, patch: RowPatch, fixture_index: int,
-                               frame: int, patch_render: List[int]) -> int:
+                               frame: int, patch_render: bytes) -> int:
         is_attack = self.player.status is PlayerStatus.ATTACK
         param = patch.fixture.param_list_unpacked[fixture_index]
         value = self.soft_renderer.get_soft_value(
@@ -78,7 +79,12 @@ class PlayerEffectsRenderer:
         if not self.player.fade_to_black:
             return value
         fade_time_sec = self.player.fade_to_black_time / 1000
-        time_from_start = time.time() - self.player.time_start
+        time_start = self.player.time_start
+        if time_start is None:
+            logger.warning("_apply_fade_to_black, time_start is None")
+            time_start = time.time()
+            self.player.time_start = time_start
+        time_from_start = time.time() - time_start
         if patch.fixture.is_dynamic and time_from_start < fade_time_sec:
             param = patch.fixture.param_list_unpacked[fixture_index]
             if param.title_id == DIMMER_TITLE_ID:

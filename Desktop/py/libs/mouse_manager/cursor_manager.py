@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -125,7 +125,7 @@ def set_cursor_pos(mouse_pos: Tuple[float, float]):
     _cursor_pos = mouse_pos
     _trigger_set_cursor()
 
-def _complete(_):
+def _complete(_:Any):
     """
         system_cursor_allowed = A
         use_system_cursor = B

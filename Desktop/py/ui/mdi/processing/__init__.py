@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class MDIProcessing(DatabaseMDIWindow):
-    _db_title_id: str = "processing"
+    db_title_id: str = "processing"
     title: str = StringProperty("Процессинг")
 
     menu: "ProcessingMenu" = ObjectProperty()

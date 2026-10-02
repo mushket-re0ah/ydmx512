@@ -27,12 +27,13 @@ class BasePatchUiTiltButton(HoverToggleButton):
 class BasePatchUi(BaseDatabaseGridItem):
     input_start_address: NumericInput = ObjectProperty()
     input_universe: NumericInput = ObjectProperty()
+    toggle_controller: HoverToggleButton = ObjectProperty()
     lbl_addr_info: RestrictedLabel = ObjectProperty()
     image_fixture: Image = ObjectProperty()
-    toggle_controller: HoverToggleButton = ObjectProperty()
     input_title: HoverInput = ObjectProperty()
     button_pan: BasePatchUiPanButton = ObjectProperty()
     button_tilt: BasePatchUiTiltButton = ObjectProperty()
+    toggle_mapper: HoverToggleButton = ObjectProperty()
 
     def _set_patch(self, patch: RowPatch) -> bool:
         if self.db_row != patch:
@@ -66,7 +67,23 @@ class BasePatchUi(BaseDatabaseGridItem):
         ).open(self)
 
     def open_controller_menu(self):
+        def on_dissmiss_menu(modal: "PatchControllerMenu"):
+            modal.unbind(on_dismiss=on_dissmiss_menu)
+            self.toggle_controller.is_down = False
         from ui.components.patch_ui.patch_controller import PatchControllerMenu
-        PatchControllerMenu(
+        menu = PatchControllerMenu(
             patch=self.patch
-        ).open(self, pos=(self.right, self.top))
+        )
+        menu.bind(on_dismiss=on_dissmiss_menu)
+        menu.open(self, pos=(self.right, self.top))
+
+    def open_mapper_menu(self):
+        def on_dissmiss_menu(modal: "PatchMapperMenu"):
+            modal.unbind(on_dismiss=on_dissmiss_menu)
+            self.toggle_mapper.is_down = False
+        from ui.components.patch_ui.patch_mapper import PatchMapperMenu
+        menu = PatchMapperMenu(
+            patch=self.patch
+        )
+        menu.bind(on_dismiss=on_dissmiss_menu)
+        menu.open(self, pos=(self.right, self.top))

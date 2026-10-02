@@ -1,0 +1,30 @@
+<PatchMapperMenuChannel>:  # BoxLayout
+    RestrictedLabel:
+        text: "{} #{}".format(root.fixture_param.title, root.index + 1) if root.fixture_param is not None else ""
+    NumericInput:
+        allow_empty: True
+        minimum: 1
+        maximum: len(root.patch.mapper.keys()) if root.patch else float("inf")
+        value: root.index + 1
+        on_value: root.remap_to(self.value) if self.focus else None
+
+
+<PatchMapperMenu>:  # ModalBoxLayout
+    size: ("400dp", "300dp")
+    scroll_layout: scroll_layout
+
+    ScrollLayout:
+        id: scroll_layout
+        scrollview: scrollview
+        RecycleRestrictedScrollView:
+            id: scrollview
+            viewclass: "PatchMapperMenuChannel"
+            scroll_by_content: True
+            do_scroll_x: False
+            do_scroll_by_element: True
+            RecycleBoxLayout:
+                size_hint: (1, None)
+                orientation: "vertical"
+                default_size_hint: (1, None)
+                height: self.minimum_height
+                default_size: (None, "30dp")

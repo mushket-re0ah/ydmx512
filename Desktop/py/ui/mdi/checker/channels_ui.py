@@ -149,7 +149,7 @@ class CheckerOverlay(BoxLayout):
         )
         self._trigger_update_patch_overlay()
 
-    def update_patch_overlay(self, _: float):
+    def update_patch_overlay(self, _:Any):
         if self.checker.hidden:
             return
         self.patch_overlay.clear_widgets()
