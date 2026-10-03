@@ -10,6 +10,7 @@ from libs.kivy_json_orm.fields import (
     table_ref_deserializer,
     table_ref_serializer,
 )
+from libs.typecheck import UNSET
 from ui.components.database_mdi_window import DatabaseMDIWindow
 
 if TYPE_CHECKING:
@@ -23,22 +24,22 @@ class MDIEditor(DatabaseMDIWindow):
     playback: Optional[RowPlayback] = ObjectProperty(None, allownone=True, rebind=True)
 
     view_context_template = {
-        "content.splitter_x/width": 0,
-        "content.splitter_y/height": 0,
+        "content.splitter_x/width": UNSET,
+        "content.splitter_y/height": UNSET,
         "content.playback_map.pb_map/playback": {
-            "default": None,
+            "default": UNSET,
             "serialize": table_ref_serializer(),
             "deserialize": table_ref_deserializer(lambda: db.playback)
         },
         "content.patch_map/active_patch": {
-            "default": [],
+            "default": UNSET,
             "serialize": list_of_refs_serializer(),
             "deserialize": list_of_refs_deserializer(lambda: db.patch)
         },
-        "content.patch_map.workspace_manager/workspace_now_index": 0,
-        "content.playback_map.pb_map.scrollview/scroll_x": 0,
-        "content.playback_map.pb_map.scrollview/scroll_y": 0,
-        "content.automation.toolbar.input_zoom_y/value": 8,
+        "content.patch_map.workspace_manager/workspace_now_index": UNSET,
+        "content.playback_map.pb_map.scrollview/scroll_x": UNSET,
+        "content.playback_map.pb_map.scrollview/scroll_y": UNSET,
+        "content.automation.toolbar.input_zoom_y/value": UNSET,
     }
 
     content: "EditorContent" = ObjectProperty()

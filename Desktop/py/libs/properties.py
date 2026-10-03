@@ -22,10 +22,16 @@ class ClampedNumericProperty(BoundedNumericProperty):
 
 
 class EnumProperty(OptionProperty):
-    def __init__(self, enum_cls: Type[Enum], default:Optional[Any]=None, **kwargs: Any):
+    def __init__(
+            self,
+            enum_cls: Type[Enum],
+            default:Optional[Any]=None,
+            force_none:bool=False,
+            **kwargs: Any
+        ):
         self.enum_cls = enum_cls
         options = list(enum_cls.__members__.values())
-        if default is None:
+        if default is None and not force_none:
             default = options[0]
         super().__init__(default, options=options, **kwargs)
 
