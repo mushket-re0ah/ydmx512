@@ -116,6 +116,8 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
             if serialize is None or deserialize is None:
                 raise ValueError(f"object {self} has invalid ser/deserialize params dict {params}")
             return (default, serialize, deserialize)
+        if callable(params):
+            params = params()
         return (params, None, None)
 
     def _setup_path(
