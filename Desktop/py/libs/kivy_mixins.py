@@ -1,10 +1,29 @@
-from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, TypedDict, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    TypedDict,
+    Union,
+    cast,
+)
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from typing_extensions import TypeAlias
 
 from libs.serialize import Deserializer, Serializer
-from libs.typecheck import AnyCallback, EventDispatcherProtocol, KivyCallback
+from libs.typecheck import (
+    UNSET,
+    AnyCallback,
+    EventDispatcherProtocol,
+    ImmutableTypes,
+    KivyCallback,
+    UnsetType,
+)
 
 
 class AutoUnbindBehavior(EventDispatcherProtocol):
@@ -36,19 +55,24 @@ class AutoUnbindBehavior(EventDispatcherProtocol):
         self._bindings_to.clear()
 
 
+ViewContextDefaultData: TypeAlias = Union[UnsetType, ImmutableTypes, Callable[[], Any]]
+
 class ViewContextTemplateInnerDict(TypedDict):
-    default: Any
+    default: ViewContextDefaultData
     serialize: Serializer
     deserialize: Deserializer
 
 
 class ViewContextSaverMixin(EventDispatcherProtocol):
-    """Микшин для MDIWindow. Автоматически сохраняет состояние виджетов
+    """Микcин для MDIWindow. Автоматически сохраняет состояние виджетов
     по плоскому списку путей, в том числе с динамическими ключами @var."""
     view_context_template: Mapping[
         str,
-        Union[Any, ViewContextTemplateInnerDict]
-    ] = {}  # переопределить в наследнике
+        Union[ViewContextDefaultData, ViewContextTemplateInnerDict]
+    ]  # определить в наследнике
+
+    _saved_vc: Dict[str, Any]
+    _bindings: Dict[str, List[Tuple[EventDispatcher, str, KivyCallback]]]
 
     def __init__(self, *args: Any, **kwargs: Any):
         self._view_context_loaded = False
@@ -57,13 +81,14 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
     def load_view_context(self, view_context:Optional[Dict[str, Any]]=None):
         if view_context is None:
             view_context = self.get_view_context() or {}
-        self._saved_vc: Dict[str, Any] = view_context.copy()
-        self._bindings: Dict[str, List[Tuple[EventDispatcher, str, KivyCallback]]] = {}
+        self._saved_vc = view_context.copy()
+        self._bindings = {}
         Clock.schedule_once(self._load_view_context, 0)
 
-    def _load_view_context(self, _dt: float):
-        for path, params in self.view_context_template.items():
-            self._setup_path(path, params)
+    def _load_view_context(self, dt: float):
+        if hasattr(self, "view_context_template"):
+            for path, params in self.view_context_template.items():
+                self._setup_path(path, params)
         self._view_context_loaded = True
 
     def get_view_context(self) -> Dict[str, Any]:
@@ -74,26 +99,30 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
 
     def _get_params(
         self,
-        params: Union[Any, ViewContextTemplateInnerDict]
+        params: Union[ViewContextDefaultData, ViewContextTemplateInnerDict]
         ) -> Union[
             Tuple[Any, Serializer, Deserializer],
             Tuple[Any, None, None]
     ]:
         """Если params — словарь с ключом 'default', это расширенный формат.
-        Иначе это просто значение по умолчанию без сериализаторов.
-        """
-        if isinstance(params, dict) and 'default' in params:
+        Иначе это просто значение по умолчанию без сериализаторов."""
+        if isinstance(params, dict):
             params = cast(ViewContextTemplateInnerDict, params)
             default = params.get('default')
+            if callable(default):
+                default = default()
             serialize = params.get('serialize')
             deserialize = params.get('deserialize')
             if serialize is None or deserialize is None:
                 raise ValueError(f"object {self} has invalid ser/deserialize params dict {params}")
             return (default, serialize, deserialize)
-        params = cast(Any, params)
         return (params, None, None)
 
-    def _setup_path(self, path: str, params: Union[Any, ViewContextTemplateInnerDict]):
+    def _setup_path(
+            self,
+            path: str,
+            params: Union[ViewContextDefaultData, ViewContextTemplateInnerDict]
+        ):
         # Разделяем путь на "объект" и "свойство@var"
         default, serialize, deserialize = self._get_params(params)
         obj_path, _, rest = path.rpartition('/')
@@ -140,7 +169,7 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
             if deserialize:
                 val = deserialize(obj, val)
             setattr(obj, prop, val)
-        else:
+        elif default is not UNSET:
             setattr(obj, prop, default)
 
     def _add_change_tracker(

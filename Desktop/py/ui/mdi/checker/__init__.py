@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Callable, Dict, FrozenSet
 from kivy.properties import AliasProperty, ObjectProperty, StringProperty
 
 from libs.properties import ClampedNumericProperty
+from libs.typecheck import UNSET
 from misc import constants
 from ui.components.database_mdi_window import DatabaseMDIWindow
 
@@ -21,7 +22,7 @@ class MDIChecker(DatabaseMDIWindow):
     channels_ui: "CheckerChannelsUi" = ObjectProperty()
 
     view_context_template = {
-        "universe_now": 1,
+        "universe_now": UNSET,
         "channels_ui.channel_sliders.scrollview/scroll_element@universe_now": 0
     }
 

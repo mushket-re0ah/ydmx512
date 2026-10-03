@@ -5,6 +5,7 @@ from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from database import db
 from database.fixture import RowFixture
 from libs.kivy_json_orm.fields import table_ref_deserializer, table_ref_serializer
+from libs.typecheck import UNSET
 from ui.components.database_mdi_window import DatabaseMDIWindow
 
 if TYPE_CHECKING:
@@ -22,21 +23,21 @@ class MDIPatchList(DatabaseMDIWindow):
     workspace: int = NumericProperty(0)
 
     view_context_template = {
-        "workspace": 0,
-        "menu.input_count_create_patch/value": 1,
-        "menu.input_address_create_patch/value": None,
-        "menu.input_universe_create_patch/value": 1,
+        "workspace": UNSET,
+        "menu.input_count_create_patch/value": UNSET,
+        "menu.input_address_create_patch/value": UNSET,
+        "menu.input_universe_create_patch/value": UNSET,
         "menu.input_fixture/selected": {
-            "default": db.fixture.get_default_row(),
+            "default": db.fixture.get_default_row,
             "serialize": table_ref_serializer(),
             "deserialize": table_ref_deserializer(
                 lambda: db.fixture,
-                fallback_fn=lambda: db.fixture.get_default_row()
+                fallback_fn=db.fixture.get_default_row
             )
         },
-        "menu.input_add_address/value": 1,
-        "menu.input_set_universe/value": 1,
-        "menu.input_set_workspace/value": 1,
+        "menu.input_add_address/value": UNSET,
+        "menu.input_set_universe/value": UNSET,
+        "menu.input_set_workspace/value": UNSET,
     }
 
     def on_hidden(self, _, hidden: bool):

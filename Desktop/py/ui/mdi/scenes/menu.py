@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 
