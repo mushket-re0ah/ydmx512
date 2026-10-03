@@ -107,18 +107,18 @@ class _GridGeometryItemBehavior(AutoUnbindBehavior):
     grid_size: Tuple[int, int] = ReferenceListProperty(grid_width, grid_height)
 
     def __init__(self, **kwargs: Any):
-        self._trigger_update_geometry = Clock.create_trigger(
+        self.trigger_update_geometry = Clock.create_trigger(
             self._update_geometry, -1
         )
         super().__init__(**kwargs)
         self.bind(
-            grid_pos=self._trigger_update_geometry,
-            grid_size=self._trigger_update_geometry,
-            map_layout=self._trigger_update_geometry
+            grid_pos=self.trigger_update_geometry,
+            grid_size=self.trigger_update_geometry,
+            map_layout=self.trigger_update_geometry
         )
 
     def on_kv_post(self, base_widget: Widget):
-        self._trigger_update_geometry()
+        self.trigger_update_geometry()
 
     _prev_map_layout: Optional["MapLayout"] = None
     def on_map_layout(self, _, map_layout: Optional["MapLayout"]):
@@ -127,7 +127,7 @@ class _GridGeometryItemBehavior(AutoUnbindBehavior):
         if map_layout:
             self.bind_to(
                 map_layout.layout,
-                size=self._trigger_update_geometry
+                size=self.trigger_update_geometry
             )
         self._prev_map_layout = map_layout
 

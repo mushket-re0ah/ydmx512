@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict, FrozenSet, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, FrozenSet, Mapping, Optional, Tuple
 
 from kivy.lang import Builder
 from kivy.properties import (
@@ -84,7 +84,7 @@ class MDIWindow(
     title: str = StringProperty("")
     focus: bool = BooleanProperty(False)
     hidden: bool = BooleanProperty(False)
-    state: Dict[str, Any] = DictProperty()
+    state: Mapping[str, Any] = DictProperty()
     window_minimum_width: Number = NumericProperty("250dp")
     window_minimum_height: Number = NumericProperty("250dp")
     window_minimum_size: Tuple[Number, Number] = ReferenceListProperty(
@@ -141,13 +141,13 @@ class MDIWindow(
                 layout_state[key] = value
                 changed = True
         if changed:
-            fullstate = self.state.copy()
+            fullstate = dict(self.state)
             fullstate["layout_state"] = layout_state
             self.state = fullstate
 
     def clear_layout_state(self):
         if self.state.get("layout_state"):
-            state = self.state.copy()
+            state = dict(self.state)
             state["layout_state"] = {}
             self.state = state
 
@@ -155,7 +155,7 @@ class MDIWindow(
         return self.state.get("view_context", {})
 
     def set_view_context(self, view_context: Dict[str, Any]) -> bool:
-        state = self.state.copy()
+        state = dict(self.state)
         state["view_context"] = dict(view_context)
         self.state = state
         return True

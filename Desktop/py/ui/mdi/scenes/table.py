@@ -70,7 +70,7 @@ _columns_config = (
 
 
 class SceneTable(DatabaseTableUi):
-    table: TableScene = db.scene
+    table: TableScene = db.scene  # pyright: ignore[reportIncompatibleVariableOverride]
     columns_config: Tuple[ColumnConfig, ...] = _columns_config
 
     def __init__(self, **kwargs: Any):

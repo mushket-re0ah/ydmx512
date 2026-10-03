@@ -147,5 +147,5 @@ EditorMapLayout = create_colorscheme(
 )
 
 CheckerClampedSlider = create_colorscheme(
-    global_dimmer_mask=hex_str_to_color("#11111155")
+    global_dimmer_mask=hex_str_to_color("#11111177")
 )

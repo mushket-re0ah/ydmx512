@@ -6,7 +6,7 @@ from kivy.utils import get_hex_from_color
 from typing_extensions import TypeAlias
 
 from libs.kivy_utils import atomic_setattrs
-from libs.typecheck import RGBA
+from libs.typecheck import RGBA, EventDispatcherProtocol, PropertyProtocol
 
 SerializableT = TypeVar("SerializableT", bound="SerializableMixin")
 Serializer: TypeAlias = Callable[["SerializableMixin", Any], Any]
@@ -14,7 +14,7 @@ Deserializer: TypeAlias = Callable[["SerializableMixin", Any], Any]
 FallbackCb: TypeAlias = Callable[..., Any]
 DefaultFactoryCb: TypeAlias = Callable[[], Any]
 
-class SerializableMixinProperty:
+class SerializableMixinProperty(PropertyProtocol):
     is_ref = False
 
     serialize: Serializer
@@ -42,7 +42,7 @@ class SerializableMixinProperty:
             self.deserialize = default_deserializer
 
 
-class SerializableMeta(type):
+class SerializableMeta(type, EventDispatcherProtocol):
     serialize: Callable[[], Dict[str, Any]]
     deserialize: Callable[[Dict[str, Any]], "SerializableMixin"]
     serialization_keys: Tuple[str, ...]
@@ -83,7 +83,7 @@ class SerializableMeta(type):
         def serialize(self: SerializableMixin) -> Dict[str, Any]:
             result: Dict[str, Any] = {}
             for key in SerializableMeta.get_serialization_keys(target_cls):
-                prop: SerializableMixinProperty = self.property(key)
+                prop: SerializableMixinProperty = self.property(key)  # pyright: ignore[reportAssignmentType]
                 ser = prop.serialize
                 defaultvalue = prop.defaultvalue
                 value = getattr(self, key)
@@ -137,7 +137,7 @@ class SerializableMixin(EventDispatcher, metaclass=SerializableMeta):
     def from_data(cls, data: Dict[str, Any]) -> "SerializableMixin":
         return cls().deserialize(data)
 
-    def get_copy(self: SerializableT) -> SerializableT:
+    def get_copy(self) -> "SerializableMixin":
         return self.__class__.from_data(self.serialize())
 
     def set_default(self: "SerializableMixin"):
@@ -188,7 +188,7 @@ def nested_serializer() -> Serializer:
 def nested_deserializer(cls: Type[SerializableMixin]) -> Deserializer:
     def deserialize(
             self: SerializableMixin,
-            value: Optional[SerializableMixin]
+            value: Optional[Dict[str, Any]]
         ) -> Optional[SerializableMixin]:
         return cls.from_data(value) if value is not None else None
     return deserialize

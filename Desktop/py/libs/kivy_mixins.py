@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, TypedDict, Union, cast
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
@@ -9,8 +9,9 @@ from libs.typecheck import AnyCallback, EventDispatcherProtocol, KivyCallback
 
 class AutoUnbindBehavior(EventDispatcherProtocol):
     """Миксин для управления внешними привязками"""
+    _bindings_to: Dict[EventDispatcher, List[Tuple[str, AnyCallback]]]
     def __init__(self, *args: Any, **kwargs: Any):
-        self._bindings_to: Dict[str, AnyCallback] = {}
+        self._bindings_to = {}
         super().__init__(*args, **kwargs)
 
     def bind_to(self, obj: EventDispatcher, **kwargs: AnyCallback):
@@ -35,10 +36,19 @@ class AutoUnbindBehavior(EventDispatcherProtocol):
         self._bindings_to.clear()
 
 
+class ViewContextTemplateInnerDict(TypedDict):
+    default: Any
+    serialize: Serializer
+    deserialize: Deserializer
+
+
 class ViewContextSaverMixin(EventDispatcherProtocol):
     """Микшин для MDIWindow. Автоматически сохраняет состояние виджетов
     по плоскому списку путей, в том числе с динамическими ключами @var."""
-    view_context_template: Dict[str, Any] = {}  # переопределить в наследнике
+    view_context_template: Mapping[
+        str,
+        Union[Any, ViewContextTemplateInnerDict]
+    ] = {}  # переопределить в наследнике
 
     def __init__(self, *args: Any, **kwargs: Any):
         self._view_context_loaded = False
@@ -64,7 +74,7 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
 
     def _get_params(
         self,
-        params: Union[Any, Dict[str, Any]]
+        params: Union[Any, ViewContextTemplateInnerDict]
         ) -> Union[
             Tuple[Any, Serializer, Deserializer],
             Tuple[Any, None, None]
@@ -73,15 +83,17 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
         Иначе это просто значение по умолчанию без сериализаторов.
         """
         if isinstance(params, dict) and 'default' in params:
-            default: Any = params.get('default')
-            serialize: Optional[Serializer] = params.get('serialize')
-            deserialize: Optional[Deserializer] = params.get('deserialize')
+            params = cast(ViewContextTemplateInnerDict, params)
+            default = params.get('default')
+            serialize = params.get('serialize')
+            deserialize = params.get('deserialize')
             if serialize is None or deserialize is None:
                 raise ValueError(f"object {self} has invalid ser/deserialize params dict {params}")
             return (default, serialize, deserialize)
+        params = cast(Any, params)
         return (params, None, None)
 
-    def _setup_path(self, path: str, params: Union[Any, Dict[str, Any]]):
+    def _setup_path(self, path: str, params: Union[Any, ViewContextTemplateInnerDict]):
         # Разделяем путь на "объект" и "свойство@var"
         default, serialize, deserialize = self._get_params(params)
         obj_path, _, rest = path.rpartition('/')

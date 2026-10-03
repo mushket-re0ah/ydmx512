@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Set, Tuple, Union
 
 from kivy.properties import DictProperty, ObjectProperty
 
@@ -135,8 +135,8 @@ class PlaybackRenderer(AutoUnbindBehavior, CommandHistory, SerializableMixin):
         deserialize=_deserialize_interpatch_specs
     )
 
-    patch_addresses: Dict[RowPatch, Set[int]] = DictProperty()
-    universe_addresses: Dict[int, Set[int]] = DictProperty()
+    patch_addresses: Mapping[RowPatch, Set[int]] = DictProperty()
+    universe_addresses: Mapping[int, Set[int]] = DictProperty()
 
     intensive: Number = ClampedNumericField(100, 0, 100)
     all_params_intensive: bool = BooleanField(False)

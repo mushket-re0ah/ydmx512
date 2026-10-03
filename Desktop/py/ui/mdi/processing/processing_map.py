@@ -27,8 +27,8 @@ class PlaybackMapSection(SectionPanel):
 
 
 class PlaybackMap(MapLayout):
-    grid_items: Tuple[PlaybackUiProcessing, ...]
-    selected: Tuple[PlaybackUiProcessing, ...]
+    grid_items: Tuple[PlaybackUiProcessing, ...]  # pyright: ignore[reportIncompatibleVariableOverride]
+    selected: Tuple[PlaybackUiProcessing, ...]  # pyright: ignore[reportIncompatibleVariableOverride]
 
     def _get_player_list_by_hotkey(self, key: str) -> Tuple[PlaybackPlayer, ...]:
         return tuple(ui.playback.player for ui in self.grid_items
@@ -66,7 +66,7 @@ class PlaybackMap(MapLayout):
     def on_remove_playback(self, _: TablePlayback, playback: RowPlayback):
         playback_ui = next((i for i in self.grid_items if i.playback is playback), None)
         if playback_ui is not None:
-            playback_ui._self_destroy()
+            playback_ui._self_destroy()  # pyright: ignore[reportPrivateUsage]
 
     def on_scene_change(self, table: TableScene, _old_scene: RowScene, _new_scene: RowScene):
         self.__init_map()

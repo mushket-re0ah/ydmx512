@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type
 
-from kivy.event import EventDispatcher
 from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import (
@@ -19,7 +18,7 @@ from kivy.uix.widget import Widget
 from libs.animation import AnimationBehavior, StatefulColorProperty
 from libs.mouse_manager import cursor_manager
 from libs.mouse_manager.hover import HoverBehavior
-from libs.typecheck import RGBA
+from libs.typecheck import RGBA, WidgetProtocol
 from libs.uix import colorscheme as uix_cs
 from libs.uix.behaviors.tooltip import TooltipBehavior
 from libs.uix.label import RestrictedLabel
@@ -181,7 +180,7 @@ Builder.load_string("""
 """
 )
 
-class ExpansiveButtonBehavior(ButtonBehavior):
+class ExpansiveButtonBehavior(ButtonBehavior, WidgetProtocol):
     is_down: bool = AliasProperty(
         lambda self: self.state == "down",
         lambda self, value: setattr(self, "state", "down" if value else "normal"),
@@ -204,7 +203,7 @@ class ExpansiveButtonBehavior(ButtonBehavior):
         return super().on_touch_up(touch)
 
 
-class ExpansiveToggleButtonBehavior(ToggleButtonBehavior):
+class ExpansiveToggleButtonBehavior(ToggleButtonBehavior, WidgetProtocol):
     is_down: bool = AliasProperty(
         lambda self: self.state == "down",
         lambda self, value: setattr(self, "state", "down" if value else "normal"),
@@ -379,7 +378,7 @@ class ColorToggleButton(AnimationBehavior, HoverBehavior, ExpansiveToggleButtonB
     )
 
 
-class ArrowBehavior(EventDispatcher):
+class ArrowBehavior(WidgetProtocol):
     arrow_color: RGBA = StatefulColorProperty(
         normal=uix_cs.ArrowToggleButton.arrow_color_normal,
         states={
@@ -399,7 +398,7 @@ class ArrowBehavior(EventDispatcher):
     arrow_size: Tuple[float, float] = ReferenceListProperty(arrow_width, arrow_height)
     arrow_offset_right: float = NumericProperty("4dp")
 
-    def _get_arrow_points(self) -> Tuple[float, float, float, float, float]:
+    def _get_arrow_points(self) -> Tuple[float, float, float, float, float, float]:
         y_padding = (self.height - self.arrow_height) / 2
         top = self.top - y_padding
         y = self.y + y_padding
@@ -416,7 +415,7 @@ class ArrowBehavior(EventDispatcher):
             return (left, center_y, right, top, right, y)
         return (right, center_y, left, top, left, y)
 
-    arrow_points: Tuple[float, float, float, float, float] = AliasProperty(
+    arrow_points: Tuple[float, float, float, float, float, float] = AliasProperty(
         _get_arrow_points,
         bind=(
             "vertical_arrow", "reverse_arrow",
