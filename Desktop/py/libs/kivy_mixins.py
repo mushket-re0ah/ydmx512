@@ -127,35 +127,55 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
         ):
         # Разделяем путь на "объект" и "свойство@var"
         default, serialize, deserialize = self._get_params(params)
+
         obj_path, _, rest = path.rpartition('/')
         if not obj_path:
             obj_path, rest = '', path
+
         if rest:
             prop, _, dynamic_var = rest.partition('@')
         else:
             prop, dynamic_var = obj_path, None
             obj_path = ''
 
+        obj = self
+
         # Поиск целевого объекта по цепочке obj_path (через точки)
         if obj_path:
-            obj = self
             for attr in obj_path.split('.'):
+                self._bind_path_dependency(obj, attr, path, params)
+
                 child = getattr(obj, attr, None)
                 if child is None:
-                    obj.bind(
-                        **{attr: lambda i, v, a=attr, p=path, pr=params:
-                            self._rebind_path(p, pr) if v else None
-                        }
-                    )
                     return
+
                 obj = child
-        else:
-            obj = self
 
         if dynamic_var:
-            self._bind_dynamic(obj, prop, dynamic_var, path, default, serialize, deserialize)
+            self._bind_dynamic(
+                obj, prop, dynamic_var, path,
+                default, serialize, deserialize
+            )
         else:
-            self._bind_static(obj, prop, path, default, serialize, deserialize)
+            self._bind_static(
+                obj, prop, path,
+                default, serialize, deserialize
+            )
+
+    def _bind_path_dependency(
+            self,
+            obj: EventDispatcher,
+            attr: str,
+            path: str,
+            params: Union[ViewContextDefaultData, ViewContextTemplateInnerDict]
+        ):
+        def on_change(_: EventDispatcher, value: Any):
+            self._rebind_path(path, params)
+
+        obj.bind(**{attr: on_change})
+        self._bindings.setdefault(path, []).append(
+            (obj, attr, on_change)
+        )
 
     def _apply_value(
             self,
@@ -231,7 +251,11 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
         self.bind(**{var: on_var_change})
         self._bindings.setdefault(path, []).append((self, var, on_var_change))
 
-    def _rebind_path(self, path: str, params: Union[Any, Dict[str, Any]]):
+    def _rebind_path(
+            self,
+            path: str,
+            params: Union[ViewContextDefaultData, ViewContextTemplateInnerDict]
+        ):
         """Вызывается, когда нужный объект появляется в дереве."""
         self._unbind_path(path)
         self._setup_path(path, params)
