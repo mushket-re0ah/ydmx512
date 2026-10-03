@@ -86,7 +86,7 @@ class EditorMapLayout(MapLayout):
         # Сдвиг изменился — пересчитать позиции всех виджетов.
         if new_offset != old_offset:
             for w in widgets:
-                w._trigger_update_geometry()
+                w.trigger_update_geometry()
 
     def _draw_grid(self, _):
         if not self.layout:

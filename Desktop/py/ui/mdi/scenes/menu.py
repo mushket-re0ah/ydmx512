@@ -5,10 +5,7 @@ from kivy.properties import ObjectProperty
 
 from database import db
 from libs.uix.layouts import MenuPanel
-
-if TYPE_CHECKING:
-    from ui.mdi.scenes import MDIScenes
-
+from ui.mdi.scenes import MDIScenes
 
 Builder.load_file("ui/mdi/scenes/menu.kv")
 

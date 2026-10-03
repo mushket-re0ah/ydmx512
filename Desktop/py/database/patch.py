@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Mapping, Optional, Set, Tuple
 
 from kivy.clock import Clock
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ObjectProperty
@@ -47,7 +47,7 @@ class RowPatch(SceneRowMixin, DatabaseRow):
     )
     grid_pos: Tuple[int, int] = ListField([None, None])
     workspace: int = NumericField(0)
-    mapper: Dict[int, Optional[int]] = DictField(
+    mapper: Mapping[int, Optional[int]] = DictField(
         deserialize=lambda self, mapper: {
             int(map_fixture): map_patch for map_fixture, map_patch in mapper.items()
         }
@@ -76,6 +76,17 @@ class RowPatch(SceneRowMixin, DatabaseRow):
     def on_param_list_unpacked(self, _, param_list_unpacked: Tuple[RowFixtureParam, ...]):
         if not self.mapper:
             self._create_mapper(param_list_unpacked)
+        else:
+            self._autofix_mapper(param_list_unpacked)
+
+    def _autofix_mapper(self, param_list_unpacked: Tuple[RowFixtureParam, ...]):
+        fixed_mapper: Mapping[int, Optional[int]] = {
+            int(map_fixture): int(boundary(map_patch, 0, len(param_list_unpacked) - 1))\
+            if map_patch is not None else None
+            for map_fixture, map_patch in self.mapper.items()
+        }
+        if self.mapper != fixed_mapper:
+            self.mapper = fixed_mapper
 
     def _create_mapper(self, param_list_unpacked: Tuple[RowFixtureParam, ...]):
         if self.mapper:
@@ -90,7 +101,7 @@ class RowPatch(SceneRowMixin, DatabaseRow):
             return
         if self.mapper[fixture_index] == patch_index:
             return
-        mapper = self.mapper.copy()
+        mapper = dict(self.mapper)
         mapper[fixture_index] = patch_index
         self.mapper = mapper
         dmx512.clear_matrix_all()
@@ -146,7 +157,7 @@ class TablePatch(SceneTableMixin, DatabaseTable):
 
     __events__ = ("on_workspace_any_patch",) + DatabaseTable.__events__
 
-    address_info: Dict[Tuple[int, int], List[Tuple[RowPatch, RowFixtureParam]]] = DictProperty()
+    address_info: Mapping[Tuple[int, int], List[Tuple[RowPatch, RowFixtureParam]]] = DictProperty()
 
     _universes_need_to_check: Set[int]
     def __init__(self, **kwargs: Any):

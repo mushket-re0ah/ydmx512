@@ -185,7 +185,6 @@ class SceneTableMixin(DatabaseTableProtocol):
     """
     database: "YdmxDatabase"  # pyright: ignore[reportIncompatibleVariableOverride]
     rows: Dict[int, "SceneRowMixin"]  # pyright: ignore[reportIncompatibleVariableOverride]
-    name: str  # pyright: ignore[reportIncompatibleVariableOverride]
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
@@ -203,6 +202,8 @@ class SceneTableMixin(DatabaseTableProtocol):
         pass
 
     def _make_filepath(self) -> Path:
+        if self.name is None:
+            raise RuntimeError()
         scene_id = self.database.scene.scene_now.id_
         table_dir = constants.DATABASE_PATH / self.name
         table_dir.mkdir(parents=True, exist_ok=True)

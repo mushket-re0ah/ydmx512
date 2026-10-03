@@ -87,6 +87,11 @@ class RowDesktopUix(SceneRowMixin, DatabaseRow):
         self.bind(link_active=self.trigger_update_active)
         super().__init__(*args, **kwargs)
 
+    def after_deserialize(self) -> None:
+        # for start after loading app
+        self.property("active").dispatch(self)
+        return super().after_deserialize()
+
     def on_player(self, _, player: DesktopUixPlayer):
         player.parent_row = self
 
