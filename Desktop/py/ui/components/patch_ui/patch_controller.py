@@ -25,8 +25,6 @@ class PatchControllerMenuChannel(BoxLayout):
     universe = AliasProperty(lambda self: self.patch.universe)
     address = AliasProperty(lambda self: self.patch.start_address + self.index)
 
-    _write_allow = False
-
     def __init__(self, *args: Any, **kwargs: Any):
         self._update_trigger = Clock.create_trigger(self.update, -1)
         super().__init__(*args, **kwargs)

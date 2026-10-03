@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple, TypedDict
 
 from kivy.clock import Clock
 from kivy.input.motionevent import MotionEvent
@@ -90,6 +90,12 @@ Builder.load_string("""
 )
 
 
+class _DatabaseRowViewData(TypedDict):
+    row: DatabaseRow
+    table_ui: "DatabaseTableUi"
+    selected: bool
+
+
 class TableHeaderToggle(ArrowToggleButton):
     table_ui: "DatabaseTableUi" = ObjectProperty()
     header: "DatabaseTableHeader" = ObjectProperty()
@@ -138,7 +144,7 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
     config_was_created: bool = False
 
     columns_config: Tuple[ColumnConfig, ...]
-    data: Dict[str, Any]
+    data: _DatabaseRowViewData
     sync_method: Dict[
         ColumnConfig,
         Tuple[
@@ -251,7 +257,7 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
             self,
             rv: RecycleRestrictedScrollView,
             index: int,
-            data: Dict[str, Any]
+            data: _DatabaseRowViewData
         ):
         self.data = data
         row = data["row"]
@@ -259,7 +265,7 @@ class DatabaseTableRow(RecycleDataViewBehavior, BoxLayout):
         self.columns_config = columns_config
         self.__create_content(columns_config, row)
         self.__set_content_data(columns_config, row)
-        super().refresh_view_attrs(rv, index, data)
+        super().refresh_view_attrs(rv, index, data)  # pyright: ignore[reportArgumentType]
 
 
 class DatabaseTableUi(BoxLayout):
@@ -409,7 +415,7 @@ class DatabaseTableUi(BoxLayout):
     def unselect_id_row(self, row: DatabaseRow):
         self.selected_rows = tuple(i for i in self.selected_rows if i != row.id_)
 
-    def __make_row_data(self, row: DatabaseRow, selected: bool) -> Dict[str, Any]:
+    def __make_row_data(self, row: DatabaseRow, selected: bool) -> _DatabaseRowViewData:
         return {
             "row": row,
             "table_ui": self,

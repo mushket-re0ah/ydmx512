@@ -48,7 +48,7 @@ class PlaybackMasterPlayer:
                     if fulladdress in used_fulladdresses:
                         continue
                     fixture_param_index = address - patch.start_address
-                    mapped_index = patch.mapper[fixture_param_index]
+                    mapped_index = patch.get_mapper_value(fixture_param_index)
                     if mapped_index is None:
                         continue
                     value = player.get_patch_render(

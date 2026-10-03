@@ -97,15 +97,15 @@ class TableFixtureParam(DatabaseTable):
             _default_row(COLOR_TITLE_ID, "цвет", "цвет", "#1AA2A7FF", False, 0),
             _default_row(STROBE_TITLE_ID, "строб", "строб", "#1AA2A7FF", False, 0),
             _default_row(GOBO_TITLE_ID, "гобо", "гобо", "#1AA2A7FF", False, 0),
-            _default_row(GOBO_ROTARY_TITLE_ID, "поворот гобо", "пов гобо", "#1AA2A7FF", False, 0),
+            _default_row(GOBO_ROTARY_TITLE_ID, "поворот гобо", "пв гобо", "#1AA2A7FF", False, 0),
             _default_row(PRISM_TITLE_ID, "призма", "призма", "#1AA2A7FF", False, 0),
-            _default_row(PRISM_ROTARY_TITLE_ID, "поворот призмы", "пов призм", "#1AA2A7FF", False, 0),
+            _default_row(PRISM_ROTARY_TITLE_ID, "поворот призмы", "пв прзм", "#1AA2A7FF", False, 0),
             _default_row(FOCUS_TITLE_ID, "фокус", "фокус", "#1AA2A7FF", False, 0),
             _default_row(ZOOM_TITLE_ID, "зум", "зум", "#1AA2A7FF", False, 0),
             _default_row(FROST_TITLE_ID, "frost", "frost", "#1AA2A7FF", False, 0),
             _default_row(LAMP_ON_TITLE_ID, "лампа", "лампа", "#1AA2A7FF", False, 0),
             _default_row(FUNC_TITLE_ID, "функция", "функц", "#1AA2A7FF", False, 0),
-            _default_row(FUNC_SPD_TITLE_ID, "скорость функции", "скор функц", "#1AA2A7FF", False, 0),
+            _default_row(FUNC_SPD_TITLE_ID, "скорость функции", "ск функ", "#1AA2A7FF", False, 0),
             _default_row(RESET_TITLE_ID, "сброс", "сброс", "#1AA2A7FF", False, 0),
             _default_row(RESERVE_TITLE_ID, "резерв.", "резерв", "#1AA2A7FF", False, 0)
         )

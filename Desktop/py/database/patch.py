@@ -86,10 +86,19 @@ class RowPatch(SceneRowMixin, DatabaseRow):
         }
 
     def remap(self, fixture_index: int, patch_index: Optional[int]):
+        if fixture_index not in self.mapper:
+            return
+        if self.mapper[fixture_index] == patch_index:
+            return
         mapper = self.mapper.copy()
         mapper[fixture_index] = patch_index
         self.mapper = mapper
         dmx512.clear_matrix_all()
+
+    def get_mapper_value(self, fixture_index: int) -> Optional[int]:
+        if fixture_index not in self.mapper:
+            return None
+        return self.mapper[fixture_index]
 
     def on_start_address(self, *_):
         self.table.check_address_conflict(self.universe)
