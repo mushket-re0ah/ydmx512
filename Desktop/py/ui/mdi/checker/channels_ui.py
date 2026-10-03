@@ -7,9 +7,10 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
 from database import db
+from database.fixture_param import RowFixtureParam
 from database.patch import RowPatch
 from libs.dmx512 import dmx512
-from libs.properties import ClampedNumericProperty
+from libs.properties import BindableObjectProperty, ClampedNumericProperty
 from libs.typecheck import RGBA
 from libs.uix.input.numeric_input import NumericInput
 from libs.uix.label import RestrictedLabel
@@ -35,6 +36,13 @@ class CheckerSlider(BoxLayout):
     address: int = ClampedNumericProperty(1, 1, constants.DMX_ADDRESS_COUNT)
     value: int = ClampedNumericProperty(0, 0, 255)
     fixture_param_color: RGBA = ColorProperty(cs.CheckerSlider.fixture_param_default)
+    fixture_param: Optional[RowFixtureParam] = BindableObjectProperty(
+        None,
+        allownone=True,
+        bind={
+            "title_alias": "dispatch_fixture_param"
+        }
+    )
 
     _write_allow: bool = False
 
@@ -44,6 +52,9 @@ class CheckerSlider(BoxLayout):
 
     def on_address(self, _, address: int):
         self.update()
+
+    def dispatch_fixture_param(self, *_:Any):
+        self.property("fixture_param").dispatch(self)
 
     def on_value(self, _, value: int):
         if self._write_allow:
@@ -58,8 +69,10 @@ class CheckerSlider(BoxLayout):
         if address_info is not None:
             _patch, fixture_param = address_info[0]
             self.fixture_param_color = fixture_param.color
+            self.fixture_param = fixture_param
         else:
             self.fixture_param_color = cs.CheckerSlider.fixture_param_default
+            self.fixture_param = None
         self._write_allow = True
         self.disabled = dmx512.check_address_force(universe, address)
 

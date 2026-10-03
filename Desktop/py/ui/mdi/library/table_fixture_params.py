@@ -12,6 +12,8 @@ _columns_config = (
     ColumnConfigTemplates.checkbox_id(),
     ColumnConfigTemplates.text_field(header_text="Название",
                                      data_attribute="title"),
+    ColumnConfigTemplates.text_field(header_text="alias",
+                                     data_attribute="title_alias"),
     ColumnConfigTemplates.spinner(
         header_text="Тип",
         value_getter=lambda db_row: "Динамический" if db_row.is_dynamic else "Статический",

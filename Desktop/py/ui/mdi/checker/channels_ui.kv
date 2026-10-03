@@ -19,6 +19,12 @@
         on_value: root.value = self.value
         on_hover: numeric.hover = self.hover
         on_focus: numeric.visible_focus = self.focus
+    RestrictedLabel:
+        size_hint: (1, None)
+        height: "12dp"
+        text: root.fixture_param.title_alias if root.fixture_param is not None else ""
+        font_size: "11sp"
+        color: root.fixture_param_color if root.fixture_param is not None else uix_cs.Label.fg
     Widget:
         size_hint: (1, None)
         height: "4dp"
