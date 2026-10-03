@@ -145,3 +145,7 @@ DesktopUix = create_colorscheme(
 EditorMapLayout = create_colorscheme(
     outbound_background_color=hex_str_to_color("#4D5559FF"),
 )
+
+CheckerClampedSlider = create_colorscheme(
+    global_dimmer_mask=hex_str_to_color("#11111155")
+)

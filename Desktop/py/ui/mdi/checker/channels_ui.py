@@ -7,7 +7,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
 from database import db
-from database.fixture_param import RowFixtureParam
+from database.fixture_param import DIMMER_TITLE_ID, RowFixtureParam
 from database.patch import RowPatch
 from libs.dmx512 import dmx512
 from libs.properties import BindableObjectProperty, ClampedNumericProperty
@@ -27,14 +27,19 @@ if TYPE_CHECKING:
 Builder.load_file("ui/mdi/checker/channels_ui.kv")
 
 
+class CheckerClampedSlider(HoverSlider):
+    visual_maximum = ClampedNumericProperty(255, 0, 255)
+
+
 class CheckerSlider(BoxLayout):
     checker: "MDIChecker" = ObjectProperty()
 
     numeric: NumericInput = ObjectProperty()
-    slider: HoverSlider = ObjectProperty()
+    slider: CheckerClampedSlider = ObjectProperty()
 
     address: int = ClampedNumericProperty(1, 1, constants.DMX_ADDRESS_COUNT)
     value: int = ClampedNumericProperty(0, 0, 255)
+    maximum_value: int = ClampedNumericProperty(255, 0, 255)
     fixture_param_color: RGBA = ColorProperty(cs.CheckerSlider.fixture_param_default)
     fixture_param: Optional[RowFixtureParam] = BindableObjectProperty(
         None,
@@ -49,6 +54,7 @@ class CheckerSlider(BoxLayout):
     def on_kv_post(self, base_widget: Widget):
         prop = self.numeric.property("border_color")
         prop.set_normal(self.numeric, cs.CheckerSlider.border_color_normal)
+        db.scene.bind(scene_now_dimmer=self.update)
 
     def on_address(self, _, address: int):
         self.update()
@@ -58,23 +64,41 @@ class CheckerSlider(BoxLayout):
 
     def on_value(self, _, value: int):
         if self._write_allow:
-            dmx512.set_value(self.checker.universe_now, self.address, value)
+            dmx512.set_value(
+                self.checker.universe_now,
+                self.address,
+                min(self.maximum_value, value)
+            )
 
-    def update(self):
-        universe = self.checker.universe_now
-        address = self.address
+    def update(self, *_: Any):
         self._write_allow = False
-        self.value = dmx512.get_value(universe, address)
-        address_info = db.patch.get_address_info(universe, address)
-        if address_info is not None:
-            _patch, fixture_param = address_info[0]
-            self.fixture_param_color = fixture_param.color
-            self.fixture_param = fixture_param
-        else:
-            self.fixture_param_color = cs.CheckerSlider.fixture_param_default
-            self.fixture_param = None
-        self._write_allow = True
-        self.disabled = dmx512.check_address_force(universe, address)
+        try:
+            universe = self.checker.universe_now
+            address = self.address
+
+            self.value = dmx512.get_value(universe, address)
+            address_info = db.patch.get_address_info(universe, address)
+
+            if address_info is None:
+                self.fixture_param_color = cs.CheckerSlider.fixture_param_default
+                self.fixture_param = None
+                self.maximum_value = 255
+            else:
+                _patch, fixture_param = address_info[0]
+                self.fixture_param_color = fixture_param.color
+                self.fixture_param = fixture_param
+                self.maximum_value = (
+                    int(255 * db.scene.scene_now_dimmer / 100)
+                    if fixture_param.title_id == DIMMER_TITLE_ID
+                    else 255
+                )
+
+            self.disabled = (
+                dmx512.check_address_force(universe, address)
+                or self.maximum_value == 0
+            )
+        finally:
+            self._write_allow = True
 
 
 class CheckerChannelsUiList(ScrollLayout):
