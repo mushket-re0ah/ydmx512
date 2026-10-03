@@ -1,12 +1,14 @@
 <PatchMapperMenuChannel>:  # BoxLayout
+    mapper_numeric_input: mapper_numeric_input
+
     RestrictedLabel:
         text: "{} #{}".format(root.fixture_param.title, root.index + 1) if root.fixture_param is not None else ""
     NumericInput:
+        id: mapper_numeric_input
         allow_empty: True
         minimum: 1
         maximum: len(root.patch.mapper.keys()) if root.patch else float("inf")
-        value: root.index + 1
-        on_value: root.remap_to(self.value) if self.focus else None
+        on_value: root.remap_to(self.value)
 
 
 <PatchMapperMenu>:  # ModalBoxLayout

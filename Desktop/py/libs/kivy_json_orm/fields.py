@@ -107,15 +107,19 @@ class FieldMixin(SerializableMixinProperty):
         self.comparator = kwargs.get("comparator", None)
         super().__init__(*args, **kwargs)
 
-    def set(self, obj: Union["BaseTable", "DatabaseRow"], value: Any) -> Any:
-        result = super().set(obj, value)
+    def set(self, obj: Union["BaseTable", "DatabaseRow"], value: Any) -> bool:
+        # к сожалению, не все property имеют одинаковый контракт возвращаемого значения set
+        # сохраняем независимо от изменений
+        # result = super().set(obj, value)
+        super().set(obj, value)
         if hasattr(obj, "_it_is_table"):
             is_loading = obj.is_loading
         else:
             is_loading = obj.table.is_loading if hasattr(obj, "table") else False
-        if result and hasattr(obj, "save") and not is_loading:
+        # if result and hasattr(obj, "save") and not is_loading:
+        if hasattr(obj, "save") and not is_loading:
             obj.save()
-        return result
+        return True
 
 class NumericField(FieldMixin, NumericProperty):
     pass
