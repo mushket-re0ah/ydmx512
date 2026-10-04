@@ -28,7 +28,8 @@ ImmutableTypes: TypeAlias = Union[
 
 class UnsetType:
     __slots__ = ()
-    def __repr__(self) -> str: return "<UNSET>"
+    def __repr__(self) -> str:
+        return "<UNSET>"
 
 UNSET: Final = UnsetType()
 

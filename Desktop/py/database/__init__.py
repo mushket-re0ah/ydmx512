@@ -1,3 +1,4 @@
+import time
 from typing import TYPE_CHECKING
 
 from libs.kivy_json_orm.database import Database
@@ -16,20 +17,22 @@ if TYPE_CHECKING:
     from database.playback import TablePlayback
     from database.scene import TableScene
 
-    class YdmxDatabase(Database):
-        misc: "TableMisc"
-        brand: "TableBrand"
-        fixture_param: "TableFixtureParam"
-        fixture: "TableFixture"
-        scene: "TableScene"
-        patch: "TablePatch"
-        phase_curve_type: "TablePhaseCurveType"
-        playback: "TablePlayback"
-        mdi_window: "TableMDIWindow"
-        mdi_manager: "TableMDIManager"
-        desktop_uix: "TableDesktopUix"
-else:
-    YdmxDatabase = Database
+class YdmxDatabase(Database):
+    misc: "TableMisc"
+    brand: "TableBrand"
+    fixture_param: "TableFixtureParam"
+    fixture: "TableFixture"
+    scene: "TableScene"
+    patch: "TablePatch"
+    phase_curve_type: "TablePhaseCurveType"
+    playback: "TablePlayback"
+    mdi_window: "TableMDIWindow"
+    mdi_manager: "TableMDIManager"
+    desktop_uix: "TableDesktopUix"
+
+    def save_all(self):
+        self.scene.scene_now.date_edit = time.time()
+        super().save_all()
 
 
 db: YdmxDatabase
