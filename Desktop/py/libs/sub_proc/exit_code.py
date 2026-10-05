@@ -5,3 +5,4 @@ class ExitCode(IntEnum):
 	SUCCESS = 0
 	FAILURE = 1
 	RESTART = 2
+	CANCELLED = 3

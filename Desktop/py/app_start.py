@@ -156,7 +156,7 @@ def main() -> ExitCode:
     except BaseException:
         pass
 
-    logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES, constants.SESSION_LOG_ENV_KEY)
+    logger.init()
     exec_backup_menu = os.environ.get(constants.BACKUP_MENU_ENV_KEY)
     exec_backup_menu = exec_backup_menu == constants.BACKUP_MENU_ENV_KEY_TRUE
 

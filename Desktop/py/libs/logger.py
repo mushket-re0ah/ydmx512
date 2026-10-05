@@ -12,11 +12,11 @@ from typing import Any, Optional
 from misc import constants
 
 _logger: Optional[logging.Logger] = None
-def init(logs_dir: Path, max_log_files: int, session_env_key: str):
+def init(
+        logs_dir: Optional[Path]=None,
+        max_log_files: Optional[int]=None,
+        session_env_key: str=constants.SESSION_LOG_ENV_KEY):
     global _logger
-    logs_dir.mkdir(exist_ok=True)
-    clean_old_logs(logs_dir, max_log_files)
-
     if _logger is not None:
         for handler in _logger.handlers[:]:
             handler.close()
@@ -24,13 +24,21 @@ def init(logs_dir: Path, max_log_files: int, session_env_key: str):
 
     log_filepath_env = os.environ.get(session_env_key, None)
     if log_filepath_env is None:
+        if logs_dir is None:
+            raise ValueError()
+        if max_log_files is None:
+            raise ValueError()
+        logs_dir.mkdir(exist_ok=True)
+        clean_old_logs(logs_dir, max_log_files)
+
         filename = datetime.now().strftime("%d-%m-%Y_%H.%M.%S.log")
-        os.environ[session_env_key] = filename
         filepath = logs_dir / filename
+        os.environ[session_env_key] = str(filepath)
         info_msg = f"Новый сеанс logging в {filename}"
     else:
-        filepath = logs_dir / log_filepath_env
-        info_msg = f"Продолжение сеанса logging в {log_filepath_env}"
+        filepath = Path(log_filepath_env)
+        # info_msg = f"Продолжение сеанса logging в {filepath.name}"
+        info_msg = None
 
     _logger = logging.getLogger()
     _logger.setLevel(constants.LOG_LEVEL)
@@ -46,7 +54,8 @@ def init(logs_dir: Path, max_log_files: int, session_env_key: str):
     stream_handler.setFormatter(formatter)
     _logger.addHandler(stream_handler)
 
-    _logger.info(info_msg)
+    if info_msg is not None:
+        _logger.info(info_msg)
 
 
 def clean_old_logs(logs_dir: Path, max_log_files: int):

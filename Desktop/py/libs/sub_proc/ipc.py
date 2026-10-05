@@ -1,0 +1,1 @@
+PROCESS_CANCEL_MSG = "stop"

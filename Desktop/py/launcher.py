@@ -44,7 +44,7 @@ def run_kivy_app(do_exec_backup_menu: bool) -> int:
 
 
 if __name__ == "__main__":
-    logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES, constants.SESSION_LOG_ENV_KEY)
+    logger.init(constants.LOGS_PATH, constants.MAX_LOG_FILES)
     exec_backup_menu = False
     while True:
         try:
