@@ -23,16 +23,21 @@ from libs.uix.restricted_scrollview import RestrictedScrollView
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
+#:import imgs_path misc.imgs_path
 
 <HoverSlider>:
     orientation: "vertical"
     value_track_width: "1dp"
-    background_image: "./data/imgs/fader_scale.png"
-    cursor_width: "25dp"
-    cursor_height: "32dp"
-    cursor_image: "./data/imgs/fader_cursor.png"
+    background_image: imgs_path.hover_slider_bg_vertical\
+                    if self.orientation == "vertical" else\
+                    imgs_path.hover_slider_bg_horizontal
+    cursor_width: "25dp" if self.orientation == "vertical" else "32dp"
+    cursor_height: "32dp" if self.orientation == "vertical" else "25dp"
+    cursor_image: imgs_path.hover_slider_cursor_image_vertical\
+                    if self.orientation == "vertical" else\
+                    imgs_path.hover_slider_cursor_image_horizontal
     value_track_color: uix_cs.HoverSlider.value_track_color_normal
-    padding: 16
+    padding: "16dp"
     minimum: 0
     maximum: 255
     canvas:
@@ -44,48 +49,17 @@ Builder.load_string("""
         Color:
             rgb: (1, 1, 1)
         Rectangle:
-            pos: (\
-                        self.x + self.padding,\
-                        self.center_y - self.background_width / 2.0\
-                    )\
-                    if self.orientation == 'horizontal' else\
-                    (\
-                        self.center_x - self.background_width / 2.0,\
-                        self.y + self.padding\
-                    )
-            size: (\
-                        self.width - self.padding * 2,\
-                        self.height\
-                    )\
-                    if self.orientation == 'horizontal' else\
-                    (\
-                        self.background_width,\
-                        self.height - self.padding * 2\
-                    )
+            pos: self.track_pos
+            size: self.track_size
             source: self.background_image
         Color:
-            rgba: root.value_track_color
-        Line:
+            rgba: self.value_track_color
+        SmoothLine:
             width: self.value_track_width
-            points: (\
-                        self.x + self.padding, self.center_y,\
-                        self.value_pos[0], self.center_y\
-                    )\
-                    if self.orientation == 'horizontal' else\
-                    (\
-                        self.center_x, self.y + self.padding,\
-                        self.center_x, self.value_pos[1]\
-                    )
+            points: self.track_start + self.track_end
     ImageButton:
-        pos: (\
-                root.value_pos[0] - root.cursor_width / 2,\
-                root.center_y - root.cursor_height / 2\
-            )\
-            if root.orientation == 'horizontal' else\
-            (\
-                root.center_x - root.cursor_width / 2,\
-                root.value_pos[1] - root.cursor_height / 2\
-            )
+        pos: (root.cursor_pos[0] - root.cursor_width / 2,\
+            root.cursor_pos[1] - root.cursor_height / 2)
         size: (root.cursor_width, root.cursor_height)
         -background_normal: root.cursor_image
         on_hover: root.hover = self.hover
@@ -132,7 +106,6 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
                 options=("vertical", "horizontal"))
 
     background_image: str = StringProperty()
-    background_width: float = NumericProperty("36sp")
 
     cursor_image: str = StringProperty()
     cursor_width: float = NumericProperty("32sp")
@@ -142,9 +115,6 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
 
     drag_enabled: bool = BooleanProperty(True)
 
-    def on_kv_post(self, base_widget: Widget):
-        self.default_value = self.value
-
     def on_drag_start(self, touch: MotionEvent) -> bool:
         self.focus = True
         self._set_value_from_pos(*touch.pos)
@@ -153,27 +123,11 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
     def on_drag(self, touch: MotionEvent, delta_x: float, delta_y: float) -> bool:
         # дельты не используем, берём абсолютную позицию касания
         self._set_value_from_pos(*touch.pos)
-        return False
+        return True
 
     def on_drag_end(self, touch: MotionEvent) -> bool:
         self.focus = False
-        return False
-
-    def _set_value_from_pos(self, x: float, y: float):
-        padding = self.padding
-        if self.orientation == 'horizontal':
-            x = min(self.right - padding, max(x, self.x + padding))
-            if self.width - 2 * padding > 0:
-                normalized = (x - self.x - padding) / (self.width - 2 * padding)
-            else:
-                normalized = 0
-        else:
-            y = min(self.top - padding, max(y, self.y + padding))
-            if self.height - 2 * padding > 0:
-                normalized = (y - self.y - padding) / (self.height - 2 * padding)
-            else:
-                normalized = 0
-        self.value = self.minimum + normalized * (self.maximum - self.minimum)
+        return True
 
     def on_scroll_up(self, touch: MotionEvent) -> bool:
         self.value -= self.step_mouse_scroll
@@ -187,18 +141,92 @@ class HoverSlider(TouchMouseBehavior, AnimationBehavior, TooltipBehavior, Widget
         self.open_context_menu(touch.pos)
         return True
 
-    def get_value_pos(self) -> Tuple[float, float]:
-        """позиция курсора (только для визуального отображения)"""
+    def _axis_bounds(self) -> Tuple[float, float]:
+        """Границы хода курсора по главной оси (start, end)."""
+        p = self.padding
+        if self.orientation == "horizontal":
+            return (self.x + p, self.right - p)
+        return (self.y + p, self.top - p)
+
+    def _cross_center(self) -> float:
+        """Центр по поперечной оси."""
+        return self.center_y if self.orientation == "horizontal" else self.center_x
+
+    def _set_value_from_pos(self, x: float, y: float):
+        a, b = self._axis_bounds()
+        pos = x if self.orientation == "horizontal" else y
+        if b - a <= 0:
+            self.value = self.minimum
+            return
+        normalized = min(1.0, max(0.0, (pos - a) / (b - a)))
+        self.value = self.minimum + normalized * (self.maximum - self.minimum)
+
+    def _get_value_pos(self) -> Tuple[float, float]:
+        a, b = self._axis_bounds()
         nval = (self.value - self.minimum) / max(self.maximum - self.minimum, 1)
-        if self.orientation == 'horizontal':
-            x = self.x + self.padding + nval * (self.width - 2 * self.padding)
-            return (x, self.y + self.height / 2)
-        y = self.y + self.padding + nval * (self.height - 2 * self.padding)
-        return (self.x + self.width / 2, y)
+        along = a + nval * (b - a)
+        cross = self._cross_center()
+        if self.orientation == "horizontal":
+            return (along, cross)
+        return (cross, along)
 
     value_pos: Tuple[float, float] = AliasProperty(
-        get_value_pos,
-        bind=('pos', 'size', 'minimum', 'maximum', 'padding', 'value', 'orientation'),
+        _get_value_pos,
+        bind=("pos", "size", "minimum", "maximum", "padding", "value", "orientation"),
+        cache=True
+    )
+
+    def _get_track_pos(self) -> Tuple[float, float]:
+        p = self.padding
+        if self.orientation == "horizontal":
+            return (self.x + p, self.y)
+        return (self.x, self.y + p)
+
+    track_pos: Tuple[float, float] = AliasProperty(
+        _get_track_pos,
+        bind=("pos", "padding", "orientation"),
+        cache=True
+    )
+
+    def _get_track_size(self) -> Tuple[float, float]:
+        p = self.padding
+        if self.orientation == "horizontal":
+            return (self.width - p * 2, self.height)
+        return (self.width, self.height - p * 2)
+
+    track_size: Tuple[float, float] = AliasProperty(
+        _get_track_size,
+        bind=("size", "padding", "orientation"),
+        cache=True
+    )
+
+    def _get_track_start(self) -> Tuple[float, float]:
+        p = self.padding
+        if self.orientation == "horizontal":
+            return (self.x + p, self.center_y)
+        return (self.center_x, self.y + p)
+
+    track_start: Tuple[float, float] = AliasProperty(
+        _get_track_start,
+        bind=("pos", "size", "padding", "orientation"),
+        cache=True
+    )
+
+    track_end: Tuple[float, float] = AliasProperty(
+        lambda self: self.cursor_pos,
+        bind=("cursor_pos",),
+        cache=True
+    )
+
+    def _get_cursor_pos(self) -> Tuple[float, float]:
+        vx, vy = self.value_pos
+        if self.orientation == "horizontal":
+            return (vx, self.center_y)
+        return (self.center_x, vy)
+
+    cursor_pos: Tuple[float, float] = AliasProperty(
+        _get_cursor_pos,
+        bind=("value_pos", "pos", "size", "orientation"),
         cache=True
     )
 

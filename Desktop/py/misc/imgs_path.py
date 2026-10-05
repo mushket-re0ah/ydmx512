@@ -86,3 +86,8 @@ automationRowLeftTexture = _img("dark_metal_texture.png")
 slider_2d_bg = _img("bg_monitor.png")
 
 slider2d_bg_thumb = _img("slider2d_bg_thumb.png")
+
+hover_slider_bg_vertical = _img("fader_scale.png")
+hover_slider_bg_horizontal = _img("fader_scale_horizontal.png")
+hover_slider_cursor_image_vertical = _img("fader_cursor.png")
+hover_slider_cursor_image_horizontal = _img("fader_cursor_horizontal.png")

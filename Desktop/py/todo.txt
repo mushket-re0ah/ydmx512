@@ -819,6 +819,7 @@
 [-] Сломалось сохранение состояния сплиттеров в editor
 [-] MDIPatchList.menu.input_fixture/selected на самом деле должен хранить text. Ну или и то и другое.
 [-] Доверстать Library
+[-] Рантайм визуализация компрессии диммера в прозвоне
 
 
 [---] Может, использовать VariableListProperty length=2 для value1/value2 desktop uix?

@@ -15,6 +15,25 @@ def create_colorscheme(**kwargs: Union[ColorDiff, RGBA]) -> SimpleNamespace:
     return SimpleNamespace(**kwargs)
 
 
+def compute_diff(base_hex: str, target_hex: str) -> ColorDiff:
+    """Посчитать ColorDiff от base_hex к target_hex"""
+    b = hex_str_to_color(base_hex)
+    t = hex_str_to_color(target_hex)
+    return ColorDiff(*(
+        round((tc - bc) * 255)
+        for bc, tc in zip(b, t)
+    ))
+
+
+def format_diff(diff: ColorDiff) -> str:
+    """строка вида 'ColorDiff(0x00, 0x00, -0x32, 0x00)'"""
+    def fmt(v: int) -> str:
+        sign = "-" if v < 0 else ""
+        return f"{sign}0x{abs(v):02X}"
+    _diff = (diff.dr, diff.dg, diff.db, diff.da)
+    return f"ColorDiff({', '.join(fmt(int(v * 255)) for v in _diff)})"
+
+
 general = create_colorscheme(
     menu_bg=hex_str_to_color("#2C3235FF"),
     menu_wrap_bg=hex_str_to_color("#596267FF"),
@@ -32,15 +51,16 @@ WorkspaceToggleButton = create_colorscheme(
 
 HoverSlider = create_colorscheme(
     background_color_normal=hex_str_to_color("#2C3235FF"),
-    background_color_hover=hex_str_to_color("#2C3223FF"),
-    background_color_disabled=hex_str_to_color("#1C2225FF"),
-    background_color_focused=hex_str_to_color("#33392AFF"),
+    background_color_hover=ColorDiff(0x00, 0x00, -0x12, 0x00),  # 2C3223FF
+    background_color_disabled=ColorDiff(-0x10, -0x10, -0x10, 0x00),  # 1C2225FF
+    background_color_focused=ColorDiff(0x07, 0x07, -0x0B, 0x00),  # 33392AFF
 
-    value_track_color_normal=hex_str_to_color("#00FFFF99"),
-    value_track_color_hover=hex_str_to_color("#00FFFFFF"),
-    value_track_color_disabled=hex_str_to_color("#009999FF"),
-    value_track_color_focused=hex_str_to_color("#44FFFFFF"),
+    value_track_color_normal=hex_str_to_color("#00AAAAFF"),
+    value_track_color_hover=ColorDiff(0x00, 0x00, 0x00, 0x00),  # 00AAAAFF
+    value_track_color_disabled=ColorDiff(0x00, -0x66, -0x66, 0x00),  # 005555FF
+    value_track_color_focused=ColorDiff(0x44, 0x44, 0x44, 0x00),  # 44FFFFFF
 )
+
 
 TitleNumericSlider = create_colorscheme(
     title_bg=hex_str_to_color("#262F34FF"),
@@ -80,7 +100,7 @@ ArrowToggleButton = create_colorscheme(
 
 RotaryButton = create_colorscheme(
     texture_color_normal=hex_str_to_color("#FFFFFFFF"),
-    texture_color_hover_diff=ColorDiff(0, 0, -0x32, 0x00),  # FFFFCD
+    texture_color_hover_diff=ColorDiff(0x00, 0x00, -0x32, 0x00),  # FFFFCD
     texture_color_disabled_diff=ColorDiff(-0x55, -0x55, -0x55, 0x00),  # AAAAAA
     texture_color_focused_diff=ColorDiff(-0x32, -0x32, -0x66, 0x00),  # CDCD99
 

@@ -12,6 +12,7 @@ from database.patch import RowPatch
 from libs.dmx512 import dmx512
 from libs.properties import BindableObjectProperty, ClampedNumericProperty
 from libs.typecheck import RGBA
+from libs.uix import colorscheme as uix_cs
 from libs.uix.input.numeric_input import NumericInput
 from libs.uix.label import RestrictedLabel
 from libs.uix.layouts import SectionPanel, StencilRelativeLayout
@@ -83,6 +84,7 @@ class CheckerSlider(BoxLayout):
                 self.fixture_param_color = cs.CheckerSlider.fixture_param_default
                 self.fixture_param = None
                 self.maximum_value = 255
+                value_track_color = uix_cs.HoverSlider.value_track_color_normal
             else:
                 _patch, fixture_param = address_info[0]
                 self.fixture_param_color = fixture_param.color
@@ -92,6 +94,11 @@ class CheckerSlider(BoxLayout):
                     if fixture_param.title_id == DIMMER_TITLE_ID
                     else 255
                 )
+                value_track_color = fixture_param.color
+            self.slider.property("value_track_color").set_normal(
+                self.slider,
+                value_track_color
+            )
 
             self.disabled = (
                 dmx512.check_address_force(universe, address)
