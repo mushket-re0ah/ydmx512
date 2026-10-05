@@ -1,4 +1,5 @@
 #:import db database.db
+#:import constants misc.constants
 
 
 <LibraryFixtureParam>:  # BoxLayout
@@ -110,8 +111,8 @@
             selected: root.brand
         HoverButton:
             id: btn_icon_now
-            background_normal: root.icon
-            background_down: root.icon
+            background_normal: "{}".format((constants.FIXTURE_IMGS_PATH / root.icon).as_posix())
+            background_down: "{}".format((constants.FIXTURE_IMGS_PATH / root.icon).as_posix())
             on_release: root._select_fixture_icon()
         NumericInput:
             minimum: constants.FIXTURE_TEMP_DEPENDENCE_MIN

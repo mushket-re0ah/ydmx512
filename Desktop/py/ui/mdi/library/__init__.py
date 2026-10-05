@@ -158,6 +158,8 @@ class MDILibrary(DatabaseMDIWindow):
 
     def on__view_context_loaded(self, *_:Any):
         self._try_init_content()
+        from libs import logger
+        logger.debug("loaded")
 
     def _try_init_content(self):
         if self.menu is None or not self._view_context_loaded:

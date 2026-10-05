@@ -213,12 +213,18 @@ class LibraryFixtureEditor(StencilBoxLayout):
         sub_proc.open_file(
             self.__on_open_file,
             path=str(constants.FIXTURE_IMGS_PATH),
-            filters=["*.png", "*.jpeg", "*.jpg"],
-            title="Выберите иконку для фикстуры"
+            filters=(
+                ("Images", "*.png", "*.jpeg", "*.jpg"),
+                ("PNG", "*.png",),
+                ("JPEG", "*.jpeg", "*.jpg"),
+            ),
+            multiple=False,
+            title="Выберите иконку для фикстуры",
+            preview=True
         )
 
-    def __on_open_file(self, filepath_str: str):
-        if not filepath_str:
+    def __on_open_file(self, filepath_str: Optional[str]):
+        if filepath_str is None:
             return
         filepath = Path(filepath_str)
         if self.__is_file_in_fixture_dir(filepath):

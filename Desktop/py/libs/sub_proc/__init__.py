@@ -1,5 +1,5 @@
 from multiprocessing import Process, Queue
-from typing import Any, Callable, Dict, NamedTuple, Optional, Tuple
+from typing import Any, Callable, Dict, NamedTuple, Optional, Tuple, Union
 
 from typing_extensions import TypeAlias
 
@@ -40,7 +40,7 @@ def _wait_for_process_result(context: AsyncProcessContext,
                              process: Process,
                              process_queue: Queue[Any]):
     from kivy.clock import Clock
-    def wait_result(_):
+    def wait_result(_:Any):
         if not process.is_alive():
             result = ExitCode.FAILURE
             if process.exitcode == ExitCode.SUCCESS:
@@ -80,8 +80,19 @@ def _start_process(context: AsyncProcessContext) -> Tuple[Process, Queue[Any]]:
     return (process, process_queue)
 
 
-def open_file(callback: AsyncProcessCallback, **kwargs: Any):
+def open_file(
+        callback: AsyncProcessCallback,
+        path: Optional[str]=None,
+        multiple: bool=False,
+        filters: Optional[Union[Tuple[str, ...], Tuple[Tuple[str, ...], ...]]]=None,
+        title: Optional[str]=None,
+        icon: Optional[str]=None,
+        preview: bool=False,
+        show_hidden: bool=False,
+    ):
     from libs.sub_proc import _open_file
+    if filters is None:
+        filters = tuple()
 
     run_async_process(
         AsyncProcessContext(
@@ -89,36 +100,44 @@ def open_file(callback: AsyncProcessCallback, **kwargs: Any):
             process_target=_open_file.start,
             callback=callback,
             block_gui=True,
-            process_args=kwargs
+            process_args={
+                "path": path,
+                "multiple": multiple,
+                "filters": filters,
+                "preview": preview,
+                "title": title,
+                "icon": icon,
+                "show_hidden": show_hidden
+            }
         )
     )
 
 
-def open_dir(callback: Callable, **kwargs):
-    raise NotImplementedError
-    from libs.sub_proc import _open_dir
+# def open_dir(callback: Callable, **kwargs:Any):
+#     raise NotImplementedError
+#     from libs.sub_proc import _open_dir
 
-    run_async_process(
-        AsyncProcessContext(
-            module="OPEN_DIR",
-            process_target=_open_dir.start,
-            callback=callback,
-            block_gui=True,
-            process_args=kwargs
-        )
-    )
+#     run_async_process(
+#         AsyncProcessContext(
+#             module="OPEN_DIR",
+#             process_target=_open_dir.start,
+#             callback=callback,
+#             block_gui=True,
+#             process_args=kwargs
+#         )
+#     )
 
 
-def save_file(callback: Callable, **kwargs):
-    raise NotImplementedError
-    from libs.sub_proc import _save_file
+# def save_file(callback: Callable, **kwargs):
+#     raise NotImplementedError
+#     from libs.sub_proc import _save_file
 
-    run_async_process(
-        AsyncProcessContext(
-            module="SAVE_FILE",
-            process_target=_save_file.start,
-            callback=callback,
-            block_gui=True,
-            process_args=kwargs
-        )
-    )
+#     run_async_process(
+#         AsyncProcessContext(
+#             module="SAVE_FILE",
+#             process_target=_save_file.start,
+#             callback=callback,
+#             block_gui=True,
+#             process_args=kwargs
+#         )
+#     )
