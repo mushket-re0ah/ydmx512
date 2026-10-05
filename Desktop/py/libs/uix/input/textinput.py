@@ -277,14 +277,15 @@ class TextInputPainterManager:
                 self.update_canvas_order_ev()
             return
         text_input = self.text_input
-
         padding_left, padding_top, _, padding_bottom = text_input.padding
-        text_input = self.text_input
         pos = text_input._cursor_visual_pos
         if not text_input.multiline:
             row = text_input.cursor_row
             labels = text_input._lines_labels
-            tex_h = labels[row].size[1] if row < len(labels) else text_input.line_height
+            if row < len(labels) and labels[row].size[0] > 1:
+                tex_h = labels[row].size[1]
+            else:
+                tex_h = text_input.line_height
             inner_h = text_input.height - padding_top - padding_bottom
             offset = round((inner_h - tex_h) / 2.0)
             pos = (pos[0], pos[1] - offset)
