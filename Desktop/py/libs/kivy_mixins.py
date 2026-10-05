@@ -13,6 +13,7 @@ from typing import (
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy.properties import BooleanProperty
 from typing_extensions import TypeAlias
 
 from libs.serialize import Deserializer, Serializer
@@ -74,9 +75,7 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
     _saved_vc: Dict[str, Any]
     _bindings: Dict[str, List[Tuple[EventDispatcher, str, KivyCallback]]]
 
-    def __init__(self, *args: Any, **kwargs: Any):
-        self._view_context_loaded = False
-        super().__init__(*args, **kwargs)
+    _view_context_loaded:bool = BooleanProperty(False)
 
     def load_view_context(self, view_context:Optional[Dict[str, Any]]=None):
         if view_context is None:
@@ -108,7 +107,7 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
         Иначе это просто значение по умолчанию без сериализаторов."""
         if isinstance(params, dict):
             params = cast(ViewContextTemplateInnerDict, params)
-            default = params.get('default')
+            default = params.get('default', UNSET)
             if callable(default):
                 default = default()
             serialize = params.get('serialize')
@@ -232,15 +231,15 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
             default: Any,
             serialize: Optional[Serializer],
             deserialize: Optional[Deserializer]):
-        current_var = getattr(self, var, None)
-        if current_var is not None:
+        current_var = getattr(self, var, UNSET)
+        if current_var is not UNSET:
             actual_key = self._resolve_key(path, current_var)
             self._apply_value(obj, prop, actual_key, default, serialize, deserialize)
 
         # Отслеживаем изменение свойства (с динамическим ключом)
         self._add_change_tracker(
             path, obj, prop,
-            key_func=lambda: self._resolve_key(path, getattr(self, var, "")),
+            key_func=lambda: self._resolve_key(path, getattr(self, var)),
             serialize=serialize
         )
 
@@ -258,7 +257,8 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
             return path
         if var_value is UNSET:
             raise ValueError()
-        return path.replace(f'@{path.rpartition("@")[2]}', f'_{var_value}')
+        head, _, _ = path.rpartition('@')
+        return f"{head}_{var_value}"
 
     def _rebind_path(
             self,
@@ -299,3 +299,11 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
             self._save_vc()
             return True
         return False
+
+    def _get_vc(self, path: str, var_value:Any=UNSET) -> Union[UnsetType, Any]:
+        if path not in self.view_context_template:
+            raise KeyError(f"path={path} not in template of {self}")
+        resolved_key = self._resolve_key(path, var_value)
+        if resolved_key in self._saved_vc:
+            return self._saved_vc[resolved_key]
+        return UNSET

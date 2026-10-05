@@ -6,6 +6,7 @@ from kivy.properties import ListProperty
 
 from libs import logger
 from libs.midi.device import MidiDevice
+from libs.utils import with_item, without_item
 
 
 class MidiObserver(EventDispatcher):
@@ -30,14 +31,14 @@ class MidiObserver(EventDispatcher):
                                   for device in self.devices)
             if not is_device_found:
                 device = MidiDevice(midi)
-                self.devices = tuple([*self.devices, device])
+                self.devices = with_item(self.devices, device)
                 self.dispatch("on_new_device", device)
 
         for device in self.devices:
             is_device_found = any(device.port == midi
                                   for midi in midi_list)
             if not is_device_found:
-                self.devices = tuple([x for x in self.devices if x is not device])
+                self.devices = without_item(self.devices, device)
                 self.dispatch("on_remove_device", device)
 
         for device in self.devices:

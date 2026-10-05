@@ -1,4 +1,4 @@
-#:import LibraryContextTables ui.mdi.library.LibraryContextTables
+#:import LibraryContentEnum ui.mdi.library.LibraryContentEnum
 
 
 <LibraryMenu>:  # MenuPanel
@@ -33,7 +33,7 @@
         text: "Фикстуры"
         group: "mdi_lib_table_now"
         allow_no_selection: False
-        on_is_down: root.change_table(LibraryContextTables.FIXTURE) if self.is_down else 0
+        on_is_down: root.change_content(LibraryContentEnum.FIXTURE) if self.is_down else None
         is_down: True
     HoverToggleButton:
         id: toggle_params
@@ -41,14 +41,14 @@
         text: "Параметры"
         group: "mdi_lib_table_now"
         allow_no_selection: False
-        on_is_down: root.change_table(LibraryContextTables.FIXTURE_PARAMS) if self.is_down else 0
+        on_is_down: root.change_content(LibraryContentEnum.FIXTURE_PARAMS) if self.is_down else None
     HoverToggleButton:
         id: toggle_brands
         size_hint: (None, 1)
         text: "Бренды"
         group: "mdi_lib_table_now"
         allow_no_selection: False
-        on_is_down: root.change_table(LibraryContextTables.BRAND) if self.is_down else 0
+        on_is_down: root.change_content(LibraryContentEnum.BRAND) if self.is_down else None
     Widget:
     HoverButton:
         size_hint: (None, None)

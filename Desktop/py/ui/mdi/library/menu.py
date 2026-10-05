@@ -4,7 +4,7 @@ from kivy.properties import ObjectProperty
 from database import db
 from libs.uix.button import HoverToggleButton
 from libs.uix.layouts import MenuPanel
-from ui.mdi.library import LibraryContextTables, MDILibrary
+from ui.mdi.library import LibraryContentEnum, MDILibrary
 
 Builder.load_file("ui/mdi/library/menu.kv")
 
@@ -16,24 +16,14 @@ class LibraryMenu(MenuPanel):
     toggle_params: HoverToggleButton = ObjectProperty()
     toggle_brands: HoverToggleButton = ObjectProperty()
 
-    def change_table(self, table: LibraryContextTables):
-        self.library.change_table_now(table)
+    def change_content(self, content_enum: LibraryContentEnum):
+        self.library.change_content(content_enum)
 
     def on_create_release(self):
-        context_tables = self.library.ContextTables
-        table_context = self.library.view_context.table_now
-        if table_context is context_tables.FIXTURE:
-            self._open_fixture_editor()
-        elif table_context is context_tables.FIXTURE_PARAMS:
-            self._create_fixture_param()
-        elif table_context is context_tables.BRAND:
-            self._create_brand()
-
-    def _create_brand(self):
-        db.brand.add_row()
-
-    def _create_fixture_param(self):
-        db.fixture_param.add_row()
-
-    def _open_fixture_editor(self):
-        self.library.change_context_now(self.library.Contexts.EDITOR)
+        content_enum = self.library.content_enum
+        if content_enum is LibraryContentEnum.FIXTURE:
+            self.library.change_content(LibraryContentEnum.FIXTURE_EDITOR, None)
+        elif content_enum is LibraryContentEnum.FIXTURE_PARAMS:
+            db.fixture_param.add_row()
+        elif content_enum is LibraryContentEnum.BRAND:
+            db.brand.add_row()

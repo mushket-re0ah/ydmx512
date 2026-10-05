@@ -30,6 +30,7 @@ from libs.uix.context_menu import ContextMenu
 from libs.uix.restricted_scrollview import RestrictedScrollView
 from libs.uix.scroll_layout import ScrollLayout
 from libs.uix.workspace_manager import WorkspaceBehavior
+from libs.utils import with_item, without_item
 
 Builder.load_string("""
 <MapGridItemBehavior>:
@@ -515,7 +516,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
 
     def unselect(self, widget: MapGridItemBehavior):
         widget.selected = False
-        self.selected = tuple(x for x in self.selected if x is not widget)
+        self.selected = without_item(self.selected, widget)
 
     def select(self, widget: MapGridItemBehavior, clear:bool=True):
         if not self.selectable:
@@ -529,7 +530,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         if widget.selected:
             return
         widget.selected = True
-        self.selected = tuple([*self.selected, widget])
+        self.selected = with_item(self.selected, widget)
 
     def hit_test(self, x: float, y: float) -> Optional[MapGridItemBehavior]:
         cell = self.pixel_to_cell(x, y, ignore_spaces=True)
@@ -835,7 +836,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
             grid_size=self._on_grid_item_geometry_change,
         )
         self._sync_grid_item(widget)
-        self.grid_items = tuple([*self.grid_items, widget])
+        self.grid_items = with_item(self.grid_items, widget)
 
     def _unbind_grid_item(self, widget: MapGridItemBehavior):
         self.unselect(widget)
@@ -844,7 +845,7 @@ class MapLayout(ScrollLayout, AutoUnbindBehavior):
         if geometry is not None:
             self._release_grid_item(widget, geometry)
         widget.map_layout = None
-        self.grid_items = tuple([x for x in self.grid_items if x is not widget])
+        self.grid_items = without_item(self.grid_items, widget)
 
     def _on_grid_item_geometry_change(self, widget: MapGridItemBehavior, _:Any):
         self._sync_grid_item(widget)

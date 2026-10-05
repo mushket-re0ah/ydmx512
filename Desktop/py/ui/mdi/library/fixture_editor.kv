@@ -14,7 +14,7 @@
         text: "copy"
     HoverButton:
         text: "remove"
-        disabled: root.edit_exist
+        disabled: root.edit_mode
 
 
 <LibraryFixtureParamGroup>:  # BoxLayout
@@ -35,7 +35,7 @@
             maximum: constants.FIXTURE_GROUP_REPEAT_COUNT_MAX
             on_value: root.set_repeat_count(self.value)
             value: root.group.repeat_count
-            disabled: root.edit_exist
+            disabled: root.edit_mode
         HoverToggleButton:
             text: "linear"
             on_is_down: root.set_linear(self.is_down)
@@ -43,11 +43,11 @@
         HoverButton:
             text: "+"
             on_release: root.add_param()
-            disabled: root.edit_exist
+            disabled: root.edit_mode
         HoverButton:
             text: "-"
-            on_release: root.master_widget.remove_group(root)
-            disabled: root.edit_exist
+            on_release: root.fixture_params.remove_group(root)
+            disabled: root.edit_mode
     ScrollLayout:
         scrollview: scrollview
         size_hint: (1, 1)
@@ -93,11 +93,11 @@
         HoverInput:
             id: input_title
             multiline: False
-            on_text: root.set_title(self.text)
+            on_text: root.title = self.text
             text: root.title
         HoverInput:
             id: input_note
-            on_text: root.set_note(self.text)
+            on_text: root.note = self.text
             text: root.note
         RecycleSpinner:
             id: dropdown_brand
@@ -106,8 +106,8 @@
             values: db.brand.rows
             values_getter: lambda this: list(this.values.values())
             value_to_host: lambda db_row: db_row.title
+            on_selected: root.brand = self.selected
             selected: root.brand
-            on_selected: root.set_brand(self.selected)
         HoverButton:
             id: btn_icon_now
             background_normal: root.icon
@@ -116,8 +116,8 @@
         NumericInput:
             minimum: constants.FIXTURE_TEMP_DEPENDENCE_MIN
             maximum: constants.FIXTURE_TEMP_DEPENDENCE_MAX
+            on_value: root.temp_dependence = self.value
             value: root.temp_dependence
-            on_value: root.set_temp_dependence(self.value)
         HoverButton:
             size_hint: (1, None)
             height: "30dp"
@@ -128,12 +128,10 @@
         LibraryFixtureParams:
             id: fixture_params
             orientation: "vertical"
-            library: root.library
-            fixture: root.fixture
-            context: root.context
+            fixture_editor: root.__self__
+            library: root.library.__self__
         HoverButton:
             size_hint: (1, None)
             height: "30dp"
             text: "Добавить группу"
             on_release: fixture_params.add_group()
-            disabled: root.edit_exist

@@ -1,9 +1,15 @@
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, TypedDict
 
 from kivy.lang import Builder
-from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty, StringProperty
+from kivy.properties import (
+    BooleanProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    StringProperty,
+)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
@@ -18,8 +24,9 @@ from libs.uix.layouts import StencilBoxLayout
 from libs.uix.recycle_spinner import RecycleSpinner
 from libs.uix.restricted_scrollview import RestrictedScrollView
 from libs.uix.scroll_layout import ScrollLayout
+from libs.utils import with_item, without_item
 from misc import constants
-from ui.mdi.library import LibraryEditorContext, MDILibrary
+from ui.mdi.library import LibraryContentEnum, MDILibrary
 
 Builder.load_file("ui/mdi/library/fixture_editor.kv")
 
@@ -30,12 +37,13 @@ class LibraryFixtureParam(BoxLayout):
     group_index: int = NumericProperty()
 
     library: MDILibrary = ObjectProperty()
-    context: LibraryEditorContext = ObjectProperty()
-    edit_exist: bool = BooleanProperty(False)
+    fixture_editor: "LibraryFixtureEditor" = ObjectProperty()
+
+    edit_mode: bool = BooleanProperty(False)
 
     def set_fixture_param(self, param: RowFixtureParam):
         self.param_list[self.group_index] = param
-        self.library.property("view_context").dispatch(self.library)
+        self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
 
 
 class LibraryFixtureParamGroup(BoxLayout):
@@ -45,24 +53,21 @@ class LibraryFixtureParamGroup(BoxLayout):
     group: FixtureChannelsGroup = ObjectProperty()
 
     library: MDILibrary = ObjectProperty()
-    context: LibraryEditorContext = ObjectProperty()
-    master_widget: "LibraryFixtureParams" = ObjectProperty()
-    edit_exist: bool = BooleanProperty(False)
+    fixture_editor: "LibraryFixtureEditor" = ObjectProperty()
+    fixture_params: "LibraryFixtureParams" = ObjectProperty()
+
+    edit_mode: bool = BooleanProperty()
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         for param in self.group.param_list:
-            self.add_param(param)
-
-    def on_edit_exist(self, _, edit_exist: bool):
-        for fixture_param_ui in self.box.children:
-            fixture_param_ui.edit_exist = edit_exist
+            self.add_param(param, init=True)
 
     def set_title(self, title: str):
         self.__set_context("title", title)
 
     def set_repeat_count(self, repeat_count: int):
-        if self.edit_exist:
+        if self.edit_mode:
             logger.warning("Попытка изменения repeat_count у существующей фикстуры")
             return
         self.__set_context("repeat_count", repeat_count)
@@ -73,29 +78,38 @@ class LibraryFixtureParamGroup(BoxLayout):
     def __set_context(self, attr: str, value: Any):
         if getattr(self.group, attr) != value:
             setattr(self.group, attr, value)
-            self.library.property("view_context").dispatch(self.library)
+            self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
 
-    def add_param(self, param: Optional[RowFixtureParam]=None):
-        if self.edit_exist:
+    def add_param(
+            self,
+            param: Optional[RowFixtureParam]=None,
+            init:bool=False
+        ):
+        if self.edit_mode and not init:
             logger.warning("Попытка добавить параметр существующей фикстуре")
             return
         if param is None:
             param = db.fixture_param.get_default_row()
-            self.__add_param_to_context(param)
+            self._add_param_to_context(param, init=init)
         self.box.add_widget(LibraryFixtureParam(
             library=self.library,
-            context=self.context,
+            fixture_editor=self.fixture_editor,
             fixture_param=param,
             param_list=self.group.param_list,
             group_index=len(self.box.children))
         )
 
-    def __add_param_to_context(self, param: RowFixtureParam):
-        if self.edit_exist:
+    def _add_param_to_context(
+            self,
+            param: RowFixtureParam,
+            init:bool=False
+        ):
+        if self.edit_mode and not init:
             logger.warning("Попытка добавить параметр существующей фикстуре")
             return
-        self.group.param_list.append(param)
-        self.library.property("view_context").dispatch(self.library)
+        if not init:
+            self.group.param_list.append(param)
+            self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
 
 
 class LibraryFixtureParams(ScrollLayout):
@@ -103,61 +117,68 @@ class LibraryFixtureParams(ScrollLayout):
     box: BoxLayout = ObjectProperty()
 
     library: MDILibrary = ObjectProperty()
-    fixture: RowFixture = ObjectProperty()
-    context: LibraryEditorContext = ObjectProperty()
-    edit_exist: bool = BooleanProperty(False)
+    fixture_editor: "LibraryFixtureEditor" = ObjectProperty()
 
-    def on_kv_post(self, base_widget: Widget):
-        super().on_kv_post(base_widget)
-        for group in self.context.channels_groups:
-            self.add_group(group)
+    edit_mode: bool = BooleanProperty()
 
-    def on_edit_exist(self, _, edit_exist: bool):
-        for param_group_ui in self.box.children:
-            param_group_ui.edit_exist = edit_exist
+    def init(self, edit_mode:bool):
+        self.edit_mode = edit_mode
+        for group in self.fixture_editor.channels_groups:
+            self.add_group(group, init=True)
 
-    def add_group(self, group: Optional[FixtureChannelsGroup]=None):
-        if self.edit_exist:
+    def add_group(
+            self,
+            group:Optional[FixtureChannelsGroup]=None,
+            init:bool=False
+        ):
+        if self.edit_mode and not init:
             logger.warning("Попытка создания группы в существующей фикстуре")
             return
         if group is None:
             group = FixtureChannelsGroup()
-            self.__add_group_to_context(group)
+            self.add_group_to_context(group, init)
         param_group = LibraryFixtureParamGroup(
-            master_widget=self,
+            edit_mode=self.edit_mode,
+            fixture_editor=self.fixture_editor,
+            fixture_params=self,
             library=self.library,
-            group=group,
-            context=self.context
+            group=group
         )
         self.box.add_widget(param_group)
 
-    def __add_group_to_context(self, group: FixtureChannelsGroup):
-        if self.edit_exist:
+    def add_group_to_context(
+            self,
+            group: FixtureChannelsGroup,
+            init:bool=False
+        ):
+        if self.edit_mode and not init:
             logger.warning("Попытка создания группы в существующей фикстуре")
             return
-        self.context.channels_groups.append(group)
-        self.library.property("view_context").dispatch(self.library)
+        self.fixture_editor.channels_groups = with_item(
+            self.fixture_editor.channels_groups,
+            group
+        )
 
     def remove_group(self, group_ui: LibraryFixtureParamGroup):
-        if self.edit_exist:
+        if self.edit_mode:
             logger.warning("Попытка удаления группы в существующей фикстуре")
             return
-        self.context.channels_groups.remove(group_ui.group)
+        self.fixture_editor.channels_groups = without_item(
+            self.fixture_editor.channels_groups,
+            group_ui.group
+        )
         self.box.remove_widget(group_ui)
-        self.library.property("view_context").dispatch(self.library)
 
 
 class LibraryFixtureEditor(StencilBoxLayout):
     library: MDILibrary = ObjectProperty()
-
-    fixture: RowFixture = ObjectProperty()
-    context: LibraryEditorContext = ObjectProperty()
 
     title: str = StringProperty()
     note: str = StringProperty()
     brand: RowBrand = ObjectProperty()
     icon: str = StringProperty((constants.DEFAULT_FIXTURE_ICON).as_posix())
     temp_dependence: int = NumericProperty()
+    channels_groups: Tuple[FixtureChannelsGroup, ...] = ListProperty(force_dispatch=True)
 
     # ui
     input_title: HoverInput = ObjectProperty()
@@ -166,106 +187,35 @@ class LibraryFixtureEditor(StencilBoxLayout):
     btn_icon_now: HoverButton = ObjectProperty()
     fixture_params: LibraryFixtureParams = ObjectProperty()
 
-    edit_exist: bool = BooleanProperty()
-
-    def __init__(self, **kwargs: Any):
-        context = kwargs["context"]
-        fixture = kwargs["fixture"]
-        library = kwargs["library"]
-        edit_exist = fixture is not None
-        library.view_context.fixture_now = fixture
-        if context.fixture is not fixture:
-            self.__init_context(fixture, context, library)
-            super().__init__(
-                title=fixture.title,
-                note=fixture.note,
-                brand=fixture.brand,
-                icon=(constants.FIXTURE_IMGS_PATH / fixture.icon).as_posix(),
-                temp_dependence=fixture.temp_dependence,
-                edit_exist=edit_exist,
-                **kwargs)
-        else:
-            super().__init__(
-                title=context.title,
-                note=context.note,
-                brand=context.brand,
-                icon=context.icon,
-                temp_dependence=context.temp_dependence,
-                edit_exist=edit_exist,
-                **kwargs)
-        library.property("view_context").dispatch(library)
-
-    def on_kv_post(self, base_widget: Widget):
-        self.fixture_params.edit_exist = self.edit_exist
+    def init(self):
+        self.fixture_params.init(self.library.fixture_editor_edit_mode)
 
     def close(self):
-        self.library.change_context_now(self.library.Contexts.MENU)
-
-    def set_title(self, title: str):
-        self.title = title
-        self.__set_context("title", title)
-
-    def set_note(self, note: str):
-        self.note = note
-        self.__set_context("note", note)
-
-    def set_brand(self, brand: RowBrand):
-        self.brand = brand
-        self.__set_context("brand", brand)
-
-    def set_icon(self, icon: str):
-        self.icon = icon
-        self.__set_context("icon", icon)
-
-    def set_temp_dependence(self, temp_dependence: int):
-        self.temp_dependence = temp_dependence
-        self.__set_context("temp_dependence", temp_dependence)
+        self.library.change_content(LibraryContentEnum.FIXTURE)
 
     def save(self):
-        if self.fixture:
-            self.fixture.edit(**self.__get_save_kwargs())
-        else:
-            db.fixture.add_row(**self.__get_save_kwargs())
-        self.context.set_default()
-        self.library.property("view_context").dispatch(self.library)
-        self.close()
-
-    def __get_save_kwargs(self) -> Dict[str, Any]:
-        return {
+        save_kwargs = {
             "title": self.title,
             "note": self.note,
             "brand": self.brand,
             "icon": Path(self.icon).name,
             "temp_dependence": self.temp_dependence,
-            "channels_groups": self.context.channels_groups
+            "channels_groups": list(self.channels_groups)
         }
-
-    def __init_context(
-            self,
-            fixture: RowFixture,
-            context: LibraryEditorContext,
-            library: MDILibrary
-        ):
-        context.fixture = fixture
-        context.title = fixture.title
-        context.note = fixture.note
-        context.brand = fixture.brand
-        context.icon = (constants.FIXTURE_IMGS_PATH / fixture.icon).as_posix()
-        context.temp_dependence = fixture.temp_dependence
-        channels_groups = [i.get_copy() for i in fixture.channels_groups]
-        context.channels_groups = channels_groups
-        library.property("view_context").dispatch(library)
-
-    def __set_context(self, attr: str, value: Any):
-        if getattr(self.context, attr) != value:
-            setattr(self.context, attr, value)
-            self.library.property("view_context").dispatch(self.library)
+        if self.library.fixture_editor_edit_mode:
+            self.library.context_fixture.edit(**save_kwargs)
+        else:
+            db.fixture.add_row(**save_kwargs)
+        self.close()
+        self.library.reset_editor_data()
 
     def _select_fixture_icon(self):
-        sub_proc.open_file(self.__on_open_file,
-                           path=str(constants.FIXTURE_IMGS_PATH),
-                           filters=["*.png", "*.jpeg", "*.jpg"],
-                           title="Выберите иконку для фикстуры")
+        sub_proc.open_file(
+            self.__on_open_file,
+            path=str(constants.FIXTURE_IMGS_PATH),
+            filters=["*.png", "*.jpeg", "*.jpg"],
+            title="Выберите иконку для фикстуры"
+        )
 
     def __on_open_file(self, filepath_str: str):
         if not filepath_str:
@@ -277,7 +227,7 @@ class LibraryFixtureEditor(StencilBoxLayout):
         else:
             # Файл находится не в constants.FIXTURE_IMGS_PATH
             new_filepath = self.__copy_file_to_fixture_img_dir(filepath)
-        self.set_icon(new_filepath.as_posix())
+        self.icon = new_filepath.as_posix()
 
     def __copy_file_to_fixture_img_dir(self, filepath: Path) -> Path:
         new_filepath = self.__path_to_fixture_icon(filepath)

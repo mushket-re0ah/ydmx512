@@ -46,6 +46,3 @@ _columns_config = (
 class LibraryTableFixtureParams(LibraryTable):
     table = db.fixture_param
     columns_config: Tuple[ColumnConfig, ...] = _columns_config
-
-    def activate_menu_toggle(self):
-        self.library.menu.toggle_params.trigger_action(0)

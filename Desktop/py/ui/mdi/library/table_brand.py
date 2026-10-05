@@ -23,6 +23,3 @@ _columns_config = (
 class LibraryTableBrand(LibraryTable):
     table = db.brand
     columns_config: Tuple[ColumnConfig, ...] = _columns_config
-
-    def activate_menu_toggle(self):
-        self.library.menu.toggle_brands.trigger_action(0)

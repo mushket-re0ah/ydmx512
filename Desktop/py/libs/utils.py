@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Sequence, Tuple
 
 
 def merge_kwargs(default_kwargs: Dict[Any, Any], kwargs: Dict[Any, Any]) -> Dict[Any, Any]:
@@ -25,3 +25,13 @@ class ThrottledCall:
             self._accumulator -= self.interval
             return self.func(*args, **kwargs)
         return None
+
+
+def with_item(items: Sequence[Any], item: Any) -> Tuple[Any, ...]:
+    return tuple((*items, item))
+
+
+def without_item(items: Sequence[Any], item: Any, identity:bool=True) -> Tuple[Any, ...]:
+    if identity:
+        return tuple(x for x in items if x is not item)
+    return tuple(x for x in items if x != item)

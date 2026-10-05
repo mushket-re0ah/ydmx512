@@ -4,6 +4,7 @@ from database import db
 from database.fixture import RowFixture
 from libs.uix.database_table import ColumnConfigTemplates
 from libs.uix.database_table.column_config import ColumnConfig
+from ui.mdi.library import LibraryContentEnum
 from ui.mdi.library.table import LibraryTable
 
 _columns_config = (
@@ -32,8 +33,8 @@ class LibraryTableFixture(LibraryTable):
     table = db.fixture
     columns_config: Tuple[ColumnConfig, ...] = _columns_config
 
-    def activate_menu_toggle(self):
-        self.library.menu.toggle_fixture.trigger_action(0)
-
     def edit(self, fixture_row: RowFixture):
-        self.library.change_context_now(self.library.Contexts.EDITOR, fixture_row)
+        self.library.change_content(
+            LibraryContentEnum.FIXTURE_EDITOR,
+            fixture_row
+        )

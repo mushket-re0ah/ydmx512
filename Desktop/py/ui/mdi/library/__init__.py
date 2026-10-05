@@ -1,23 +1,21 @@
-from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type, Union
 
-from kivy.properties import AliasProperty, ObjectProperty, StringProperty
+from kivy.properties import AliasProperty, BooleanProperty, ObjectProperty, StringProperty
 
 from database import db
-from database.brand import RowBrand
 from database.fixture import FixtureChannelsGroup, RowFixture
-from libs.kivy_json_orm.fields import (
-    EnumField,
-    ListField,
-    ListNestedField,
-    NestedField,
-    NumericField,
-    RefField,
-    StringField,
+from libs.kivy_json_orm.fields import table_ref_deserializer, table_ref_serializer
+from libs.kivy_mixins import ViewContextDefaultData, ViewContextTemplateInnerDict
+from libs.properties import EnumProperty
+from libs.serialize import (
+    enum_deserializer,
+    enum_serializer,
+    list_of_serializable_deserializer,
+    list_of_serializable_serializer,
 )
-from libs.serialize import SerializableMixin
-from misc import constants
+from libs.typecheck import UNSET
+from libs.uix.button import HoverToggleButton
 from ui.components.database_mdi_window import DatabaseMDIWindow
 from ui.mdi.library.table import LibraryTable
 
@@ -26,147 +24,17 @@ if TYPE_CHECKING:
     from ui.mdi.library.menu import LibraryMenu
 
 
-class LibraryContexts(Enum):
-    MENU = auto()
-    EDITOR = auto()
-
-
-class LibraryContextTables(Enum):
+class LibraryTableEnum(Enum):
     FIXTURE = auto()
     FIXTURE_PARAMS = auto()
     BRAND = auto()
 
 
-class LibraryTableContext(SerializableMixin):
-    selected_rows: Tuple[int, ...] = ListField()
-    size_hint_x: List[float] = ListField()
-    scroll_y: float = NumericField(1.0)
-
-
-class LibraryEditorContext(SerializableMixin):
-    fixture: RowFixture = RefField(lambda: db.get("fixture"))
-    title: str = StringField()
-    note: str = StringField()
-    brand: RowBrand = RefField(
-        lambda: db.get("brand"),
-        lambda: db.get("brand").get_default_row(),
-        default_factory=lambda: db.get("brand").get_default_row()
-    )
-    icon: str = StringField(constants.DEFAULT_FIXTURE_ICON.as_posix())
-    temp_dependence: int = NumericField(0)
-    channels_groups: List[FixtureChannelsGroup] = ListNestedField(FixtureChannelsGroup)
-
-
-class LibraryViewContext(SerializableMixin):
-    context_now: LibraryContexts = EnumField(
-        LibraryContexts,
-        LibraryContexts.MENU
-    )
-    table_now: LibraryContextTables = EnumField(
-        LibraryContextTables,
-        LibraryContextTables.FIXTURE
-    )
-    fixture_now: RowFixture = RefField(lambda: db.get("fixture"), allownone=True)
-
-    fixture_editor_create: LibraryEditorContext = NestedField(
-        LibraryEditorContext,
-        default_factory=LibraryEditorContext
-    )
-    fixture_editor_edit: LibraryEditorContext = NestedField(
-        LibraryEditorContext,
-        default_factory=LibraryEditorContext
-    )
-
-    table_fixture: LibraryTableContext = NestedField(
-        LibraryTableContext,
-        default_factory=LibraryTableContext
-    )
-    table_fixture_params: LibraryTableContext = NestedField(
-        LibraryTableContext,
-        default_factory=LibraryTableContext
-    )
-    table_brand: LibraryTableContext = NestedField(
-        LibraryTableContext,
-        default_factory=LibraryTableContext
-    )
-
-    def get_table_data_by_context(self, table_context: LibraryContextTables) -> LibraryTableContext:
-        if table_context is LibraryContextTables.FIXTURE:
-            return self.table_fixture
-        if table_context is LibraryContextTables.FIXTURE_PARAMS:
-            return self.table_fixture_params
-        if table_context is LibraryContextTables.BRAND:
-            return self.table_brand
-        raise ValueError()
-
-
-def _get_class_table_by_context(table_context: LibraryContextTables) -> Type[LibraryTable]:
-    if table_context is LibraryContextTables.FIXTURE:
-        from ui.mdi.library.table_fixture import LibraryTableFixture
-        return LibraryTableFixture
-    if table_context is LibraryContextTables.FIXTURE_PARAMS:
-        from ui.mdi.library.table_fixture_params import LibraryTableFixtureParams
-        return LibraryTableFixtureParams
-    if table_context is LibraryContextTables.BRAND:
-        from ui.mdi.library.table_brand import LibraryTableBrand
-        return LibraryTableBrand
-    raise ValueError()
-
-
-class ContextState(ABC):
-    @abstractmethod
-    def enter(self, library: "MDILibrary"):
-        pass
-
-    @abstractmethod
-    def exit(self, library: "MDILibrary"):
-        pass
-
-
-class MenuState(ContextState):
-    def enter(self, library: "MDILibrary"):
-        # Восстанавливаем предыдущее состояние таблицы
-        library.table_now = library._create_table_by_context()
-        library.table_now.activate_menu_toggle()
-        library.add_widget(library.menu)
-        library.add_widget(library.table_now)
-        library.view_context.context_now = LibraryContexts.MENU
-        library.property("view_context").dispatch(library)
-
-    def exit(self, library: "MDILibrary"):
-        library.remove_widget(library.menu)
-        library.remove_widget(library.table_now)
-        library.property("view_context").dispatch(library)
-
-
-class EditorState(ContextState):
-    def __init__(self, row: Optional[RowFixture] = None):
-        self.row = row
-
-    def enter(self, library: "MDILibrary"):
-        library.editor = self._create_editor(library)
-        library.add_widget(library.editor)
-        library.view_context.context_now = LibraryContexts.EDITOR
-        library.view_context.fixture_now = self.row
-        library.property("view_context").dispatch(library)
-
-    def exit(self, library: "MDILibrary"):
-        library.remove_widget(library.editor)
-        library.editor = None
-        library.property("view_context").dispatch(library)
-
-    def _create_editor(self, library: "MDILibrary") -> "LibraryFixtureEditor":
-        from ui.mdi.library.fixture_editor import LibraryFixtureEditor
-        return LibraryFixtureEditor(
-            library=library,
-            fixture=self.row,
-            context=self.__get_fixture_editor_context(library)
-        )
-
-    def __get_fixture_editor_context(self, library: "MDILibrary") -> LibraryEditorContext:
-        if self.row is None:
-            return library.view_context.fixture_editor_create
-        return library.view_context.fixture_editor_edit
+class LibraryContentEnum(Enum):
+    FIXTURE = auto()
+    FIXTURE_PARAMS = auto()
+    BRAND = auto()
+    FIXTURE_EDITOR = auto()
 
 
 class MDILibrary(DatabaseMDIWindow):
@@ -174,107 +42,216 @@ class MDILibrary(DatabaseMDIWindow):
     title: str = StringProperty("Библиотека")
 
     menu: "LibraryMenu" = ObjectProperty()
-    editor: "LibraryFixtureEditor" = ObjectProperty(allownone=True)
-    table_now: LibraryTable = ObjectProperty()
 
-    # view_context_template = {
-    #     "workspace": 0,
-    # }
+    table_now_enum: LibraryTableEnum = EnumProperty(
+        LibraryTableEnum,
+        LibraryTableEnum.FIXTURE
+    )
+    table_now: Optional[LibraryTable] = ObjectProperty(None, allownone=True)
 
-    Contexts = LibraryContexts
-    ContextTables = LibraryContextTables
+    table_now_dynamic_var = AliasProperty(
+        lambda self: self.table_now_enum.value,
+        bind=("table_now_enum",)
+    )
 
-    context_state: ContextState = None
+    content_enum: LibraryContentEnum = EnumProperty(
+        LibraryContentEnum,
+        LibraryContentEnum.FIXTURE
+    )
+    content_now: Optional[Union[LibraryTable, "LibraryFixtureEditor"]] = ObjectProperty(
+        None,
+        allownone=True
+    )
+
+    fixture_editor: Optional["LibraryFixtureEditor"] = ObjectProperty(
+        None,
+        allownone=True
+    )
+    fixture_editor_edit_mode: bool = BooleanProperty(False)
+    context_fixture: Optional[RowFixture] = ObjectProperty(allownone=True)
+
+    FIXTURE_EDITOR_TEMPLATE_KEYS: Dict[
+            str,
+            Tuple[
+                Union[ViewContextDefaultData, ViewContextTemplateInnerDict],
+                Callable[[RowFixture], Any]
+            ]
+        ] = {
+        "fixture_editor/title@fixture_editor_edit_mode": (
+            UNSET,
+            lambda fixture: fixture.title
+        ),
+        "fixture_editor/note@fixture_editor_edit_mode": (
+            UNSET,
+            lambda fixture: fixture.note
+        ),
+        "fixture_editor/brand@fixture_editor_edit_mode": (
+            {
+                "default": db.brand.get_default_row,
+                "serialize": table_ref_serializer(),
+                "deserialize": table_ref_deserializer(
+                    lambda: db.brand,
+                    fallback_fn=db.brand.get_default_row
+                )
+            },
+            lambda fixture: fixture.brand
+        ),
+        "fixture_editor/icon@fixture_editor_edit_mode": (
+            UNSET,
+            lambda fixture: fixture.icon
+        ),
+        "fixture_editor/temp_dependence@fixture_editor_edit_mode": (
+            UNSET,
+            lambda fixture: fixture.temp_dependence
+        ),
+        "fixture_editor/channels_groups@fixture_editor_edit_mode": (
+            {
+                "default": tuple,
+                "serialize": list_of_serializable_serializer(),
+                "deserialize": list_of_serializable_deserializer(FixtureChannelsGroup)
+            },
+            lambda fixture: tuple(i.get_copy() for i in fixture.channels_groups)
+        )
+    }
+
+    view_context_template = {
+        "fixture_editor_edit_mode": UNSET,
+        "context_fixture": {
+            "default": UNSET,
+            "serialize": table_ref_serializer(),
+            "deserialize": table_ref_deserializer(
+                lambda: db.fixture,
+                fallback_fn=lambda: None,
+            ),
+        },
+
+        "content_enum": {
+            "default": LibraryContentEnum.FIXTURE,
+            "serialize": enum_serializer(),
+            "deserialize": enum_deserializer(LibraryContentEnum)
+        },
+        "table_now_enum": {
+            "default": LibraryTableEnum.FIXTURE,
+            "serialize": enum_serializer(),
+            "deserialize": enum_deserializer(LibraryTableEnum)
+        },
+        "table_now.scroll_layout.scrollview/scroll_element@table_now_dynamic_var": UNSET,
+        "table_now/selected_rows@table_now_dynamic_var": UNSET,
+
+        **{
+            vc_path: value[0]
+            for vc_path, value in FIXTURE_EDITOR_TEMPLATE_KEYS.items()
+        }
+    }
+
     def on_hidden(self, _, hidden: bool):
         super().on_hidden(_, hidden)
         if hidden or self.menu:
             return
         self.__create_menu()
-        self.__init_context()
-
-
-
-    # Костыль для нового view_context
-    def get_view_context(self) -> LibraryViewContext:
-        return self.state.get("view_context", {})
-    def set_view_context(self, view_context: LibraryViewContext) -> bool:
-        state = self.state.copy()
-        state["view_context"] = view_context
-        self.state = state
-        return True
-    view_context: LibraryViewContext = AliasProperty(
-        get_view_context,
-        set_view_context,
-    )
-    def on_view_context(self, _, view_context: LibraryViewContext):
-        self._save_vc()
-    def _save_vc(self):
-        self.mdi_db_row.edit(view_context=self.view_context)
-
-
-
-
-
-    def change_context_now(self, context: LibraryContexts, row: Optional[RowFixture] = None):
-        new_state = self._state_factory(context, row)
-
-        if isinstance(self.context_state, new_state.__class__):
-            return
-
-        self.context_state.exit(self)
-        self.context_state = new_state
-        self.context_state.enter(self)
-
-    def __init_context(self):
-        # костыльные обращения к view_context
-        if not self.mdi_db_row.view_context:
-            self.view_context = LibraryViewContext()
-        else:
-            self.view_context = LibraryViewContext.from_data(self.mdi_db_row.view_context)
-
-        self.context_state = self._state_factory(
-            self.view_context.context_now,
-            self.view_context.fixture_now
-        )
-        self.context_state.enter(self)
-
-    def __switch_table(self, new_context: LibraryContextTables):
-        if self.table_now in self.children:
-            self._save_table_context()
-            self.remove_widget(self.table_now)
-
-        self.view_context.table_now = new_context
-        self.table_now = self._create_table_by_context()
-        self.add_widget(self.table_now)
-
-    def change_table_now(self, context: LibraryContextTables):
-        if self.view_context.table_now == context:
-            return
-        self.__switch_table(context)
-        self.property("view_context").dispatch(self)
-
-    def _save_table_context(self, *_: Any):
-        if self.table_now is not None:
-            self.table_now.save_context()
-
-    def _create_table_by_context(self) -> LibraryTable:
-        table_context = self.view_context.table_now
-        table_data_context = self.view_context.get_table_data_by_context(table_context)
-        table_class = _get_class_table_by_context(table_context)
-        table = table_class(library=self,
-                            context=table_data_context)
-        return table
 
     def __create_menu(self):
         from ui.mdi.library.menu import LibraryMenu
         self.menu = LibraryMenu(library=self)
+        self.add_widget(self.menu)
+        self._try_init_content()
 
-    def _state_factory(
+    def on__view_context_loaded(self, *_:Any):
+        self._try_init_content()
+
+    def _try_init_content(self):
+        if self.menu is None or not self._view_context_loaded:
+            return
+        if self.content_now is not None:
+            return
+        self.property("content_enum").dispatch(self)
+
+    def on_content_enum(self, _, content_enum: LibraryContentEnum):
+        if self.menu is None or not self._view_context_loaded:
+            return
+
+        if content_enum is LibraryContentEnum.FIXTURE:
+            from ui.mdi.library.table_fixture import LibraryTableFixture
+            self._show_table(
+                LibraryTableFixture,
+                LibraryTableEnum.FIXTURE,
+                self.menu.toggle_fixture
+            )
+
+        elif content_enum is LibraryContentEnum.FIXTURE_PARAMS:
+            from ui.mdi.library.table_fixture_params import LibraryTableFixtureParams
+            self._show_table(
+                LibraryTableFixtureParams,
+                LibraryTableEnum.FIXTURE_PARAMS,
+                self.menu.toggle_params
+            )
+
+        elif content_enum is LibraryContentEnum.BRAND:
+            from ui.mdi.library.table_brand import LibraryTableBrand
+            self._show_table(
+                LibraryTableBrand,
+                LibraryTableEnum.BRAND,
+                self.menu.toggle_brands
+            )
+
+        elif content_enum is LibraryContentEnum.FIXTURE_EDITOR:
+            self._show_editor()
+
+    def _hide_menu(self):
+        if self.menu.parent:
+            self.remove_widget(self.menu)
+
+    def _show_menu(self):
+        if self.menu.parent is None:
+            self.add_widget(self.menu)
+
+    def _show_table(
             self,
-            context: LibraryContexts,
-            row: Optional[RowFixture] = None
-        ) -> ContextState:
-        return {
-            LibraryContexts.MENU: MenuState(),
-            LibraryContexts.EDITOR: EditorState(row)
-        }[context]
+            table_cls: Type[LibraryTable],
+            table_enum: LibraryTableEnum,
+            menu_toggle: HoverToggleButton
+        ):
+        self.fixture_editor = None
+        self.table_now_enum = table_enum
+        self.table_now = table_cls(library=self)
+        self._show_menu()
+        self._show_content(self.table_now)
+        menu_toggle.trigger_action(0)
+
+    def _show_editor(self):
+        from ui.mdi.library.fixture_editor import LibraryFixtureEditor
+        self.table_now = None
+        self.fixture_editor = LibraryFixtureEditor(library=self)
+        self.fixture_editor.init()
+        self._hide_menu()
+        self._show_content(self.fixture_editor)
+
+    def _show_content(self, content: Union[LibraryTable, "LibraryFixtureEditor"]):
+        if self.content_now is not None:
+            self.content_now.parent.remove_widget(self.content_now)
+        self.content_now = content
+        self.add_widget(content)
+
+    def _prepare_editor_data(self, fixture: Optional[RowFixture]):
+        edit_mode = fixture is not None
+        self.fixture_editor_edit_mode = edit_mode
+        if edit_mode:
+            if self.context_fixture is not fixture:
+                for vc_path, value in self.FIXTURE_EDITOR_TEMPLATE_KEYS.items():
+                    _, fixture_getter = value
+                    self._set_vc(vc_path, fixture_getter(fixture), edit_mode)
+                self.context_fixture = fixture
+
+    def reset_editor_data(self):
+        for vc_path, _ in self.FIXTURE_EDITOR_TEMPLATE_KEYS.items():
+            self._wipe_vc(vc_path, self.fixture_editor_edit_mode)
+        self.context_fixture = None
+
+    def change_content(
+            self,
+            content_enum: LibraryContentEnum,
+            fixture: Optional[RowFixture]=None
+        ):
+        if content_enum is LibraryContentEnum.FIXTURE_EDITOR:
+            self._prepare_editor_data(fixture)
+        self.content_enum = content_enum

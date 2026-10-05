@@ -21,6 +21,7 @@ from libs.uix.button import ArrowToggleButton, HoverToggleButton
 from libs.uix.database_table.column_config import ColumnConfig
 from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
 from libs.uix.scroll_layout import ScrollLayout
+from libs.utils import with_item, without_item
 
 Builder.load_string("""
 #:import uix_cs libs.uix.colorscheme
@@ -410,10 +411,10 @@ class DatabaseTableUi(BoxLayout):
         ]
 
     def select_id_row(self, row: DatabaseRow):
-        self.selected_rows = tuple([*self.selected_rows, row.id_])
+        self.selected_rows = with_item(self.selected_rows, row.id_)
 
     def unselect_id_row(self, row: DatabaseRow):
-        self.selected_rows = tuple(i for i in self.selected_rows if i != row.id_)
+        self.selected_rows = without_item(self.selected_rows, row.id_, identity=False)
 
     def __make_row_data(self, row: DatabaseRow, selected: bool) -> _DatabaseRowViewData:
         return {
