@@ -255,10 +255,10 @@ class TextInputPainterManager:
     def _get_border_rectangle(self) -> List[float]:
         text_input = self.text_input
         return [
-            text_input.x + self.BORDER_PADDING,
+            text_input.x,
             text_input.y,
-            text_input.width - self.BORDER_PADDING,
-            text_input.height - self.BORDER_PADDING
+            text_input.width,
+            text_input.height
         ]
 
     def _is_cursor_visible(self) -> bool:
@@ -276,9 +276,18 @@ class TextInputPainterManager:
                 self.cursor_rect = None
                 self.update_canvas_order_ev()
             return
+        text_input = self.text_input
 
+        padding_left, padding_top, _, padding_bottom = text_input.padding
         text_input = self.text_input
         pos = text_input._cursor_visual_pos
+        if not text_input.multiline:
+            row = text_input.cursor_row
+            labels = text_input._lines_labels
+            tex_h = labels[row].size[1] if row < len(labels) else text_input.line_height
+            inner_h = text_input.height - padding_top - padding_bottom
+            offset = round((inner_h - tex_h) / 2.0)
+            pos = (pos[0], pos[1] - offset)
         size = (text_input.cursor_width, -text_input._cursor_visual_height)
         color = text_input.cursor_color
 
@@ -307,10 +316,17 @@ class TextInputPainterManager:
         else:
             self.foreground_color.rgba = text_input.foreground_color
 
-        padding_left, padding_top, _, padding_bottom = text_input.padding
+        labels = text_input._lines_labels
+        padding_left, padding_top, padding_right, padding_bottom = text_input.padding
         dy = text_input.line_height + text_input.line_spacing
         x = text_input.x + padding_left
-        y = text_input.top - padding_top + text_input.scroll_y
+        if text_input.multiline:
+            y = text_input.top - padding_top + text_input.scroll_y
+        else:
+            tex_h = labels[0].size[1] if labels else text_input.line_height
+            inner_h = text_input.height - padding_top - padding_bottom
+            offset = round((inner_h - tex_h) / 2.0)
+            y = text_input.top - padding_top - offset
         min_y = text_input.y + padding_bottom
         max_y = text_input.top - padding_top
         halign = text_input.halign
@@ -342,11 +358,12 @@ class TextInputPainterManager:
 
         x_offset = 0
         if text_input.halign == 'center':
-            x_offset = int((viewport_width - texture_width) / 2.0)
+            x_offset = (viewport_width - texture_width) / 2.0
         elif text_input.halign == 'right' or auto_halign_r:
-            x_offset = max(0, int(viewport_width - texture_width))
+            x_offset = max(0, viewport_width - texture_width)
 
-        rect.pos = (int(text_input.x + padding_left + x_offset - text_input.scroll_x), int(y - text_input.line_height))
+        rect.pos = (round(text_input.x + padding_left + x_offset - text_input.scroll_x),
+                    round(y - texture.size[1]))
         rect.size = texture.size
         rect.texture = texture
         rect.tex_coords = texture.tex_coords

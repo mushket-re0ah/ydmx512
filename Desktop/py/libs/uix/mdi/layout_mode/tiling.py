@@ -41,8 +41,8 @@ class MDITilingBox(BoxLayout):
             self.parent.remove_widget(self)
 
     def swap_mdi(self, mdi: MDIWindow, index: int):
-        self.remove_widget(mdi)
         self.add_widget(mdi, index)
+        self.remove_widget(mdi)
 
     def move_mdi(self, mdi: MDIWindow, step: int):
         index = self.mdi_index(mdi) + step
@@ -410,8 +410,7 @@ class TilingLayoutMode(ILayoutMode):
             if not widgets_intersect:
                 continue
 
-            overlap_height = current_top - \
-                widget.y if current_top < widget.top else widget.top - current_y
+            overlap_height = min(current_top, widget.top) - max(current_y, widget.y)
 
             if overlap_height > max_overlap:
                 must_overlapped_mdi = widget

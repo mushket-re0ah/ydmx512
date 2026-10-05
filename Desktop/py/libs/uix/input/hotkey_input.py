@@ -8,6 +8,7 @@ from libs.uix.input import HoverInput
 
 Builder.load_string("""
 <HotkeyInput>:  # HoverInput
+    multiline: False
 """
 )
 
