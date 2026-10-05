@@ -234,22 +234,31 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
             deserialize: Optional[Deserializer]):
         current_var = getattr(self, var, None)
         if current_var is not None:
-            actual_key = path.replace(f'@{var}', f'_{current_var}')
+            actual_key = self._resolve_key(path, current_var)
             self._apply_value(obj, prop, actual_key, default, serialize, deserialize)
 
         # Отслеживаем изменение свойства (с динамическим ключом)
         self._add_change_tracker(
             path, obj, prop,
-            key_func=lambda: path.replace(f'@{var}', f'_{getattr(self, var, "")}'),
+            key_func=lambda: self._resolve_key(path, getattr(self, var, "")),
             serialize=serialize
         )
 
         # Отслеживаем изменение переменной (восстановление значения при переключении)
         def on_var_change(_: EventDispatcher, new_var: Any):
-            new_key = path.replace(f'@{var}', f'_{new_var}')
+            new_key = self._resolve_key(path, new_var)
             self._apply_value(obj, prop, new_key, default, serialize, deserialize)
         self.bind(**{var: on_var_change})
         self._bindings.setdefault(path, []).append((self, var, on_var_change))
+
+    def _resolve_key(self, path: str, var_value: Any) -> str:
+        if '@' not in path:
+            if var_value is not UNSET:
+                raise ValueError()
+            return path
+        if var_value is UNSET:
+            raise ValueError()
+        return path.replace(f'@{path.rpartition("@")[2]}', f'_{var_value}')
 
     def _rebind_path(
             self,
@@ -272,3 +281,21 @@ class ViewContextSaverMixin(EventDispatcherProtocol):
     def _save_vc(self):
         if self._view_context_loaded:
             self.set_view_context(self._saved_vc)
+
+    def _set_vc(self, path: str, value: Any, var_value:Any=UNSET) -> None:
+        resolved_key = self._resolve_key(path, var_value)
+        _default, serialize, _deserialize = self._get_params(self.view_context_template[path])
+        if serialize is not None:
+            value = serialize(self, value)
+        self._saved_vc[resolved_key] = value
+        self._save_vc()
+
+    def _wipe_vc(self, path: str, var_value:Any=UNSET) -> bool:
+        if path not in self.view_context_template:
+            raise KeyError(f"path={path} not in template of {self}")
+        resolved_key = self._resolve_key(path, var_value)
+        if resolved_key in self._saved_vc:
+            del self._saved_vc[resolved_key]
+            self._save_vc()
+            return True
+        return False
