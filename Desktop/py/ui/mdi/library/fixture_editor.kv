@@ -1,20 +1,56 @@
 #:import db database.db
 #:import constants misc.constants
+#:import uix_cs libs.uix.colorscheme
+#:import cs misc.colorscheme
+#:import Path pathlib.Path
+#:import boundary kivy.utils.boundary
 
 
 <LibraryFixtureParam>:  # BoxLayout
     size_hint: (1, None)
-    height: "30dp"
+    height: "35dp"
+    spacing: "7dp"
+
+    RestrictedLabel:
+        size_hint: (None, 1)
+        width: self.height
+        font_size: "12sp"
+        halign: "center"
+        valign: "center"
+        text: "{:02d}".format(root.group_index + 1)
+        padding: ("6dp", 0, "6dp", 0)
+        color: uix_cs.general.gray_fg
+        canvas.before:
+            Color:
+                rgba: uix_cs.general.darkblue_bg
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        canvas.after:
+            Color:
+                rgba: uix_cs.general.border_color
+            Line:
+                width: dp(1)
+                rectangle: (self.x, self.y, self.width, self.height)
+
     RecycleSpinner:
+        size_hint: (1, 1)
         values: db.fixture_param.rows
         values_getter: lambda this: list(this.values.values())
         value_to_host: lambda db_row: db_row.title
         selected: root.fixture_param
         on_selected: root.set_fixture_param(self.selected)
     HoverButton:
-        text: "copy"
+        size_hint: (None, 1)
+        width: self.height
+        text: "cp"
+        on_release: root.copy()
+        disabled: root.edit_mode
     HoverButton:
-        text: "remove"
+        size_hint: (None, 1)
+        width: self.height
+        text: "-"
+        on_release: root.remove()
         disabled: root.edit_mode
 
 
@@ -23,29 +59,60 @@
     box: box
 
     size_hint: (1, None)
+    height: boundary(header.height + box.height, dp(150), dp(500))
     orientation: "vertical"
+    canvas.after:
+        Color:
+            rgba: uix_cs.general.border_color
+        Line:
+            width: dp(1)
+            rectangle: (self.x, self.y, self.width, self.height)
     BoxLayout:
+        id: header
         size_hint: (1, None)
-        height: "30dp"
+        height: "57dp"
+        spacing: "8dp"
+        padding: ("9dp", "9dp", "9dp", "9dp")
+        canvas.before:
+            Color:
+                rgba: uix_cs.general.darkblue_bg
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        canvas.after:
+            Color:
+                rgba: uix_cs.general.border_color
+            Line:
+                width: dp(1)
+                points: (self.x, self.y, self.right, self.y)
         HoverInput:
+            size_hint: (1, 1)
             multiline: False
             on_text: root.set_title(self.text)
             text: root.group.title
         NumericInput:
+            size_hint: (None, 1)
+            width: "46dp"
             minimum: constants.FIXTURE_GROUP_REPEAT_COUNT_MIN
             maximum: constants.FIXTURE_GROUP_REPEAT_COUNT_MAX
             on_value: root.set_repeat_count(self.value)
             value: root.group.repeat_count
             disabled: root.edit_mode
         HoverToggleButton:
+            size_hint: (None, 1)
+            width: "46dp"
             text: "linear"
             on_is_down: root.set_linear(self.is_down)
             is_down: root.group.linear
         HoverButton:
+            size_hint: (None, 1)
+            width: "46dp"
             text: "+"
             on_release: root.add_param()
             disabled: root.edit_mode
         HoverButton:
+            size_hint: (None, 1)
+            width: "46dp"
             text: "-"
             on_release: root.fixture_params.remove_group(root)
             disabled: root.edit_mode
@@ -55,11 +122,14 @@
         RestrictedScrollView:
             id: scrollview
             scroll_by_content: True
+            do_scroll_x: False
             BoxLayout:
                 id: box
-                orientation: "vertical"
                 size_hint: (1, None)
                 height: self.minimum_height
+                padding: "8dp"
+                spacing: "8dp"
+                orientation: "vertical"
 
 
 <LibraryFixtureParams>:  # ScrollLayout
@@ -75,6 +145,8 @@
             orientation: "vertical"
             size_hint: (1, None)
             height: self.minimum_height
+            padding: "8dp"
+            spacing: "8dp"
 
 
 <LibraryFixtureEditor>:  # StencilBoxLayout
@@ -84,55 +156,287 @@
     btn_icon_now: btn_icon_now
     fixture_params: fixture_params
 
-    HoverButton:
-        text: "back"
-        on_release: root.close()
-        size_hint: (None, None)
-        size: (80, 40)
+    orientation: "vertical"
+    spacing: "7dp"
+
+    canvas.before:
+        Color:
+            rgba: uix_cs.general.dark_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     BoxLayout:
-        orientation: "vertical"
-        HoverInput:
-            id: input_title
-            multiline: False
-            on_text: root.title = self.text
-            text: root.title
-        HoverInput:
-            id: input_note
-            on_text: root.note = self.text
-            text: root.note
-        RecycleSpinner:
-            id: dropdown_brand
-            size_hint: (1, None)
-            height: "30dp"
-            values: db.brand.rows
-            values_getter: lambda this: list(this.values.values())
-            value_to_host: lambda db_row: db_row.title
-            on_selected: root.brand = self.selected
-            selected: root.brand
-        HoverButton:
-            id: btn_icon_now
-            background_normal: "{}".format((constants.FIXTURE_IMGS_PATH / root.icon).as_posix())
-            background_down: "{}".format((constants.FIXTURE_IMGS_PATH / root.icon).as_posix())
-            on_release: root._select_fixture_icon()
-        NumericInput:
-            minimum: constants.FIXTURE_TEMP_DEPENDENCE_MIN
-            maximum: constants.FIXTURE_TEMP_DEPENDENCE_MAX
-            on_value: root.temp_dependence = self.value
-            value: root.temp_dependence
-        HoverButton:
-            size_hint: (1, None)
-            height: "30dp"
-            text: "Сохранить"
-            on_release: root.save()
-    BoxLayout:
-        orientation: "vertical"
-        LibraryFixtureParams:
-            id: fixture_params
+        orientation: "horizontal"
+        size_hint: (1, 1)
+        padding: ("12dp", "12dp", "12dp", "12dp")
+        spacing: "12dp"
+        BoxLayout:
             orientation: "vertical"
-            fixture_editor: root.__self__
-            library: root.library.__self__
+            size_hint: (None, 1)
+            width: "400dp"
+            canvas.before:
+                Color:
+                    rgba: uix_cs.general.darklight_bg
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            canvas.after:
+                Color:
+                    rgba: uix_cs.general.border_color
+                Line:
+                    width: dp(1)
+                    rectangle: (self.x, self.y, self.width, self.height)
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: (1, None)
+                padding: (0, "10dp", 0, 0)
+                height: self.minimum_height
+                spacing: "10dp"
+                SectionPanel:
+                    size_hint: (1, None)
+                    height: self.minimum_height
+                    title_text: "Название"
+                    padding: ["14dp", 0, "14dp", "2dp"]
+                    spacing: "6dp"
+                    bg: uix_cs.general.darklight_bg
+                    fg: uix_cs.general.gray_fg
+                    HoverInput:
+                        id: input_title
+                        size_hint: (1, None)
+                        height: "38dp"
+                        multiline: False
+                        on_text: root.title = self.text
+                        text: root.title
+
+                SectionPanel:
+                    size_hint: (1, None)
+                    height: self.minimum_height
+                    title_text: "Описание"
+                    padding: ["14dp", 0, "14dp", "2dp"]
+                    spacing: "6dp"
+                    bg: uix_cs.general.darklight_bg
+                    fg: uix_cs.general.gray_fg
+                    HoverInput:
+                        id: input_note
+                        size_hint: (1, None)
+                        height: "116dp"
+                        on_text: root.note = self.text
+                        text: root.note
+                        halign: "left"
+
+                SectionPanel:
+                    size_hint: (1, None)
+                    height: self.minimum_height
+                    title_text: "Бренд"
+                    padding: ["14dp", 0, "14dp", "2dp"]
+                    spacing: "6dp"
+                    bg: uix_cs.general.darklight_bg
+                    fg: uix_cs.general.gray_fg
+                    RecycleSpinner:
+                        id: dropdown_brand
+                        size_hint: (1, None)
+                        height: "30dp"
+                        values: db.brand.rows
+                        values_getter: lambda this: list(this.values.values())
+                        value_to_host: lambda db_row: db_row.title
+                        on_selected: root.brand = self.selected
+                        selected: root.brand
+
+                SectionPanel:
+                    size_hint: (1, None)
+                    height: self.minimum_height
+                    title_text: "Иконка"
+                    padding: ["14dp", 0, "14dp", "2dp"]
+                    spacing: "6dp"
+                    bg: uix_cs.general.darklight_bg
+                    fg: uix_cs.general.gray_fg
+                    BoxLayout:
+                        size_hint: (1, None)
+                        height: self.minimum_height
+                        HoverButton:
+                            id: btn_icon_now
+                            size_hint: (None, None)
+                            size: ("100dp", "100dp")
+                            background_normal: "{}".format((constants.FIXTURE_IMGS_PATH / root.icon).as_posix())
+                            background_down: "{}".format((constants.FIXTURE_IMGS_PATH / root.icon).as_posix())
+                            on_release: root._select_fixture_icon()
+                            canvas.before:
+                                Color:
+                                    rgba: uix_cs.general.darkblue_bg
+                                Rectangle:
+                                    pos: self.pos
+                                    size: self.size
+                            canvas.after:
+                                Color:
+                                    rgba: uix_cs.general.border_color
+                                Line:
+                                    width: dp(1)
+                                    rectangle: (self.x, self.y, self.width, self.height)
+                        BoxLayout:
+                            orientation: "vertical"
+                            spacing: "2dp"
+                            padding: ("10dp", "30dp", 0, "30dp")
+                            RestrictedLabel:
+                                size_hint: (1, None)
+                                height: "20dp"
+                                halign: "left"
+                                valign: 'center'
+                                font_size: "14sp"
+                                text_size: self.size
+                                text: "{}".format(Path(root.icon).name)
+                            RestrictedLabel:
+                                size_hint: (1, None)
+                                height: "20dp"
+                                halign: "left"
+                                valign: 'center'
+                                font_size: "12sp"
+                                text_size: self.size
+                                text: "PNG / JPG"
+                                color: uix_cs.general.blue_fg
+
+                SectionPanel:
+                    size_hint: (1, None)
+                    height: self.minimum_height
+                    title_text: "temp dependence"
+                    padding: ["14dp", 0, "14dp", "2dp"]
+                    spacing: "6dp"
+                    bg: uix_cs.general.darklight_bg
+                    fg: uix_cs.general.gray_fg
+                    NumericInput:
+                        size_hint: (1, None)
+                        height: "38dp"
+                        minimum: constants.FIXTURE_TEMP_DEPENDENCE_MIN
+                        maximum: constants.FIXTURE_TEMP_DEPENDENCE_MAX
+                        on_value: root.temp_dependence = self.value
+                        value: root.temp_dependence
+            Widget:
+                size_hint: (1, 1)
+
+        BoxLayout:
+            orientation: "vertical"
+            spacing: "1dp"
+            canvas.before:
+                Color:
+                    rgba: uix_cs.general.darklight_bg
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            canvas.after:
+                Color:
+                    rgba: uix_cs.general.border_color
+                Line:
+                    width: dp(1)
+                    rectangle: (self.x, self.y, self.width, self.height)
+
+            BoxLayout:
+                size_hint: (1, None)
+                height: "56dp"
+                padding: ("14dp", "14dp", "14dp", "14dp")
+                spacing: "8dp"
+                orientation: "horizontal"
+                canvas.after:
+                    Color:
+                        rgba: uix_cs.general.border_color
+                    Line:
+                        width: dp(1)
+                        points: (self.x, self.y, self.right, self.y)
+                RestrictedLabel:
+                    size_hint: (None, 1)
+                    size: self.texture_size
+                    font_size: "14sp"
+                    halign: "left"
+                    valign: "center"
+                    text: "Каналы и группы"
+                Widget:
+                    size_hint: (1, 1)
+                RestrictedLabel:
+                    size_hint: (None, 1)
+                    size: self.texture_size
+                    font_size: "14sp"
+                    halign: "center"
+                    valign: "center"
+                    padding: ("6dp", 0, "6dp", 0)
+                    text: "{} groups".format(root.groups_count)
+                    canvas.before:
+                        Color:
+                            rgba: uix_cs.general.darkblue_bg
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    canvas.after:
+                        Color:
+                            rgba: uix_cs.general.border_color
+                        Line:
+                            width: dp(1)
+                            rectangle: (self.x, self.y, self.width, self.height)
+                RestrictedLabel:
+                    size_hint: (None, 1)
+                    size: self.texture_size
+                    font_size: "14sp"
+                    halign: "center"
+                    valign: "center"
+                    text: "{} params".format(root.params_count)
+                    padding: ("6dp", 0, "6dp", 0)
+                    canvas.before:
+                        Color:
+                            rgba: uix_cs.general.darkblue_bg
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    canvas.after:
+                        Color:
+                            rgba: uix_cs.general.border_color
+                        Line:
+                            width: dp(1)
+                            rectangle: (self.x, self.y, self.width, self.height)
+
+
+            LibraryFixtureParams:
+                id: fixture_params
+                orientation: "vertical"
+                fixture_editor: root.__self__
+                library: root.library.__self__
+
+            HoverButton:
+                size_hint: (1, None)
+                height: "30dp"
+                text: "Добавить группу"
+                on_release: fixture_params.add_group()
+                disabled: root.edit_mode
+                canvas.after:
+                    Color:
+                        rgba: uix_cs.general.border_color
+                    Line:
+                        width: dp(1)
+                        points: (self.x, self.top, self.right, self.top)
+
+    BoxLayout:
+        size_hint: (1, None)
+        height: "52dp"
+        padding: ("7dp", "7dp", "7dp", "7dp")
+        spacing: "7dp"
+        canvas:
+            Color:
+                rgba: uix_cs.general.darkblue_bg
+            Rectangle:
+                pos: self.pos
+                size: self.size
+            Color:
+                rgba: uix_cs.general.border_color
+            Line:
+                width: dp(1)
+                points: (self.x, self.top, self.right, self.top)
+        Widget:
+            size_hint: (1, 1)
         HoverButton:
-            size_hint: (1, None)
-            height: "30dp"
-            text: "Добавить группу"
-            on_release: fixture_params.add_group()
+            size_hint: (None, 1)
+            width: "80dp"
+            text: "Назад"
+            on_release: root.close()
+        HoverButton:
+            size_hint: (None, 1)
+            width: "180dp"
+            text: "Сохранить фикстуру" if root.edit_mode else "Создать фикстуру"
+            on_release: root.save()
+            disabled: root.params_count <= 0

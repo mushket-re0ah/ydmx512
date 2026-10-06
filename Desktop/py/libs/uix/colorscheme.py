@@ -37,6 +37,12 @@ def format_diff(diff: ColorDiff) -> str:
 general = create_colorscheme(
     menu_bg=hex_str_to_color("#2C3235FF"),
     menu_wrap_bg=hex_str_to_color("#596267FF"),
+    dark_bg=hex_str_to_color("#1C2225FF"),
+    darklight_bg=hex_str_to_color("#2E393EFF"),
+    darkblue_bg=hex_str_to_color("#262F34FF"),
+    border_color=hex_str_to_color("#888888FF"),
+    gray_fg=hex_str_to_color("#C1C1C1FF"),
+    blue_fg=hex_str_to_color("#99FFFFFF")
 )
 
 Label = create_colorscheme(

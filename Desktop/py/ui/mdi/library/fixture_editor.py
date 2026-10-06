@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, TypedDict
+from typing import Any, List, Optional, Tuple
 
 from kivy.lang import Builder
 from kivy.properties import (
@@ -11,7 +11,6 @@ from kivy.properties import (
     StringProperty,
 )
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.widget import Widget
 
 from database import db
 from database.brand import RowBrand
@@ -33,17 +32,20 @@ Builder.load_file("ui/mdi/library/fixture_editor.kv")
 
 class LibraryFixtureParam(BoxLayout):
     fixture_param: RowFixtureParam = ObjectProperty()
-    param_list: List[RowFixtureParam] = ObjectProperty()
     group_index: int = NumericProperty()
 
-    library: MDILibrary = ObjectProperty()
-    fixture_editor: "LibraryFixtureEditor" = ObjectProperty()
+    param_group: "LibraryFixtureParamGroup" = ObjectProperty()
 
     edit_mode: bool = BooleanProperty(False)
 
     def set_fixture_param(self, param: RowFixtureParam):
-        self.param_list[self.group_index] = param
-        self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
+        self.param_group.set_fixture_param(self, param)
+
+    def copy(self):
+        self.param_group.add_param(self.fixture_param)
+
+    def remove(self):
+        self.param_group.remove_param(self)
 
 
 class LibraryFixtureParamGroup(BoxLayout):
@@ -80,6 +82,14 @@ class LibraryFixtureParamGroup(BoxLayout):
             setattr(self.group, attr, value)
             self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
 
+    def set_fixture_param(
+            self,
+            param_ui: LibraryFixtureParam,
+            fixture_param: RowFixtureParam
+        ):
+        self.group.param_list[param_ui.group_index] = fixture_param
+        self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
+
     def add_param(
             self,
             param: Optional[RowFixtureParam]=None,
@@ -92,12 +102,26 @@ class LibraryFixtureParamGroup(BoxLayout):
             param = db.fixture_param.get_default_row()
             self._add_param_to_context(param, init=init)
         self.box.add_widget(LibraryFixtureParam(
-            library=self.library,
-            fixture_editor=self.fixture_editor,
-            fixture_param=param,
-            param_list=self.group.param_list,
-            group_index=len(self.box.children))
+                param_group=self,
+                fixture_param=param,
+                group_index=len(self.box.children),
+                edit_mode=self.edit_mode
+            ),
         )
+        self.re_indexate()
+
+    def remove_param(
+        self,
+        param_ui: LibraryFixtureParam
+    ):
+        if self.edit_mode:
+            logger.warning("Попытка удалить параметр существующей фикстуре")
+            return
+        self.box.remove_widget(param_ui)
+        logger.debug(param_ui, self.group.param_list[param_ui.group_index])        
+        del self.group.param_list[param_ui.group_index]
+        self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
+        self.re_indexate()
 
     def _add_param_to_context(
             self,
@@ -110,6 +134,10 @@ class LibraryFixtureParamGroup(BoxLayout):
         if not init:
             self.group.param_list.append(param)
             self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
+
+    def re_indexate(self):
+        for i, param_ui in enumerate(reversed(self.box.children)):
+            param_ui.group_index = i
 
 
 class LibraryFixtureParams(ScrollLayout):
@@ -163,11 +191,11 @@ class LibraryFixtureParams(ScrollLayout):
         if self.edit_mode:
             logger.warning("Попытка удаления группы в существующей фикстуре")
             return
+        self.box.remove_widget(group_ui)
         self.fixture_editor.channels_groups = without_item(
             self.fixture_editor.channels_groups,
             group_ui.group
         )
-        self.box.remove_widget(group_ui)
 
 
 class LibraryFixtureEditor(StencilBoxLayout):
@@ -187,8 +215,18 @@ class LibraryFixtureEditor(StencilBoxLayout):
     btn_icon_now: HoverButton = ObjectProperty()
     fixture_params: LibraryFixtureParams = ObjectProperty()
 
+    edit_mode: bool = BooleanProperty()
+
+    groups_count: int = NumericProperty()
+    params_count: int = NumericProperty()
+
+    def on_channels_groups(self, _, channels_groups: Tuple[FixtureChannelsGroup, ...]):
+        self.groups_count = len(channels_groups)
+        self.params_count = len(RowFixture.unpack_param_list(channels_groups))
+
     def init(self):
-        self.fixture_params.init(self.library.fixture_editor_edit_mode)
+        self.edit_mode = self.library.fixture_editor_edit_mode
+        self.fixture_params.init(self.edit_mode)
 
     def close(self):
         self.library.change_content(LibraryContentEnum.FIXTURE)

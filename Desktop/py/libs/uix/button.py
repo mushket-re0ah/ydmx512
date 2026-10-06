@@ -189,6 +189,8 @@ class ExpansiveButtonBehavior(ButtonBehavior, WidgetProtocol):
     pressed: bool = BooleanProperty(False)
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
+        if self.disabled:
+            return super().on_touch_down(touch)
         pressed = super().on_touch_down(touch)
         if pressed:
             self.pressed = True

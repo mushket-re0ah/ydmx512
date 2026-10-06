@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional, Sequence, Tuple, cast
 
 from kivy.properties import AliasProperty
 
@@ -50,11 +50,17 @@ class RowFixture(DatabaseRow):
     )
     channels_groups: List[FixtureChannelsGroup] = ListNestedField(FixtureChannelsGroup)
 
-    def get_param_list_unpacked(self) -> Tuple[RowFixtureParam, ...]:
+    @staticmethod
+    def unpack_param_list(
+            channels_groups: Sequence[FixtureChannelsGroup]
+        ) -> Tuple[RowFixtureParam, ...]:
         param_list_unpacked: List[RowFixtureParam] = []
-        for group in self.channels_groups:
+        for group in channels_groups:
             param_list_unpacked += group.param_list * group.repeat_count
         return tuple(param_list_unpacked)
+
+    def get_param_list_unpacked(self) -> Tuple[RowFixtureParam, ...]:
+        return RowFixture.unpack_param_list(self.channels_groups)
     param_list_unpacked: Tuple[RowFixtureParam, ...] = AliasProperty(
         get_param_list_unpacked, None,
         bind=("channels_groups",), cache=True
