@@ -1,48 +1,130 @@
 <PatchControllerMenuChannel>:  # BoxLayout
+    mapper_input: mapper_input
+    dmx_input: dmx_input
+    dmx_slider: dmx_slider
+
+    spacing: "6dp"
     RestrictedLabel:
-        text: str(root.index + 1)
-    RestrictedLabel:
-        text: root.fixture_param.title if root.fixture_param else ""
+        size_hint: (None, 1)
+        width: "27dp"
+        text: "{}".format(root.index + 1)
+        halign: "center"
+        valign: "center"
+        text_size: self.size
+        font_size: "13sp"
     NumericInput:
+        id: mapper_input
+        size_hint: (None, 1)
+        width: "27dp"
+        allow_empty: True
+        halign: "center"
+        valign: "center"
+        text_size: self.size
+        font_size: "13sp"
+        minimum: 1
+        maximum: len(root.patch.mapper.keys()) if root.patch else float("inf")
+        on_value: root.remap_to(self.value)
+        value: None if root.mapper_value is None else root.mapper_value + 1
+    RestrictedLabel:
+        size_hint: (None, 1)
+        width: "100dp"
+        text: root.fixture_param.title if root.fixture_param else ""
+        halign: "left"
+        valign: "center"
+        text_size: self.size
+        font_size: "13sp"
+    NumericInput:
+        id: dmx_input
+        size_hint: (None, 1)
+        width: "40dp"
         minimum: 0
         maximum: 255
         value: root.value
         on_value: root.value = self.value
-    HoverSlider:
+    ClampedDimmerSlider:
+        id: dmx_slider
+        size_hint: (1, 1)
         orientation: "horizontal"
         minimum: 0
         maximum: 255
+        visual_maximum: root.maximum_value
         step_mouse_scroll: 5
         value: root.value
         on_value: root.value = self.value
 
 
 <PatchControllerMenu>: # ModalBoxLayout
-    size: ("400dp", "300dp")
+    size: ("400dp", "400dp")
     scroll_layout: scroll_layout
 
+    padding: (0, 0)
+
     RestrictedLabel:
-        text: "Каналы:"
+        text: "Patch Controller"
         size_hint: (1, None)
-        height: self.texture_size[1]
+        height: "36dp"
         halign: 'left'
         valign: 'center'
-        padding: ("6dp", 0)
-        font_size: "12sp"
+        padding: ("9dp", 0)
+        font_size: "13sp"
         text_size: self.size
+        canvas.after:
+            Color:
+                rgba: uix_cs.general.border_color
+            Line:
+                width: dp(1)
+                points: (self.x, self.y, self.right, self.y)
 
-    ScrollLayout:
-        id: scroll_layout
-        scrollview: scrollview
-        RecycleRestrictedScrollView:
-            id: scrollview
-            viewclass: "PatchControllerMenuChannel"
-            scroll_by_content: True
-            do_scroll_x: False
-            do_scroll_by_element: True
-            RecycleBoxLayout:
-                size_hint: (1, None)
-                orientation: "vertical"
-                default_size_hint: (1, None)
-                height: self.minimum_height
-                default_size: (None, "30dp")
+    BoxLayout:
+        size_hint: (1, 1)
+        orientation: "vertical"
+        spacing: "6dp"
+        padding: ("6dp", "6dp", "6dp", "6dp")
+
+        ScrollLayout:
+            id: scroll_layout
+            scrollview: scrollview
+            RecycleRestrictedScrollView:
+                id: scrollview
+                viewclass: "PatchControllerMenuChannel"
+                scroll_by_content: True
+                do_scroll_x: False
+                do_scroll_by_element: True
+                RecycleBoxLayout:
+                    size_hint: (1, None)
+                    orientation: "vertical"
+                    default_size_hint: (1, None)
+                    height: self.minimum_height
+                    default_size: (None, "30dp")
+                    spacing: "6dp"
+
+    BoxLayout:
+        size_hint: (1, None)
+        height: "30dp"
+        canvas.after:
+            Color:
+                rgba: uix_cs.general.border_color
+            Line:
+                width: dp(1)
+                points: (self.x, self.top, self.right, self.top)
+
+        RestrictedLabel:
+            text: "Universe {} / Address [{}, {}]".format(root.patch.universe, root.patch.start_address, root.patch.end_address)
+            size_hint: (None, 1)
+            width: self.texture_size[0]
+            halign: 'left'
+            valign: 'center'
+            padding: ("9dp", 0)
+            font_size: "12sp"
+
+        Widget:
+            size_hint: (1, 1)
+
+        RestrictedLabel:
+            text: "{} channels".format(len(root.patch.param_list_unpacked))
+            size_hint: (None, 1)
+            width: self.texture_size[0]
+            halign: 'right'
+            valign: 'center'
+            padding: ("9dp", 0)
+            font_size: "12sp"

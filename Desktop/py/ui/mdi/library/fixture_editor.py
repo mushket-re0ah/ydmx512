@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from kivy.lang import Builder
 from kivy.properties import (

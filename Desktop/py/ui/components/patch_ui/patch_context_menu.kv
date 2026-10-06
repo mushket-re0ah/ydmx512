@@ -1,3 +1,6 @@
+#:import uix_cs libs.uix.colorscheme
+
+
 <PatchContextMenu>:  # ModalBoxLayout
     grid_box: grid_box
     toggle_invert_pan: toggle_invert_pan
@@ -10,13 +13,29 @@
     label_correction_tilt: label_correction_tilt
 
     size_hint: (None, None)
-    size: ("250dp", "250dp")
-
+    size: ("280dp", "280dp")
+    padding: (0, 0)
     orientation: "vertical"
+
+    RestrictedLabel:
+        size_hint: (1, None)
+        height: "30dp"
+        font_size: "12sp"
+        halign: "center"
+        valign: "center"
+        text: "Фикстура: {}".format(root.patch.fixture.title)
+        canvas.after:
+            Color:
+                rgba: uix_cs.general.border_color
+            Line:
+                width: dp(1)
+                points: (self.x, self.y, self.right, self.y)
+
     GridLayout:
         id: grid_box
         cols: 2
         spacing: "3dp"
+        padding: ("4dp", "2dp", "4dp", "1dp")
         MenuHoverInput:
             multiline: False
             text: root.patch.title
@@ -90,10 +109,20 @@
 
     BoxLayout:
         size_hint: (1, None)
-        height: "26dp"
+        height: "32dp"
+        padding: ("4dp", "4dp")
+        spacing: "4dp"
+        canvas.after:
+            Color:
+                rgba: uix_cs.general.border_color
+            Line:
+                width: dp(1)
+                points: (self.x, self.top, self.right, self.top)
         HoverButton:
+            size_hint: (1, 1)
             text: "Дублировать"
             on_release: root.copy()
         HoverButton:
+            size_hint: (1, 1)
             text: "Удалить"
             on_release: root.remove()

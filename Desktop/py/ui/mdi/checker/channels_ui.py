@@ -18,9 +18,9 @@ from libs.uix.label import RestrictedLabel
 from libs.uix.layouts import SectionPanel, StencilRelativeLayout
 from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
 from libs.uix.scroll_layout import ScrollLayout
-from libs.uix.slider import HoverSlider  # lazy kv import initialize
 from misc import colorscheme as cs
 from misc import constants
+from ui.components.clamped_dimmer_slider import ClampedDimmerSlider
 
 if TYPE_CHECKING:
     from ui.mdi.checker import MDIChecker
@@ -28,15 +28,11 @@ if TYPE_CHECKING:
 Builder.load_file("ui/mdi/checker/channels_ui.kv")
 
 
-class CheckerClampedSlider(HoverSlider):
-    visual_maximum = ClampedNumericProperty(255, 0, 255)
-
-
 class CheckerSlider(BoxLayout):
     checker: "MDIChecker" = ObjectProperty()
 
     numeric: NumericInput = ObjectProperty()
-    slider: CheckerClampedSlider = ObjectProperty()
+    slider: ClampedDimmerSlider = ObjectProperty()
 
     address: int = ClampedNumericProperty(1, 1, constants.DMX_ADDRESS_COUNT)
     value: int = ClampedNumericProperty(0, 0, 255)

@@ -2,15 +2,6 @@
 #:import cs misc.colorscheme
 
 
-<CheckerClampedSlider>:  # HoverSlider
-    canvas.after:
-        Color:
-            rgba: cs.CheckerClampedSlider.global_dimmer_mask
-        Rectangle:
-            pos: (self.x, self.y + self.height * self.visual_maximum / 255)
-            size: (self.width, self.height - self.height * self.visual_maximum / 255)
-
-
 <CheckerSlider>:  # BoxLayout
     numeric: numeric
     slider: slider
@@ -18,7 +9,7 @@
     size_hint: (None, None)
     orientation: "vertical"
     spacing: "2dp"
-    CheckerClampedSlider:
+    ClampedDimmerSlider:
         id: slider
         size_hint: (1, 1)
         minimum: 0
