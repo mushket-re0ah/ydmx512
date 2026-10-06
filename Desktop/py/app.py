@@ -40,15 +40,6 @@ class DesktopApp(KeyboardBehavior, App):
         self.__init_metrics()
         self.__init_window()
 
-        db.misc.bind(do_filter_serial_names=serial_observer.setter("do_filter_devices"))
-        serial_observer.do_filter_devices = db.misc.do_filter_serial_names
-        serial_observer.filter_name_list = frozenset({
-            "Univer DMX A1",
-            "U-DMX A11",
-            "U-DMX K12",
-            "U-DMX K23",
-            "U-DMX K46",
-        })
         serial_observer.device_cls = DMXSerialDevice
 
         cursor_manager.init(lambda: db.misc.use_system_cursor)

@@ -13,8 +13,6 @@ from libs.utils import with_item, without_item
 
 class SerialObserver(EventDispatcher):
     devices: Tuple[SerialDevice, ...] = ListProperty()
-    do_filter_devices: bool = BooleanProperty(False)
-    filter_name_list: FrozenSet[str] = ObjectProperty()  # set of str
     device_cls: Type[SerialDevice] = ObjectProperty(SerialDevice)
 
     __events__ = ("on_new_device", "on_remove_device")
@@ -51,11 +49,7 @@ class SerialObserver(EventDispatcher):
         result: List[Tuple[ListPortInfo, Optional[str]]] = []
         for port in list_ports.comports():
             product_name = get_product_name_by_port(port)
-            if self.do_filter_devices:
-                if product_name in self.filter_name_list:
-                    result.append((port, product_name))
-            else:
-                result.append((port, product_name))
+            result.append((port, product_name))
         return result
 
 observer = SerialObserver()

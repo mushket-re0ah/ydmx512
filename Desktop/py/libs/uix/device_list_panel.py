@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Any, Type
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
@@ -65,15 +65,19 @@ class DeviceListPanel(SectionPanel):
     box: BoxLayout = ObjectProperty()
 
     def on_kv_post(self, base_widget: Widget):
-        for dev in self.observer.devices:
-            self._add_device(dev)
+        self._update_device_list()
         self.observer.bind(
             on_new_device=self.on_new_device,
             on_remove_device=self.on_remove_device
         )
 
+    def _update_device_list(self, *_ :Any):
+        self.box.clear_widgets()
+        for dev in self.observer.devices:
+            self._add_device(dev)
+
     def on_new_device(self, _, device: EventDispatcher):
-        def add_device(_):
+        def add_device(_: Any):
             self._add_device(device)
         Clock.schedule_once(add_device, -1)
 
@@ -81,8 +85,11 @@ class DeviceListPanel(SectionPanel):
         self.box.add_widget(self.device_cls(device=device))
 
     def on_remove_device(self, _, device: EventDispatcher):
-        def remove_device(_):
-            serial_ui = next((i for i in self.box.children if i.device is device), None)
-            if serial_ui is not None:
-                self.box.remove_widget(serial_ui)
+        def remove_device(_: Any):
+            self._remove_device(device)
         Clock.schedule_once(remove_device, -1)
+
+    def _remove_device(self, device: EventDispatcher):
+        serial_ui = next((i for i in self.box.children if i.device is device), None)
+        if serial_ui is not None:
+            self.box.remove_widget(serial_ui)

@@ -90,6 +90,7 @@
             multiline: False
             on_text: root.set_title(self.text)
             text: root.group.title
+            halign: "left"
         NumericInput:
             size_hint: (None, 1)
             width: "46dp"
@@ -206,6 +207,7 @@
                         size_hint: (1, None)
                         height: "38dp"
                         multiline: False
+                        halign: "left"
                         on_text: root.title = self.text
                         text: root.title
 

@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from typing import Any, Optional, Tuple
+from typing import Any, Callable, Dict, FrozenSet, Optional, Tuple
 
 from kivy.lang import Builder
 from kivy.properties import (
@@ -17,6 +17,7 @@ from database.brand import RowBrand
 from database.fixture import FixtureChannelsGroup, RowFixture
 from database.fixture_param import RowFixtureParam
 from libs import logger, sub_proc
+from libs.sdl2_keyboard.behavior import KeyboardBehavior
 from libs.uix.button import HoverButton
 from libs.uix.input import HoverInput
 from libs.uix.layouts import StencilBoxLayout
@@ -197,7 +198,7 @@ class LibraryFixtureParams(ScrollLayout):
         )
 
 
-class LibraryFixtureEditor(StencilBoxLayout):
+class LibraryFixtureEditor(KeyboardBehavior, StencilBoxLayout):
     library: MDILibrary = ObjectProperty()
 
     title: str = StringProperty()
@@ -245,6 +246,11 @@ class LibraryFixtureEditor(StencilBoxLayout):
             db.fixture.add_row(**save_kwargs)
         self.close()
         self.library.reset_editor_data()
+
+    def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
+        return {
+            frozenset({"esc"}): self.close,
+        }
 
     def _select_fixture_icon(self):
         sub_proc.open_file(

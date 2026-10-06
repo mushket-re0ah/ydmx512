@@ -211,6 +211,8 @@ class MDILibrary(DatabaseMDIWindow):
             table_enum: LibraryTableEnum,
             menu_toggle: HoverToggleButton
         ):
+        if self.fixture_editor is not None:
+            self.fixture_editor.unregister_keyboard_context()
         self.fixture_editor = None
         self.table_now_enum = table_enum
         self.table_now = table_cls(library=self)
@@ -223,6 +225,7 @@ class MDILibrary(DatabaseMDIWindow):
         self.table_now = None
         self.fixture_editor = LibraryFixtureEditor(library=self)
         self.fixture_editor.init()
+        self.fixture_editor.register_keyboard_context()
         self._hide_menu()
         self._show_content(self.fixture_editor)
 
