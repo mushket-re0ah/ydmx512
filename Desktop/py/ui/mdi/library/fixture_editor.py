@@ -118,7 +118,6 @@ class LibraryFixtureParamGroup(BoxLayout):
             logger.warning("Попытка удалить параметр существующей фикстуре")
             return
         self.box.remove_widget(param_ui)
-        logger.debug(param_ui, self.group.param_list[param_ui.group_index])        
         del self.group.param_list[param_ui.group_index]
         self.fixture_editor.property("channels_groups").dispatch(self.fixture_editor)
         self.re_indexate()

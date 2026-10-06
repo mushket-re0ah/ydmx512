@@ -100,7 +100,7 @@ class RowPatch(SceneRowMixin, DatabaseRow):
         if fixture_index not in self.mapper:
             return
         if (patch_index is not None and
-            (patch_index >= len(self.param_list_unpacked) - 1 or patch_index < 0)
+            (patch_index >= len(self.param_list_unpacked) or patch_index < 0)
         ):
             return
         if self.mapper[fixture_index] == patch_index:

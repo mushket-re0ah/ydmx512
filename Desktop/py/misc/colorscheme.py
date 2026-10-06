@@ -147,5 +147,5 @@ EditorMapLayout = create_colorscheme(
 )
 
 ClampedDimmerSlider = create_colorscheme(
-    global_dimmer_mask=hex_str_to_color("#D69C2966")
+    global_dimmer_mask=hex_str_to_color("#D69C291A")
 )

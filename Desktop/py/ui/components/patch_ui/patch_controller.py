@@ -62,16 +62,19 @@ class PatchControllerMenuChannel(RecycleDataViewBehavior, BoxLayout):
 
     maximum_value: int = NumericProperty(255)
     _allow_write: bool = False
+    _allow_read: bool = True
 
     def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         db.scene.bind(scene_now_dimmer=self.update)
 
     def on_patch_mapper(self, *_:Any):
+        self._allow_read = False
         self._allow_write = False
         self.property("patch").dispatch(self)
         self.update()
         self._allow_write = True
+        self._allow_read = True
 
     def remap_to(self, value: Optional[int]):
         if not self._allow_write or self.patch is None or self.index is None:
@@ -85,7 +88,8 @@ class PatchControllerMenuChannel(RecycleDataViewBehavior, BoxLayout):
             if self.fixture_param.title_id == DIMMER_TITLE_ID:
                 self.maximum_value = int(255 * db.scene.scene_now_dimmer / 100)
             if self.mapped_address is not None:
-                self.value = dmx512.get_value(self.universe, self.mapped_address)
+                if self._allow_read:
+                    self.value = dmx512.get_value(self.universe, self.mapped_address)
                 value_track_color = self.fixture_param.color
                 self.dmx_slider.property("value_track_color").set_normal(
                     self.dmx_slider,
