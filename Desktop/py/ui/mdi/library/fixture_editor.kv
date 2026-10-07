@@ -59,7 +59,7 @@
     box: box
 
     size_hint: (1, None)
-    height: boundary(header.height + box.height, dp(150), dp(500))
+    height: boundary(header.height + box.height, dp(150), float("inf") if self.fixture_editor.groups_count <= 1 else dp(500))
     orientation: "vertical"
     canvas.after:
         Color:

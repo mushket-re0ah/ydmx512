@@ -4,9 +4,9 @@ from typing import Any, List, Optional, Set, Tuple
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, ObjectProperty
 
+from libs.device_observer import ConnectionState
 from libs.dmx512 import message
 from libs.dmx512.serial.device import DMXSerialDevice
-from libs.serial.device import SerialState
 from libs.utils import ThrottledCall
 
 
@@ -34,7 +34,7 @@ class DMX512Universe(EventDispatcher):
 
     def loop(self, time_diff: float):
         if self.device:
-            self.device.loop()
+            self.device.check_messages()
             self._loop_write_matrix(time_diff)
 
     def on_write_matrix(self, address: int, value: int):
@@ -88,7 +88,7 @@ class DMX512Universe(EventDispatcher):
         return address in self.force_value_set
 
     def _write_matrix(self):
-        if self.device and self.device.state is SerialState.CONNECTED:
+        if self.device and self.device.state is ConnectionState.CONNECTED:
             msg = self._create_dmx_message()
             if msg:
                 self.device.write(msg)

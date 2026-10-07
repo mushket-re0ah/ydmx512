@@ -106,7 +106,7 @@ class Device(EventDispatcher):
                 logger.error(f"Device [{self.name}]: command failed", exc_info=True)
         self._last_signal = None
 
-    def _push_action(self, callback: Callable[[], None]):
+    def _push_action(self, callback: Callable[[], Any]):
         self._command_queue.put(callback)
 
     def _push_signal(self, signal: str) -> None:
@@ -138,10 +138,14 @@ class ConnectionState(Enum):
 
 class StatefulDevice(Device):
     """Устройство с состояниями подключения и grace-периодом."""
-
     _state: ConnectionState = EnumProperty(
         ConnectionState, ConnectionState.OFF, rebind=True
     )
+
+    _last_connect_attempt_time: float = 0.0
+    _last_connect_error_time: Optional[float] = None
+    CONNECT_ATTEMPT_INTERVAL: float = 0.5
+    CONNECT_ERROR_LOG_INTERVAL: float = 5.0
 
     def __init__(
             self,
@@ -155,6 +159,10 @@ class StatefulDevice(Device):
     def set_state(self, new_state: ConnectionState) -> bool:
         if self._state is new_state:
             return False
+        if new_state in (ConnectionState.TRY_CONNECT, ConnectionState.DISCONNECTED):
+            self._connection_down_time = time.monotonic()
+        else:
+            self._connection_down_time = None
         logger.info(
             f"{type(self).__name__} [{self.name}]: state changed {self._state} -> {new_state}"
         )
@@ -179,11 +187,10 @@ class StatefulDevice(Device):
                            ConnectionState.WAIT_INIT):
             self._close_resource()
             self.state = ConnectionState.DISCONNECTED
-            self._connection_down_time = time.monotonic()
+            self._on_lost_connection()
 
     def _handle_present(self) -> None:
         if self._state is ConnectionState.DISCONNECTED:
-            self._connection_down_time = None
             self.state = ConnectionState.TRY_CONNECT
 
     # --- работа в event_thread ---
@@ -199,23 +206,35 @@ class StatefulDevice(Device):
             self._read_messages()
 
     def _check_connection_down_time(self) -> None:
-        if (self._state is ConnectionState.DISCONNECTED
-                and self._connection_down_time is not None
-                and time.monotonic() - self._connection_down_time
-                    > self.try_connection_time):
+        if self._state not in (ConnectionState.TRY_CONNECT,
+                                ConnectionState.DISCONNECTED):
+            return
+        if self._connection_down_time is None:
+            return
+        if time.monotonic() - self._connection_down_time > self.try_connection_time:
             self.state = ConnectionState.OFF
-            self._connection_down_time = None
 
     def _try_connect(self) -> None:
         if self._has_connection():
             return
+
+        now = time.monotonic()
+        if now - self._last_connect_attempt_time < self.CONNECT_ATTEMPT_INTERVAL:
+            return
+        self._last_connect_attempt_time = now
+
         try:
             self._open_connection()
+            self._last_connect_error_time = None
         except Exception:
-            logger.warning(
-                f"{type(self).__name__} [{self.name}]: connect failed",
-                exc_info=True,
-            )
+            if (self._last_connect_error_time is None
+                    or now - self._last_connect_error_time
+                        >= self.CONNECT_ERROR_LOG_INTERVAL):
+                logger.warning(
+                    f"{type(self).__name__} [{self.name}]: connect failed",
+                    exc_info=True,
+                )
+                self._last_connect_error_time = now
 
     def _check_wait_init(self) -> None:
         """Для устройств с handshake. По умолчанию — переход в CONNECTED."""
@@ -226,7 +245,12 @@ class StatefulDevice(Device):
         if self._state in (ConnectionState.CONNECTED,
                            ConnectionState.WAIT_INIT):
             self.state = ConnectionState.DISCONNECTED
-            self._connection_down_time = time.monotonic()
+        self._on_lost_connection()
+
+    def _on_lost_connection(self) -> None:
+        """Хук: связь потеряна (I/O-ошибка или порт исчез). 
+        Наследник может почистить очередь команд."""
+        pass
 
     # --- внутренние команды из очереди ---
 
@@ -235,7 +259,6 @@ class StatefulDevice(Device):
                            ConnectionState.WAIT_INIT,
                            ConnectionState.CONNECTED):
             return
-        self._connection_down_time = None
         self.state = ConnectionState.TRY_CONNECT
 
     def _do_close_connection(self) -> None:
@@ -243,7 +266,6 @@ class StatefulDevice(Device):
             return
         self._close_resource()
         self.state = ConnectionState.OFF
-        self._connection_down_time = None
 
     # --- хуки для наследников ---
 
@@ -293,6 +315,13 @@ class DeviceObserver(EventDispatcher):
         """Список ключей, которые observer считает 'сейчас присутствующими'."""
         raise NotImplementedError()
 
+    def _get_ports_guarded(self) -> Optional[List[Any]]:
+        try:
+            return self._get_ports()
+        except Exception:
+            logger.error(f"Observer [{self.name}]: failed to get ports", exc_info=True)
+            return None
+
     def _make_device(self, port: Any) -> Device:
         """Создать устройство по ключу."""
         raise NotImplementedError()
@@ -300,10 +329,13 @@ class DeviceObserver(EventDispatcher):
     # --- основной цикл ---
 
     def _monitor_connections(self) -> None:
-        ports = self._get_ports()
+        ports = self._get_ports_guarded()
 
-        matched_devices: Set[int] = set()      # индексы в self.devices
-        matched_ports: Set[int] = set()   # индексы в ports
+        if ports is None:
+            return
+
+        matched_devices: Set[int] = set()  # индексы в self.devices
+        matched_ports: Set[int] = set()  # индексы в ports
 
         # 1. Сопоставить существующие устройства с кандидатами
         for ci, port in enumerate(ports):

@@ -21,11 +21,7 @@ class MidiDevice(StatefulDevice):
 
     def __init__(self, port: str, **kwargs: Any):
         self.port = port
-        *name_parts, _ = port.split(' ')
-        name = ''.join(
-            f"{part} " if part != name_parts[-1] else part
-            for part in name_parts
-        )
+        name = port.rsplit(' ', 1)[0]
         from libs.midi import midi
         super().__init__(
             name=name,

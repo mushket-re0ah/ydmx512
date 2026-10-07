@@ -80,7 +80,7 @@ class SerializableMeta(type, EventDispatcherProtocol):
     def _create_serialize_method(
             target_cls: type
         ) -> Callable[["SerializableMixin"], Dict[str, Any]]:
-        def serialize(self: SerializableMixin) -> Dict[str, Any]:
+        def serialize(self: "SerializableMixin") -> Dict[str, Any]:
             result: Dict[str, Any] = {}
             for key in SerializableMeta.get_serialization_keys(target_cls):
                 prop: SerializableMixinProperty = self.property(key)  # pyright: ignore[reportAssignmentType]
