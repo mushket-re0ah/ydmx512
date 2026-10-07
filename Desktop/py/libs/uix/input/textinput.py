@@ -247,6 +247,7 @@ class TextInputPainterManager:
 
         if need_clip:
             canvas.add(StencilUnUse())
+            canvas.add(clip_rect)
             canvas.add(StencilPop())
 
         if self.border_color and self.border_line:
