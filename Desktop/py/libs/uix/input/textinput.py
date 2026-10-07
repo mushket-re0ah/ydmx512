@@ -199,12 +199,37 @@ class TextInputPainterManager:
         update_selection_ev()
         self.update_canvas_order_ev()
 
+    def _get_needs_clip(self) -> bool:
+        ti = self.text_input
+        if ti.scroll_x > 0 or ti.scroll_y > 0:
+            return True
+        # контент шире виджета без скролла
+        if ti._lines_labels and ti._lines_labels[0].size[0] > (
+            ti.width - ti.padding[0] - ti.padding[2]
+        ):
+            return True
+        # multiline с контентом выше виджета
+        if ti.multiline and ti.minimum_height > ti.height:
+            return True
+        return False
+
     def update_canvas_order(self, _):
         canvas = self.text_input.canvas.before
         canvas.clear()
 
         canvas.add(self.background_rect_color)
         canvas.add(self.background_rect)
+
+        need_clip = self._get_needs_clip()
+
+        if need_clip:
+            clip_rect = Rectangle(
+                pos=(self.text_input.x + 1, self.text_input.y + 1),
+                size=(self.text_input.width - 1, self.text_input.height - 1),
+            )
+            canvas.add(StencilPush())
+            canvas.add(clip_rect)
+            canvas.add(StencilUse())
 
         if self.selection_color and self.selection_rect_list:
             canvas.add(self.selection_color)
@@ -219,6 +244,10 @@ class TextInputPainterManager:
         if self.cursor_rect_color and self.cursor_rect:
             canvas.add(self.cursor_rect_color)
             canvas.add(self.cursor_rect)
+
+        if need_clip:
+            canvas.add(StencilUnUse())
+            canvas.add(StencilPop())
 
         if self.border_color and self.border_line:
             canvas.add(self.border_color)
@@ -359,7 +388,7 @@ class TextInputPainterManager:
 
         x_offset = 0
         if text_input.halign == 'center':
-            x_offset = (viewport_width - texture_width) / 2.0
+            x_offset = max(0, (viewport_width - texture_width) / 2.0)
         elif text_input.halign == 'right' or auto_halign_r:
             x_offset = max(0, viewport_width - texture_width)
 
