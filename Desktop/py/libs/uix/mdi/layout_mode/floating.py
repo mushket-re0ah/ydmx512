@@ -35,7 +35,7 @@ class FloatingLayoutMode(ILayoutMode):
     title = "Плавающие окна"
     FLEX_OPACITY = 0.4
 
-    def __init__(self, mdi_container: MDIContainer, from_layout_mode: ILayoutMode):
+    def __init__(self, mdi_container: "MDIContainer", from_layout_mode: ILayoutMode):
         self._save_lock = False
         super().__init__(mdi_container, from_layout_mode)
 

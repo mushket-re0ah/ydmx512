@@ -53,7 +53,7 @@ def _unblock_gui(block_gui: bool):
 def _wait_for_process_result(
         context: AsyncProcessContext,
         process: Process,
-        process_queue: Queue[Any],
+        process_queue: "Queue[Any]",
         send_connection: Connection
     ):
     from kivy.clock import Clock
@@ -80,27 +80,27 @@ def _wait_for_process_result(
     clock = Clock.schedule_interval(wait_result, 0.1)
 
 
-def _handle_success(module: str, process: Process, process_queue: Queue[Any]) -> Any:
+def _handle_success(module: str, process: Process, process_queue: "Queue[Any]") -> Any:
     result = None if process_queue.empty() else process_queue.get_nowait()
     logger.info(f"[{module}]: success {process}, result={result}")
     return result
 
 
-def _handle_failure(module: str, process: Process, process_queue: Queue[Any]):
+def _handle_failure(module: str, process: Process, process_queue: "Queue[Any]"):
     trace = None if process_queue.empty() else process_queue.get_nowait()
     logger.error(f"[{module}]: failure {process}, trace={trace}")
 
 
-def _handle_cancelled(module: str, process: Process, process_queue: Queue[Any]):
+def _handle_cancelled(module: str, process: Process, process_queue: "Queue[Any]"):
     logger.info(f"[{module}]: cancelled {process}")
 
 
-def _handle_undefined(module: str, process: Process, process_queue: Queue[Any]):
+def _handle_undefined(module: str, process: Process, process_queue: "Queue[Any]"):
     logger.error(f"[{module}]: undefined {process}, exitcode={process.exitcode}")
 
 
-def _start_process(context: AsyncProcessContext) -> Tuple[Process, Queue[Any], Connection]:
-    process_queue: Queue[Any] = Queue()
+def _start_process(context: AsyncProcessContext) -> Tuple[Process, "Queue[Any]", Connection]:
+    process_queue: "Queue[Any]" = Queue()
     recv_connection, send_connection = Pipe(duplex=False)
 
     process = Process(
@@ -122,7 +122,7 @@ def _start_process(context: AsyncProcessContext) -> Tuple[Process, Queue[Any], C
 
 
 def wrapped_target(
-        queue: Queue[Any],
+        queue: "Queue[Any]",
         recv_connection: Connection,
         stop_handler: AsyncProcessStopHandler,
         module: str,

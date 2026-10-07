@@ -219,7 +219,7 @@ class AutomationToolbar(StencilBoxLayout):
     def _on_render_changed(self, _, renderer: PlaybackRenderer):
         self.update_dots_data()
 
-    menu_preset_fixture: Optional[MenuPresetFixture] = None
+    menu_preset_fixture: Optional["MenuPresetFixture"] = None
     def open_menu_preset_fixture(self):
         if self.menu_preset_fixture:
             return

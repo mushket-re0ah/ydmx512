@@ -24,7 +24,7 @@ def do_backup(callback: Optional[AsyncProcessCallback]=None):
     )
 
 
-def _start(queue: Queue[Any], backup_max_count: int):
+def _start(queue: "Queue[Any]", backup_max_count: int):
     try:
         _create_backup_dir()
         _create_backup()

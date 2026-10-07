@@ -96,7 +96,7 @@ class SerializableMeta(type, EventDispatcherProtocol):
     def _create_deserialize_method(
             target_cls: type
         ) -> Callable[["SerializableMixin", Dict[str, Any]], "SerializableMixin"]:
-        def deserialize(self: SerializableMixin, data: Dict[str, Any]) -> SerializableMixin:
+        def deserialize(self: "SerializableMixin", data: Dict[str, Any]) -> "SerializableMixin":
             items = [(k, getattr(type(self), k))
                      for k in SerializableMeta.get_serialization_keys(target_cls)
                      if k in data and getattr(type(self), k, None) is not None]

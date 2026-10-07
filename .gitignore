@@ -9,3 +9,4 @@ __pycache__/
 /Desktop/py/typings/
 /Desktop/py/.pylintrc
 /Desktop/py/pyproject.toml
+/Desktop/py/.ruff_cache/

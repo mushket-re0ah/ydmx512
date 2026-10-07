@@ -5,9 +5,8 @@ from kivy.properties import ObjectProperty
 
 from libs.uix.layouts import MenuPanel
 
-if TYPE_CHECKING:
-    from ui.mdi.processing import MDIProcessing
-    from ui.mdi.processing.processing_map import PlaybackMap
+from ui.mdi.processing import MDIProcessing
+from ui.mdi.processing.processing_map import PlaybackMap
 
 Builder.load_file("ui/mdi/processing/menu.kv")
 

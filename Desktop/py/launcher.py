@@ -26,13 +26,14 @@ def run_kivy_app(do_exec_backup_menu: bool) -> int:
     else:
         env[constants.BACKUP_MENU_ENV_KEY] = constants.BACKUP_MENU_ENV_KEY_FALSE
     with subprocess.Popen(
-        [sys.executable, "-u", constants.APP_FILENAME],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        bufsize=1,
-        universal_newlines=True,
-        encoding="utf-8",
-        env=env) as process:
+            [sys.executable, "-u", constants.APP_FILENAME],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            bufsize=1,
+            universal_newlines=True,
+            encoding="utf-8",
+            env=env
+        ) as process:
         output_thread = threading.Thread(target=print_output, args=(process.stdout,))
         # output_thread.daemon = True
         output_thread.start()

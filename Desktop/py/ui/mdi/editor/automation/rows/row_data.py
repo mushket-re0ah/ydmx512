@@ -25,8 +25,8 @@ if TYPE_CHECKING:
 
 
 class RowParamData(AutoUnbindBehavior, EventDispatcher):
-    row_panel: RowPanel = ObjectProperty()
-    automation: Automation = ObjectProperty()
+    row_panel: "RowPanel" = ObjectProperty()
+    automation: "Automation" = ObjectProperty()
     playback: RowPlayback = ObjectProperty()
     patch_group: Tuple[RowPatch, ...] = ListProperty()
     fixture_index: Dict[RowPatch, Tuple[int, ...]] = ObjectProperty()
