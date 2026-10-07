@@ -1,7 +1,7 @@
-from typing import FrozenSet, List, Optional, Tuple, Type
+from typing import List, Optional, Tuple, Type
 
 from kivy.event import EventDispatcher
-from kivy.properties import BooleanProperty, ListProperty, ObjectProperty
+from kivy.properties import ListProperty, ObjectProperty
 from serial.tools import list_ports
 from serial.tools.list_ports_common import ListPortInfo
 

@@ -75,6 +75,8 @@ class PatchControllerMenuChannel(RecycleDataViewBehavior, BoxLayout):
         self.update()
         self._allow_write = True
         self._allow_read = True
+        if self.mapped_address is not None:
+            self.value = dmx512.get_value(self.universe, self.mapped_address)
 
     def remap_to(self, value: Optional[int]):
         if not self._allow_write or self.patch is None or self.index is None:

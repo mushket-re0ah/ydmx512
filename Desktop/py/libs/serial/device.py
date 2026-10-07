@@ -266,12 +266,12 @@ class SerialDevice(EventDispatcher):
     def _get_terminate_message(self) -> bytes:
         raise NotImplementedError
 
-    def matches_port(self, other_port_info: ListPortInfo) -> bool:
-        port_info = self.port_info
-        return (port_info.serial_number == other_port_info.serial_number) and\
-               (port_info.manufacturer == other_port_info.manufacturer) and\
-               (port_info.product == other_port_info.product) and\
-               (port_info.interface == other_port_info.interface)
+    def matches_port(self, port_info: ListPortInfo) -> bool:
+        p = self.port_info
+        return (p.serial_number == port_info.serial_number and
+                p.manufacturer == port_info.manufacturer and
+                p.product == port_info.product and
+                p.interface == port_info.interface)
 
     def __repr__(self) -> str:
         p = self.port_info

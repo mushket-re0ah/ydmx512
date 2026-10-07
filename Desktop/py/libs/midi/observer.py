@@ -1,48 +1,24 @@
-from typing import Tuple
+from typing import Any, List, Tuple
 
 import rtmidi
-from kivy.event import EventDispatcher
-from kivy.properties import ListProperty
 
-from libs import logger
+from libs.device_observer import DeviceObserver
 from libs.midi.device import MidiDevice
-from libs.utils import with_item, without_item
 
 
-class MidiObserver(EventDispatcher):
-    devices: Tuple[MidiDevice, ...] = ListProperty()
+class MidiObserver(DeviceObserver):
+    name: str = "MidiObserver"
+    devices: Tuple[MidiDevice, ...] # pyright: ignore[reportIncompatibleVariableOverride]
 
-    __events__ = ("on_new_device", "on_remove_device")
-
-    def __init__(self):
+    def __init__(self, **kwargs: Any):
         self.midi_in = rtmidi.MidiIn()
-        super().__init__()
+        super().__init__(**kwargs)
 
-    def on_new_device(self, device: MidiDevice):
-        logger.info(f"MidiObserver: new device {device}")
+    def _get_ports(self) -> List[str]:
+        return self.midi_in.get_ports()
 
-    def on_remove_device(self, device: MidiDevice):
-        logger.info(f"MidiObserver: remove device {device}")
-
-    def monitor_connections(self):
-        midi_list = self.midi_in.get_ports()
-        for midi in midi_list:
-            is_device_found = any(device.port == midi
-                                  for device in self.devices)
-            if not is_device_found:
-                device = MidiDevice(midi)
-                self.devices = with_item(self.devices, device)
-                self.dispatch("on_new_device", device)
-
-        for device in self.devices:
-            is_device_found = any(device.port == midi
-                                  for midi in midi_list)
-            if not is_device_found:
-                self.devices = without_item(self.devices, device)
-                self.dispatch("on_remove_device", device)
-
-        for device in self.devices:
-            device.check_messages()
+    def _make_device(self, port: str) -> MidiDevice:
+        return MidiDevice(port)
 
 
 observer = MidiObserver()

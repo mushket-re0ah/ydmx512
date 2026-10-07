@@ -1,6 +1,5 @@
-from typing import Any, Type
+from typing import Type
 
-from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import ColorProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -58,4 +57,4 @@ class SerialDevices(DeviceListPanel):
 
     def _add_device(self, device: SerialDevice):  # pyright: ignore[reportIncompatibleMethodOverride]
         if not db.misc.do_filter_serial_names or device.product_name in self.FILTER_NAME_LIST:
-            super()._add_device(device)
+            super()._add_device(device)  # pyright: ignore[reportArgumentType]

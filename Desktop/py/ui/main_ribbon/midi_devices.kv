@@ -1,3 +1,6 @@
+#:import ConnectionState libs.device_observer.ConnectionState
+
+
 <MidiUi>:  # BoxLayout
     size_hint: (1, None)
     height: "24dp"
@@ -6,7 +9,7 @@
         width: "32dp"
         on_is_down: root.on() if self.is_down else root.off()
         -background_normal: imgs_path.connect_state_normal
-        -background_down: imgs_path.connect_state_active
+        -background_down: imgs_path.connect_state_active if root.device.state is ConnectionState.CONNECTED else imgs_path.connect_state_wait
     RestrictedLabel:
         text: root.device.name
         color: cs.MidiDevices.fg

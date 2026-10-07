@@ -86,6 +86,11 @@ def kivy_execute() -> ExitCode:
         constants.DMX_ADDRESS_COUNT,
         constants.DMX_KEY_FRAME_TIME,
     )
+    from libs import midi
+    midi.init(
+        constants.MIDI_CHECK_MESSAGES_CALL_INTERVAL,
+        constants.MIDI_TRY_CONNECTION_TIME
+    )
 
     init_database_status = init_database()
     if init_database_status != ExitCode.SUCCESS:

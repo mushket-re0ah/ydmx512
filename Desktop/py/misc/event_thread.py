@@ -6,6 +6,7 @@ from database import db
 from database.playback.player import master_player as playback_master_player
 from libs import beat_counter, logger
 from libs.dmx512 import dmx512
+from libs.midi import midi
 from libs.midi.observer import observer as midi_observer
 from libs.serial.observer import observer as serial_observer
 from libs.utils import ThrottledCall
@@ -46,6 +47,7 @@ _callback_list: Tuple[Callable[[float], Any], ...] = (
     serial_monitor_connections,
     midi_monitor_connections,
     dmx512.loop,
+    midi.loop,
     beat_counter.loop,
     playback_master_player.loop,
 )

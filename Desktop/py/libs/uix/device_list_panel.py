@@ -1,12 +1,12 @@
 from typing import Any, Type
 
 from kivy.clock import Clock
-from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.properties import ColorProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
+from libs.device_observer import Device, DeviceObserver
 from libs.typecheck import RGBA
 from libs.uix.layouts import SectionPanel
 from libs.uix.restricted_scrollview import RestrictedScrollView
@@ -44,7 +44,7 @@ Builder.load_string(
 
 
 class DeviceUi(BoxLayout):
-    device: EventDispatcher = ObjectProperty(rebind=True)
+    device: Device = ObjectProperty(rebind=True)
 
     def on(self):
         self.device.connect()
@@ -55,7 +55,7 @@ class DeviceUi(BoxLayout):
 
 class DeviceListPanel(SectionPanel):
     device_cls: Type[DeviceUi] = ObjectProperty(DeviceUi)  # переопределить в наследнике
-    observer: EventDispatcher = ObjectProperty()  # переопределить в наследнике
+    observer: DeviceObserver = ObjectProperty()  # переопределить в наследнике
 
     title: str = StringProperty("untitled")  # переопределить в наследнике
     bg_scrollview: RGBA = ColorProperty()  # переопределить в наследнике
@@ -76,20 +76,20 @@ class DeviceListPanel(SectionPanel):
         for dev in self.observer.devices:
             self._add_device(dev)
 
-    def on_new_device(self, _, device: EventDispatcher):
+    def on_new_device(self, _: DeviceObserver, device: Device):
         def add_device(_: Any):
             self._add_device(device)
         Clock.schedule_once(add_device, -1)
 
-    def _add_device(self, device: EventDispatcher):
+    def _add_device(self, device: Device):
         self.box.add_widget(self.device_cls(device=device))
 
-    def on_remove_device(self, _, device: EventDispatcher):
+    def on_remove_device(self, _: DeviceObserver, device: Device):
         def remove_device(_: Any):
             self._remove_device(device)
         Clock.schedule_once(remove_device, -1)
 
-    def _remove_device(self, device: EventDispatcher):
+    def _remove_device(self, device: Device):
         serial_ui = next((i for i in self.box.children if i.device is device), None)
         if serial_ui is not None:
             self.box.remove_widget(serial_ui)
