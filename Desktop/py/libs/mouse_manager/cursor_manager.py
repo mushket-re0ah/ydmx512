@@ -90,6 +90,7 @@ _system_cursor = {
 
 
 _software_cursor: Dict[str, Path] = {}
+_cursor_now: Optional[str] = None
 _cursor: Optional[str] = None
 _force: bool = False
 _cursor_pos: Tuple[float, float] = (0, 0)
@@ -167,7 +168,10 @@ _software_cursor_rect = Rectangle(size=[32, 32])
 def _set_system_cursor(cursor: str):
     global _software_cursor_color
     global _software_cursor_rect
-    Window.set_system_cursor(cursor)
+    global _cursor_now
+    if _cursor_now != cursor:
+        Window.set_system_cursor(cursor)
+        _cursor_now = cursor
     if not Window.show_cursor:
         Window.show_cursor = True
         Window.canvas.after.remove(_software_cursor_color)

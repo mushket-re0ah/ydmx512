@@ -18,7 +18,6 @@ def print_output(pipe: TextIO):
                 print(line)
                 sys.stdout.flush()
 
-
 def run_kivy_app(do_exec_backup_menu: bool) -> int:
     env = os.environ.copy()
     if do_exec_backup_menu:
@@ -34,13 +33,15 @@ def run_kivy_app(do_exec_backup_menu: bool) -> int:
             encoding="utf-8",
             env=env
         ) as process:
-        output_thread = threading.Thread(target=print_output, args=(process.stdout,))
-        # output_thread.daemon = True
+
+        output_thread = threading.Thread(
+            target=print_output,
+            args=(process.stdout,),
+            daemon=True
+        )
         output_thread.start()
 
         process.wait()
-        output_thread.join()
-        # process.stdout.close()
         return process.returncode
 
 
@@ -59,7 +60,7 @@ if __name__ == "__main__":
             exec_backup_menu = False
             if kivy_exit_code == ExitCode.SUCCESS:
                 logger.info("Процесс kivy успешно завершен")
-                sys.exit(ExitCode.SUCCESS)
+                os._exit(ExitCode.SUCCESS)
             elif kivy_exit_code == ExitCode.RESTART:
                 logger.info("Перезапуск kivy")
             else:

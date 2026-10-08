@@ -14,6 +14,16 @@ Builder.load_string("""
     size_hint: None, None
 
     scrollview: scrollview
+    canvas.before:
+        Color:
+            rgba: uix_cs.general.menu_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: uix_cs.general.border_color
+        Line:
+            rectangle: (self.x, self.y, self.width, self.height)
     RecycleRestrictedScrollView:
         id: scrollview
         viewclass: root.viewclass

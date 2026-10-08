@@ -59,3 +59,5 @@ class TableMisc(ConfigTable):
     midi_notes: str = OptionField("CUBASE", options=list(MIDI_NOTES.keys()))
 
     do_filter_serial_names: bool = BooleanField(False)
+
+    midi_device_list: Tuple[str, ...] = ListField()

@@ -72,6 +72,9 @@ class Device(EventDispatcher):
         """Для UI и логики потребителя. Observer это не использует."""
         raise NotImplementedError()
 
+    def is_active(self) -> bool:
+        return True
+
     # --- хуки для наследников ---
 
     def _do_connect(self) -> None:

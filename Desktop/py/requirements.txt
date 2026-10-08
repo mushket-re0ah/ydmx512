@@ -4,3 +4,5 @@ plyer=2.1.0
 rtmidi=2.5.0
 pyserial
 typing_extensions
+
+linux: pyudev

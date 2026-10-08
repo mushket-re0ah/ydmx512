@@ -52,10 +52,10 @@ class NumericInput(HoverInput):
         if focus:
             self.value_start_focus = self.value
         if not focus:
-            self._set_unredo_value(
-                self.value_start_focus,
-                self.value,
-                from_undo=False)
+            # self._set_unredo_value(
+            #     self.value_start_focus,
+            #     self.value,
+            #     from_undo=False)
             self._set_text_by_value()
         super().on_focus(_, focus)
 
@@ -225,49 +225,49 @@ class NumericInput(HoverInput):
     def set_empty(self):
         self.value = None
 
-    def _set_unredo_bkspc(self, ol_index, new_index, substring, from_undo,
-                          mode):
-        return
+    # def _set_unredo_bkspc(self, ol_index, new_index, substring, from_undo,
+    #                       mode):
+    #     return
 
-    def _set_unredo_delsel(self, a, b, substring, from_undo):
-        return
+    # def _set_unredo_delsel(self, a, b, substring, from_undo):
+    #     return
 
-    def _set_unredo_insert(self, ci, sci, substring, from_undo):
-        return
+    # def _set_unredo_insert(self, ci, sci, substring, from_undo):
+    #     return
 
-    # custom
-    def _set_unredo_value(self, old_value: Union[int, float],
-                          new_value: Union[int, float], from_undo: bool):
-        if from_undo:
-            return
-        self._undo.append({
-            "undo_command": ("set_value", old_value, new_value),
-            "redo_command": old_value})
-        self._redo = []
+    # # custom
+    # def _set_unredo_value(self, old_value: Union[int, float],
+    #                       new_value: Union[int, float], from_undo: bool):
+    #     if from_undo:
+    #         return
+    #     self._undo.append({
+    #         "undo_command": ("set_value", old_value, new_value),
+    #         "redo_command": old_value})
+    #     self._redo = []
 
-    def do_redo(self):
-        try:
-            x_item = self._redo.pop()
-            undo_type = x_item['undo_command'][0]
+    # def do_redo(self):
+    #     try:
+    #         x_item = self._redo.pop()
+    #         undo_type = x_item['undo_command'][0]
 
-            if undo_type == "set_value":
-                old_value, new_value = x_item['undo_command'][1:]
-                self.value = new_value
-                self._set_text_by_value()
-            self._undo.append(x_item)
-        except IndexError:
-            pass
+    #         if undo_type == "set_value":
+    #             old_value, new_value = x_item['undo_command'][1:]
+    #             self.value = new_value
+    #             self._set_text_by_value()
+    #         self._undo.append(x_item)
+    #     except IndexError:
+    #         pass
 
-    def do_undo(self):
-        try:
-            x_item = self._undo.pop()
-            undo_type = x_item['undo_command'][0]
-            if undo_type == "set_value":
-                old_value, new_value = x_item['undo_command'][1:]
-                self.value = old_value
-                self._set_text_by_value()
-            self._redo.append(x_item)
-        except IndexError:
-            pass
+    # def do_undo(self):
+    #     try:
+    #         x_item = self._undo.pop()
+    #         undo_type = x_item['undo_command'][0]
+    #         if undo_type == "set_value":
+    #             old_value, new_value = x_item['undo_command'][1:]
+    #             self.value = old_value
+    #             self._set_text_by_value()
+    #         self._redo.append(x_item)
+    #     except IndexError:
+    #         pass
 
 RestrictedScrollView.register_scrollable_widget_class(NumericInput)

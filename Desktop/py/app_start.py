@@ -51,13 +51,6 @@ def kivy_execute() -> ExitCode:
 
     logger.info("==== Запуск kivy приложения... ====")
 
-    if constants.PROFILING_CPU:
-        import yappi
-        yappi.set_clock_type("cpu")
-        yappi.start()
-        # from scalene import scalene_profiler
-        # scalene_profiler.start()
-
     if init_config_kivy() == ExitCode.FAILURE:
         return ExitCode.FAILURE
 
@@ -149,17 +142,10 @@ def backup_menu_execute() -> ExitCode:
 
 
 def main() -> ExitCode:
-    try:
-        import faulthandler
-        import signal
-
-        faulthandler.register(
-            signal.SIGUSR1,
-            all_threads=True,
-            chain=False,
-        )
-    except BaseException:
-        pass
+    if constants.PROFILING_CPU:
+        import yappi
+        yappi.set_clock_type("cpu")
+        yappi.start()
 
     logger.init()
     exec_backup_menu = os.environ.get(constants.BACKUP_MENU_ENV_KEY)

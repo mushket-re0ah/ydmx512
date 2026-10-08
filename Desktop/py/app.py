@@ -14,7 +14,7 @@ import presets
 from database import db
 from libs import logger
 from libs.dmx512.serial.device import DMXSerialDevice
-from libs.kivy_patches import builder_sync, on_touch_double_tap, recycle
+from libs.kivy_patches import builder_sync, linux_clipboard_xclip, on_touch_double_tap, recycle
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
 from libs.serial.observer import observer as serial_observer
@@ -32,6 +32,7 @@ class DesktopApp(KeyboardBehavior, App):
         builder_sync.apply_patch()
         on_touch_double_tap.apply_patch()
         recycle.apply_patch()
+        linux_clipboard_xclip.apply_patch()
         self._window_size_trigger = None
         self._window_position_trigger = None
         self._if_window_minimize = False
@@ -41,6 +42,7 @@ class DesktopApp(KeyboardBehavior, App):
         self.__init_window()
 
         serial_observer.device_cls = DMXSerialDevice
+        # midi_observer.bind(devices=test)
 
         cursor_manager.init(lambda: db.misc.use_system_cursor)
         def _cur(name: str) -> Path:
@@ -68,24 +70,33 @@ class DesktopApp(KeyboardBehavior, App):
             frozenset({"F12"}): self.fullscreen_toggle
         }
 
-    def on_stop(self):
+    def _stop_profile(self):
         if constants.PROFILING_CPU:
             import yappi
             yappi.stop()
             threads = yappi.get_thread_stats()
-            for thread in threads:
-                logger.info(
-                    f"Function stats for ({thread.name}) ({thread.id})"
-                )  # it is the Thread.__class__.__name__
-                for stat in yappi.get_func_stats(ctx_id=thread.id):
-                    logger.info(f"{stat.module}.{stat.name}:" +
-                                f"{stat.lineno} {stat.ncall} {stat.ttot}")
+            for thread in yappi.get_thread_stats():
+                logger.info(f"=== Thread {thread.name} ({thread.id}) ===")
+                stats = yappi.get_func_stats(ctx_id=thread.id)
+                stats.sort("tsub", "desc")
+                for stat in stats:
+                    if stat.tsub < 0.001:
+                        continue
+                    logger.info(
+                        f"{stat.module}.{stat.name}:{stat.lineno} "
+                        f"ncall={stat.ncall} "
+                        f"tsub={stat.tsub:.6f} "
+                        f"ttot={stat.ttot:.6f}"
+                    )
         if constants.PROFILING_RAM:
             from pympler import muppy, summary
 
             all_objects = muppy.get_objects()
             summ = summary.summarize(all_objects)
             summary.print_(summ)
+
+    def on_stop(self):
+        self._stop_profile()
 
     def build(self) -> Root:
         Builder.load_file("ui/root.kv")
