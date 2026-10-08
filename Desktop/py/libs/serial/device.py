@@ -67,7 +67,7 @@ class SerialDevice(StatefulDevice):
 
     # --- StatefulDevice hooks ---
 
-    def _has_connection(self) -> bool:
+    def has_connection(self) -> bool:
         return self.device is not None and self.device.is_open
 
     def _open_connection(self) -> None:

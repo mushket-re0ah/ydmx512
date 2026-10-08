@@ -9,7 +9,7 @@
         size_hint: (None, 1)
         width: "32dp"
         is_down: root.device.state is not ConnectionState.OFF
-        on_is_down: root.on() if self.is_down else root.off()
+        on_release: root.on() if self.is_down else root.off()
         -background_normal: imgs_path.connect_state_normal
         -background_down: imgs_path.connect_state_active if root.device.state is ConnectionState.CONNECTED else imgs_path.connect_state_wait
     NumericInput:

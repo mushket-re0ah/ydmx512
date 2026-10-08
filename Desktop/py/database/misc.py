@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal, Optional, Tuple, TypedDict
+from typing import TYPE_CHECKING, Any, Dict, Literal, NamedTuple, Optional, Tuple, TypedDict
 
 from libs.kivy_json_orm.fields import (
     BooleanField,
@@ -15,11 +15,10 @@ if TYPE_CHECKING:
     from database import YdmxDatabase
 
 
-class SerialDeviceListInfo(TypedDict):
+class SerialDeviceListInfo(NamedTuple):
     serial_number: Optional[str]
     manufacturer: Optional[str]
     interface: Optional[str]
-    universe: int
     product_name: Optional[str]
 
 
@@ -68,5 +67,16 @@ class TableMisc(ConfigTable):
 
     do_filter_serial_names: bool = BooleanField(False)
 
-    serial_connected_port_list: Tuple[SerialDeviceListInfo, ...] = ListField()
+    def deserialize_serial_connected_port_list(
+        self,
+        port_list: Tuple[SerialDeviceListInfo, ...]
+    ) -> Tuple[SerialDeviceListInfo, ...]:
+        return tuple(
+            SerialDeviceListInfo(*port_data)
+            for port_data in port_list
+        )
+
+    serial_connected_port_list: Tuple[SerialDeviceListInfo, ...] = ListField(
+        deserialize=deserialize_serial_connected_port_list
+    )
     midi_connected_port_list: Tuple[str, ...] = ListField()

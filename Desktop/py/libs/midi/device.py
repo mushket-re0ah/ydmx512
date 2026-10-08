@@ -22,6 +22,7 @@ class MidiDevice(StatefulDevice):
     def __init__(self, port: str, **kwargs: Any):
         self.port = port
         name = port.rsplit(' ', 1)[0]
+        self._midi_in = rtmidi.MidiIn()
         from libs.midi import midi
         super().__init__(
             name=name,
@@ -31,20 +32,19 @@ class MidiDevice(StatefulDevice):
     # --- интерфейс для observer'а ---
 
     def matches_port(self, port: str) -> bool:
-        return self.port == port
+        return self.name == port.rsplit(' ', 1)[0]
 
     # --- хуки StatefulDevice ---
 
-    def _has_connection(self) -> bool:
+    def has_connection(self) -> bool:
         return self.connection is not None
 
     def _open_connection(self) -> None:
-        midi_in = rtmidi.MidiIn()
-        ports = midi_in.get_ports()
+        ports = self._midi_in.get_ports()
         if self.port not in ports:
             return
-        midi_in.open_port(ports.index(self.port), name="YDMX")
-        self.connection = midi_in
+        self._midi_in.open_port(ports.index(self.port), name="YDMX")
+        self.connection = self._midi_in
         self.state = ConnectionState.CONNECTED
 
     def _close_resource(self) -> None:

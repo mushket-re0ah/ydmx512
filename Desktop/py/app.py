@@ -10,6 +10,8 @@ from kivy.lang import Builder
 from kivy.metrics import Metrics
 from kivy.properties import ObjectProperty
 
+from libs.device_observer import ConnectionState, Device, DeviceObserver
+from libs.utils import with_item, without_item
 import presets
 from database import db
 from database.misc import SerialDeviceListInfo
@@ -47,10 +49,16 @@ class DesktopApp(KeyboardBehavior, App):
         self.__init_window()
 
         serial_observer.device_cls = DMXSerialDevice
-        self._load_active_serial_devices()
-        serial_observer.bind(active_devices=self._save_active_serial_devices)
-        self._load_active_midi_devices()
-        midi_observer.bind(active_devices=self._save_active_midi_devices)
+        self._init_save_load_state_devices(
+            serial_observer,
+            "serial_connected_port_list",
+            self._make_serial_device_info  # pyright: ignore[reportArgumentType]
+        )
+        self._init_save_load_state_devices(
+            midi_observer,
+            "midi_connected_port_list",
+            lambda dev: dev.name
+        )
 
         cursor_manager.init(lambda: db.misc.use_system_cursor)
         def _cur(name: str) -> Path:
@@ -73,50 +81,45 @@ class DesktopApp(KeyboardBehavior, App):
         self.title = f"{c.APP_NAME} v.{c.VERSION}{c.SUB_VERSION} (Сцена: none)"
         event_thread.init()
 
-    def _save_active_serial_devices(
-            self,
-            observer: SerialObserver,
-            active_devices: Tuple[DMXSerialDevice]
-        ):
-        db.misc.edit(serial_connected_port_list=tuple(
-                SerialDeviceListInfo(
-                    serial_number=device.port_info.serial_number,
-                    manufacturer=device.port_info.manufacturer,
-                    interface=device.port_info.interface,
-                    universe=device.universe,
-                    product_name=device.product_name
-                )
-                for device in active_devices
-            )
+    @staticmethod
+    def _make_serial_device_info(device: DMXSerialDevice) -> SerialDeviceListInfo:
+        return SerialDeviceListInfo(
+            serial_number=device.port_info.serial_number,
+            manufacturer=device.port_info.manufacturer,
+            interface=device.port_info.interface,
+            product_name=device.product_name
         )
 
-    def _load_active_serial_devices(self):
-        serial_connected_port_list = db.misc.serial_connected_port_list[:]
-        def _load(observer: SerialObserver, devices: Tuple[DMXSerialDevice]):
-            observer.unbind(devices=_load)
-            for device in devices[:]:
-                for save_device in serial_connected_port_list:
-                    if (
-                        device.port_info.serial_number == save_device["serial_number"] and
-                        device.port_info.manufacturer == save_device["manufacturer"] and
-                        device.port_info.interface == save_device["interface"] and
-                        device.product_name == save_device["product_name"]
-                    ):
-                        device.universe = int(save_device["universe"])
-                        device.connect()
-        serial_observer.bind(devices=_load)
+    def _init_save_load_state_devices(
+            self,
+            observer: DeviceObserver,
+            db_misc_port_key: str,
+            device_id_getter: Callable[[Device], Any]
+        ):
+        def _on_device_state(device: Device, state: ConnectionState):
+            if not device.is_port_present():
+                return
+            port_list_before = tuple(getattr(db.misc, db_misc_port_key))
+            port_list = port_list_before
+            if state is ConnectionState.OFF:
+                port_list = without_item(port_list, device_id_getter(device), identity=False)
+            else:
+                port_list = with_item(port_list, device_id_getter(device))
+            port_list = tuple(set(port_list))
+            if port_list_before != port_list:
+                db.misc.edit(**{db_misc_port_key: port_list})
 
-    def _save_active_midi_devices(self, observer: MidiObserver, active_devices: Tuple[MidiDevice]):
-        db.misc.edit(midi_connected_port_list=tuple(device.port for device in active_devices))
+        def _on_new_device(_: DeviceObserver, device: Device):
+            device.bind(state=_on_device_state)
+            if device_id_getter(device) in getattr(db.misc, db_misc_port_key):
+                device.connect()
+        def _on_remove_device(_: DeviceObserver, device: Device):
+            device.unbind(state=_on_device_state)
 
-    def _load_active_midi_devices(self):
-        midi_connected_port_list = db.misc.midi_connected_port_list[:]
-        def _load(observer: MidiObserver, devices: Tuple[MidiDevice]):
-            observer.unbind(devices=_load)
-            for device in devices[:]:
-                if device.port in midi_connected_port_list:
-                    device.connect()
-        midi_observer.bind(devices=_load)
+        observer.bind(
+            on_new_device=_on_new_device,
+            on_remove_device=_on_remove_device
+        )
 
     def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {

@@ -27,7 +27,16 @@ class ThrottledCall:
         return None
 
 
-def with_item(items: Sequence[Any], item: Any) -> Tuple[Any, ...]:
+def with_item(
+    items: Sequence[Any],
+    item: Any,
+    unique: bool = False,
+    identity: bool = True,
+) -> Tuple[Any, ...]:
+    if unique:
+        exists = any(x is item for x in items) if identity else item in items
+        if exists:
+            return tuple(items)
     return tuple((*items, item))
 
 

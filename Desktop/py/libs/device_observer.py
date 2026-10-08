@@ -28,6 +28,7 @@ class Device(EventDispatcher):
 
     _command_queue: "queue.Queue[Callable[[], None]]"
     _last_signal: Optional[str]
+    _port_present: bool = False
 
     def __init__(self, **kwargs: Any):
         self._command_queue = queue.Queue()
@@ -52,6 +53,11 @@ class Device(EventDispatcher):
         self._push_signal(self._SIGNAL_PRESENT)
 
     # --- публичный API для владельца (event_thread) или UI ---
+
+    def is_port_present(self) -> bool:
+        """Есть ли сейчас физический порт в системе.
+        Обновляется observer'ом через notify_present / notify_missing."""
+        return self._port_present
 
     def connect(self) -> None:
         self._push_signal(self._SIGNAL_CONNECT)
@@ -121,8 +127,10 @@ class Device(EventDispatcher):
         self._last_signal = signal
         if signal == self._SIGNAL_MISSING:
             self._handle_missing()
+            self._port_present = False
         elif signal == self._SIGNAL_PRESENT:
             self._handle_present()
+            self._port_present = True
         elif signal == self._SIGNAL_CONNECT:
             self._do_connect()
         elif signal == self._SIGNAL_CLOSE:
@@ -221,7 +229,7 @@ class StatefulDevice(Device):
             self.state = ConnectionState.OFF
 
     def _try_connect(self) -> None:
-        if self._has_connection():
+        if self.has_connection():
             return
 
         now = time.monotonic()
@@ -275,7 +283,7 @@ class StatefulDevice(Device):
 
     # --- хуки для наследников ---
 
-    def _has_connection(self) -> bool:
+    def has_connection(self) -> bool:
         """Есть ли уже открытое соединение."""
         raise NotImplementedError()
 
