@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, FrozenSet
+from typing import Any, Callable, Dict, FrozenSet, Tuple
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -12,11 +12,16 @@ from kivy.properties import ObjectProperty
 
 import presets
 from database import db
+from database.misc import SerialDeviceListInfo
 from libs import logger
 from libs.dmx512.serial.device import DMXSerialDevice
 from libs.kivy_patches import builder_sync, linux_clipboard_xclip, on_touch_double_tap, recycle
+from libs.midi.device import MidiDevice
+from libs.midi.observer import MidiObserver
+from libs.midi.observer import observer as midi_observer
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
+from libs.serial.observer import SerialObserver
 from libs.serial.observer import observer as serial_observer
 from libs.sub_proc.exit_code import ExitCode
 from misc import constants, event_thread
@@ -42,7 +47,10 @@ class DesktopApp(KeyboardBehavior, App):
         self.__init_window()
 
         serial_observer.device_cls = DMXSerialDevice
-        # midi_observer.bind(devices=test)
+        self._load_active_serial_devices()
+        serial_observer.bind(active_devices=self._save_active_serial_devices)
+        self._load_active_midi_devices()
+        midi_observer.bind(active_devices=self._save_active_midi_devices)
 
         cursor_manager.init(lambda: db.misc.use_system_cursor)
         def _cur(name: str) -> Path:
@@ -64,6 +72,51 @@ class DesktopApp(KeyboardBehavior, App):
         c = constants
         self.title = f"{c.APP_NAME} v.{c.VERSION}{c.SUB_VERSION} (Сцена: none)"
         event_thread.init()
+
+    def _save_active_serial_devices(
+            self,
+            observer: SerialObserver,
+            active_devices: Tuple[DMXSerialDevice]
+        ):
+        db.misc.edit(serial_connected_port_list=tuple(
+                SerialDeviceListInfo(
+                    serial_number=device.port_info.serial_number,
+                    manufacturer=device.port_info.manufacturer,
+                    interface=device.port_info.interface,
+                    universe=device.universe,
+                    product_name=device.product_name
+                )
+                for device in active_devices
+            )
+        )
+
+    def _load_active_serial_devices(self):
+        serial_connected_port_list = db.misc.serial_connected_port_list[:]
+        def _load(observer: SerialObserver, devices: Tuple[DMXSerialDevice]):
+            observer.unbind(devices=_load)
+            for device in devices[:]:
+                for save_device in serial_connected_port_list:
+                    if (
+                        device.port_info.serial_number == save_device["serial_number"] and
+                        device.port_info.manufacturer == save_device["manufacturer"] and
+                        device.port_info.interface == save_device["interface"] and
+                        device.product_name == save_device["product_name"]
+                    ):
+                        device.universe = int(save_device["universe"])
+                        device.connect()
+        serial_observer.bind(devices=_load)
+
+    def _save_active_midi_devices(self, observer: MidiObserver, active_devices: Tuple[MidiDevice]):
+        db.misc.edit(midi_connected_port_list=tuple(device.port for device in active_devices))
+
+    def _load_active_midi_devices(self):
+        midi_connected_port_list = db.misc.midi_connected_port_list[:]
+        def _load(observer: MidiObserver, devices: Tuple[MidiDevice]):
+            observer.unbind(devices=_load)
+            for device in devices[:]:
+                if device.port in midi_connected_port_list:
+                    device.connect()
+        midi_observer.bind(devices=_load)
 
     def create_hotkeys(self) -> Dict[FrozenSet[str], Callable[[], None]]:
         return {

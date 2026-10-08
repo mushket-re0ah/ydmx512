@@ -119,3 +119,6 @@ class MidiDevice(StatefulDevice):
             # elif message_type == PITCH_BEND:
             #     value_lo = msg_data[1]
             #     value_hi = msg_data[2]
+
+    def __repr__(self) -> str:
+        return (f"MidiDevice(port={self.port}, name={self.name})")

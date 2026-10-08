@@ -105,9 +105,8 @@ class DMXSerialDevice(SerialDevice):
 
     def __repr__(self) -> str:
         p = self.port_info
-        return f"(serial_number: {p.serial_number}, "\
+        return f"DMXSerialDevice(serial_number: {p.serial_number}, "\
                f"manufacturer: {p.manufacturer}, "\
-               f"product: {p.product}, "\
                f"interface: {p.interface}, "\
                f"universe: {self.universe}, "\
                f"product_name: {self.product_name})"

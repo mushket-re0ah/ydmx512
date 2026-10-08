@@ -73,7 +73,7 @@ class Device(EventDispatcher):
         raise NotImplementedError()
 
     def is_active(self) -> bool:
-        return True
+        raise NotImplementedError()
 
     # --- хуки для наследников ---
 
@@ -181,6 +181,9 @@ class StatefulDevice(Device):
 
     def is_connected(self) -> bool:
         return self._state is ConnectionState.CONNECTED
+
+    def is_active(self) -> bool:
+        return self._state is not ConnectionState.OFF
 
     # --- реакции на сигналы observer ---
 
@@ -290,6 +293,7 @@ class DeviceObserver(EventDispatcher):
     name: str
 
     devices: Tuple[Device, ...] = ListProperty()
+    active_devices: Tuple[Device, ...] = ListProperty()
     monitoring_interval: float = NumericProperty(1)
 
     __events__ = ("on_new_device", "on_remove_device")
@@ -376,6 +380,10 @@ class DeviceObserver(EventDispatcher):
                 d for d in self.devices if id(d) not in removed_ids
             ) + tuple(new_devices)
             self.devices = remaining
+
+        new_active = tuple(d for d in self.devices if d.is_active())
+        if new_active != self.active_devices:
+            self.active_devices = new_active
 
         # 6. События
         for d in new_devices:
