@@ -100,7 +100,7 @@ def _handle_undefined(module: str, process: Process, process_queue: "Queue[Any]"
 
 
 def _start_process(context: AsyncProcessContext) -> Tuple[Process, "Queue[Any]", Connection]:
-    process_queue: "Queue[Any]" = Queue()
+    process_queue: "Queue[Any]" = Queue()  # noqa: UP037
     recv_connection, send_connection = Pipe(duplex=False)
 
     process = Process(

@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, FrozenSet, Tuple
+from typing import Any, Callable, Dict, FrozenSet
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -10,22 +10,19 @@ from kivy.lang import Builder
 from kivy.metrics import Metrics
 from kivy.properties import ObjectProperty
 
-from libs.device_observer import ConnectionState, Device, DeviceObserver
-from libs.utils import with_item, without_item
 import presets
 from database import db
 from database.misc import SerialDeviceListInfo
 from libs import logger
+from libs.device_observer import ConnectionState, Device, DeviceObserver
 from libs.dmx512.serial.device import DMXSerialDevice
 from libs.kivy_patches import builder_sync, linux_clipboard_xclip, on_touch_double_tap, recycle
-from libs.midi.device import MidiDevice
-from libs.midi.observer import MidiObserver
 from libs.midi.observer import observer as midi_observer
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
-from libs.serial.observer import SerialObserver
 from libs.serial.observer import observer as serial_observer
 from libs.sub_proc.exit_code import ExitCode
+from libs.utils import with_item, without_item
 from misc import constants, event_thread
 from ui.root import Root
 
@@ -130,7 +127,6 @@ class DesktopApp(KeyboardBehavior, App):
         if constants.PROFILING_CPU:
             import yappi
             yappi.stop()
-            threads = yappi.get_thread_stats()
             for thread in yappi.get_thread_stats():
                 logger.info(f"=== Thread {thread.name} ({thread.id}) ===")
                 stats = yappi.get_func_stats(ctx_id=thread.id)

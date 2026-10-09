@@ -1,8 +1,6 @@
-import os
-from typing import Any, FrozenSet, List, Optional, Tuple, Type
+from typing import List, Tuple, Type
 
 from kivy.properties import ObjectProperty
-from kivy.utils import platform
 from serial.tools import list_ports
 from serial.tools.list_ports_common import ListPortInfo
 

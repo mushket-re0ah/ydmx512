@@ -1,4 +1,4 @@
-from typing import Callable, Dict, FrozenSet, List, Union
+from typing import Any, Callable, Dict, FrozenSet, List
 
 from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
@@ -81,7 +81,7 @@ class NumericInput(HoverInput):
         bind=("_value", "minimum", "maximum")
     )
 
-    def _set_text_by_value(self):
+    def _set_text_by_value(self, *_: Any):
         self.text = self._value_to_str(self.value)
 
     def _value_to_str(self, value: OptionalNumber) -> str:

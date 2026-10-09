@@ -1,6 +1,111 @@
+#:import uix_cs libs.uix.colorscheme
+
+<SettingsRow>:  # BoxLayout
+    widget_box: widget_box
+
+    size_hint: (1, None)
+    height: self.minimum_height
+    orientation: "horizontal"
+    padding: ("5dp", "5dp")
+
+    canvas.before:
+        Color:
+            rgba: uix_cs.general.darklight_bg
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: uix_cs.general.border_color
+        Line:
+            width: dp(1)
+            rectangle: (self.x, self.y, self.width, self.height)
+
+    BoxLayout:
+        size_hint: (1, None)
+        orientation: "vertical"
+        height: self.minimum_height
+        RestrictedLabel:
+            size_hint: (1, None)
+            height: self.texture_size[1]
+            text_size: (self.width, None)
+            halign: "left"
+            padding: ("5dp", "2dp")
+            text: root.spec.title
+            font_size: "12sp"
+        RestrictedLabel:
+            size_hint: (1, None)
+            height: self.texture_size[1]
+            text_size: (self.width, None)
+            halign: "left"
+            padding: ("5dp", "3dp")
+            text: root.spec.description
+            font_size: "11sp"
+            color: uix_cs.general.gray_fg
+    BoxLayout:
+        id: widget_box
+        size_hint: (None, None)
+        width: "100dp"
+        height: "30dp"
+
+
+
+<SettingsSection>:  # BoxLayout
+    scroll_layout: scroll_layout
+    scrollview: scrollview
+    row_box: row_box
+
+    orientation: "vertical"
+
+    canvas.before:
+        Color:
+            rgba: uix_cs.general.darkblue_bg
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    BoxLayout:
+        size_hint: (1, None)
+        height: "40dp"
+        canvas.after:
+            Color:
+                rgba: uix_cs.general.border_color
+            Line:
+                width: dp(1)
+                points: (self.x, self.y, self.right, self.y)
+        RestrictedLabel:
+            size_hint: (1, 1)
+            text_size: self.size
+            halign: "left"
+            padding: ("10dp", "10dp")
+            text: root.title
+        RestrictedLabel:
+            size_hint: (None, 1)
+            width: self.texture_size[0]
+            halign: "right"
+            valign: "center"
+            padding: ("10dp", "10dp")
+            font_size: "11dp"
+            text: "требует перезапуска" if root.settings_content.restart_required else ""
+            text_size: (None, self.height)
+
+    ScrollLayout:
+        id: scroll_layout
+        scrollview: scrollview
+        RestrictedScrollView:
+            id: scrollview
+            scroll_by_content: True
+            BoxLayout:
+                id: row_box
+                size_hint: (1, None)
+                height: self.minimum_height
+                orientation: "vertical"
+                padding: ("15dp", "15dp")
+                spacing: "15dp"
+
+
 <SettingsSectionToggle>:  # HoverToggleButton
     group: "settings_section_toggle"
-    text: self.title
+    text: self.section_cls.title if self.section_cls is not None else ""
 
 
 <SettingsSections>:  # ScrollLayout

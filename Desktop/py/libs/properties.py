@@ -17,6 +17,8 @@ from libs.typecheck import KivyCallback, Number, OptionalNumber
 
 class ClampedNumericProperty(BoundedNumericProperty):
     def __init__(self, default: Number, min_val: Number, max_val: Number, **kwargs: Any):
+        self.minimum = min_val
+        self.maximum = max_val
         super().__init__(default, min=min_val, max=max_val,
                          errorhandler=lambda x: boundary(x, min_val, max_val), **kwargs)
 

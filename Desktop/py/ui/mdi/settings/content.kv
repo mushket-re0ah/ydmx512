@@ -1,8 +1,91 @@
+#:import uix_cs libs.uix.colorscheme
+#:import constants misc.constants
+
+
+<SettingRow>:  # BoxLayout
+    orientation: "vertical"
+    size_hint_y: None
+    height: "60dp"
+
+    BoxLayout:
+        size_hint_y: None
+        height: "28dp"
+
+        RestrictedLabel:
+            text: root.title
+
+        Widget:
+
+        Widget:
+            id: value_container
+
+    RestrictedLabel:
+        text: root.description
+        font_size: "11sp"
+
+
 <SettingsContent>:  # BoxLayout
     sections: sections
-    section_now: section_now
 
-    SettingsSections:
-        id: sections
+    orientation: "horizontal"
+    spacing: "1dp"
     BoxLayout:
-        id: section_now
+        orientation: "vertical"
+        size_hint: (None, 1)
+        width: "250dp"
+        padding: ("12dp", "12dp", "12dp", "12dp")
+        canvas.before:
+            Color:
+                rgba: uix_cs.general.darklight_bg
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        RestrictedLabel:
+            size_hint: (1, None)
+            height: "30dp"
+            text: "YDMX512"
+            font_size: "16sp"
+            halign: "left"
+            valign: "center"
+            padding: ("10dp", "0dp")
+            text_size: self.size
+            canvas.after:
+                Color:
+                    rgba: uix_cs.general.border_color
+                Line:
+                    width: dp(1)
+                    points: (self.x, self.y, self.right, self.y)
+
+        RestrictedLabel:
+            size_hint: (1, None)
+            height: "30dp"
+            text: "Секции"
+            font_size: "12sp"
+            halign: "left"
+            valign: "center"
+            padding: ("10dp", "10dp", 0, "5dp")
+            text_size: self.size
+            color: uix_cs.general.gray_fg
+
+        SettingsSections:
+            id: sections
+            size_hint: (1, 1)
+            content: root.__self__
+
+            canvas.after:
+                Color:
+                    rgba: uix_cs.general.border_color
+                Line:
+                    width: dp(1)
+                    points: (self.x, self.y, self.right, self.y)
+
+        RestrictedLabel:
+            size_hint: (1, None)
+            height: "24dp"
+            text: "BUILD {} {}".format(constants.VERSION, constants.SUB_VERSION)
+            font_size: "12sp"
+            halign: "left"
+            valign: "center"
+            padding: ("10dp", "12dp", 0, 0)
+            text_size: self.size
+            color: uix_cs.general.gray_fg

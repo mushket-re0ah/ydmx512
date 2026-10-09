@@ -11,6 +11,7 @@ from libs.typecheck import RGBA, Number
 from libs.uix.button import ImageButton
 from libs.uix.label import RestrictedLabel
 from libs.uix.layouts import SectionPanel
+from libs.utils import ThrottledCall
 from misc import colorscheme as cs
 from misc import constants
 
@@ -22,13 +23,14 @@ class BeatLabel(RestrictedLabel):
     _fg_color: RGBA = ColorProperty(cs.BeatLabel.default_fg)
     _progressbar_width: Number = NumericProperty(0)
 
-    progressbar_fps: int = constants.FRAMES_IN_BEAT // 8
+    _progressbar_fps: int = 15
 
     def __init__(self, **kwargs: Any):
         self.trigger_beat = Clock.create_trigger(self.on_beat, -1)
         self.trigger_downbeat = Clock.create_trigger(self.on_downbeat, -1)
         self.trigger_halfbeat = Clock.create_trigger(self.on_halfbeat, -1)
         self.trigger_frame = Clock.create_trigger(self.on_frame, -1)
+        self.update_progressbar = ThrottledCall(self._update_progressbar, 1 / self._progressbar_fps)
         super().__init__(**kwargs)
         db.scene.scene_now_bc.bind(
             beat_now=self.trigger_beat,
@@ -38,10 +40,12 @@ class BeatLabel(RestrictedLabel):
         )
 
     def on_frame(self, dt: float):
+        self.update_progressbar(dt)
+
+    def _update_progressbar(self):
         scene_bc = db.scene.scene_now_bc
-        if (scene_bc.frame_now % self.progressbar_fps) == 0:
-            progress = scene_bc.frame_now / (constants.FRAMES_IN_BEAT * scene_bc.beats_count)
-            self._progressbar_width = self.width * progress
+        progress = scene_bc.frame_now / (constants.FRAMES_IN_BEAT * scene_bc.beats_count)
+        self._progressbar_width = self.width * progress
 
     def on_beat(self, dt: float):
         if db.scene.scene_now_bc.beat_now == 0:

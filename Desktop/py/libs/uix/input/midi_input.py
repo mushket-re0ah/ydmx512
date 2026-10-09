@@ -28,6 +28,7 @@ class MidiInput(NumericInput):
         super().__init__(*args, **kwargs)
         self.input_filter = None
         self.input_type = "text"
+        db.misc.bind(midi_notes=self._set_text_by_value)
 
     def _str_to_value(self, text: str) -> OptionalNumber:
         if text in ("", "-"):
@@ -47,7 +48,7 @@ class MidiInput(NumericInput):
                 return notes.index(text)
             return self._value_bounds(self.value)
 
-    def _set_text_by_value(self):
+    def _set_text_by_value(self, *_:Any):
         if self.value is None:
             self.text = ""
             return
