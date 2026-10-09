@@ -102,7 +102,6 @@ def kivy_execute() -> ExitCode:
         application.run()
     except SystemExit as e:  # ловим sys.exit
         exit_status = ExitCode(e.code)
-        raise
     except Exception:
         logger.error(exc_info=True)
         exit_status = ExitCode.FAILURE
@@ -115,6 +114,13 @@ def kivy_execute() -> ExitCode:
             if exit_status == ExitCode.SUCCESS:
                 exit_status = ExitCode.FAILURE
 
+        try:
+            from misc import backup as backup_module
+            backup_module.apply_pending_restore()
+        except Exception:
+            logger.error(exc_info=True)
+            if exit_status in (ExitCode.SUCCESS, ExitCode.RESTART):
+                exit_status = ExitCode.FAILURE
     return exit_status
 
 

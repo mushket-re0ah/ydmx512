@@ -42,7 +42,8 @@ general = create_colorscheme(
     darkblue_bg=hex_str_to_color("#262F34FF"),
     border_color=hex_str_to_color("#888888FF"),
     gray_fg=hex_str_to_color("#C1C1C1FF"),
-    blue_fg=hex_str_to_color("#99FFFFFF")
+    blue_fg=hex_str_to_color("#99FFFFFF"),
+    failed_fg=hex_str_to_color("#FF5555FF")
 )
 
 Label = create_colorscheme(

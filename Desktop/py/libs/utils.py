@@ -44,3 +44,17 @@ def without_item(items: Sequence[Any], item: Any, identity:bool=True) -> Tuple[A
     if identity:
         return tuple(x for x in items if x is not item)
     return tuple(x for x in items if x != item)
+
+
+def format_file_size(size: int) -> str:
+    value = float(size)
+
+    for unit in ("Б", "КБ", "МБ", "ГБ", "ТБ"):
+        if value < 1024 or unit == "ТБ":
+            if unit == "Б":
+                return f"{int(value)} {unit}"
+            return f"{value:.1f} {unit}"
+
+        value /= 1024
+
+    raise AssertionError("unreachable")

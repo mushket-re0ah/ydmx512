@@ -1,9 +1,17 @@
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple, Type, Union
 
 from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.properties import BooleanProperty, ListProperty, NumericProperty, ObjectProperty
+from kivy.properties import (
+    BooleanProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    VariableListProperty,
+)
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.widget import Widget
 
 from libs.uix.button import HoverButton
 from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
@@ -27,7 +35,7 @@ Builder.load_string("""
     scrollview: scrollview
     RecycleRestrictedScrollView:
         id: scrollview
-        viewclass: "FileListButton"
+        viewclass: root.viewclass
         scroll_by_content: True
         do_scroll_x: False
         do_scroll_by_element: True
@@ -38,15 +46,24 @@ Builder.load_string("""
             width: self.minimum_width
             height: self.minimum_height
             default_size: (None, root.cls_height)
+            padding: root.box_padding
+            spacing: root.box_spacing
 """
 )
 
-
-class FileListButton(HoverButton):
+class FileListItemBehavior(RecycleDataViewBehavior):
     path: Path = ObjectProperty()
     filelist: "Filelist" = ObjectProperty()
-    is_dir_button: bool = BooleanProperty()
+    is_dir_button: bool = BooleanProperty(False)
 
+    def on_release(self):
+        if self.is_dir_button:
+            self.filelist.path = self.path
+        else:
+            self.filelist.dispatch("on_submit", self.path)
+
+
+class FileListButton(FileListItemBehavior, HoverButton):
     def __init__(self, **kwargs: Any):
         set_colors_ev = Clock.create_trigger(self.update_colors, 0)
         self.set_colors_ev = set_colors_ev
@@ -56,21 +73,29 @@ class FileListButton(HoverButton):
     def update_colors(self, _: Any):
         self._set_colors()
 
-    def on_release(self):
-        if self.is_dir_button:
-            self.filelist.path = self.path
-        else:
-            self.filelist.dispatch("on_submit", self.path)
-
 
 class Filelist(ScrollLayout):
     cls_height: float = NumericProperty("26dp")
+    box_padding: Tuple[float, float, float, float] = VariableListProperty([0, 0, 0, 0])  # pyright: ignore[reportArgumentType]
+    box_spacing: float = NumericProperty(0)
 
     scrollview: RecycleRestrictedScrollView = ObjectProperty()  # pyright: ignore[reportIncompatibleVariableOverride]
 
     rootpath: Path = ObjectProperty()
     path: Path = ObjectProperty()
     filters: Tuple[str] = ListProperty()
+
+    update_interval: float = 1.0
+
+    @staticmethod
+    def _default_sorting_method(paths: Tuple[Path, ...]) -> Tuple[Path, ...]:
+        return paths
+
+    sorting_method: Callable[[Tuple[Path, ...]], Tuple[Path, ...]] = ObjectProperty(
+        _default_sorting_method
+    )
+
+    viewclass: Union[str, Type[Widget]] = ObjectProperty(FileListButton)
 
     __events__ = ('on_submit',)
 
@@ -83,6 +108,7 @@ class Filelist(ScrollLayout):
             filters=self.update_ev
         )
         super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, self.update_interval)
 
     def on_submit(self, path: Path):
         pass
@@ -105,8 +131,13 @@ class Filelist(ScrollLayout):
                 data.append(self.create_item("..", path.parent, True))
 
             itemlist = tuple(path.iterdir())
-            dirlist = tuple(i for i in itemlist if i.is_dir())
-            filelist = tuple(i for i in itemlist if self.check_path_by_filter(i))
+
+            dirlist = self.sorting_method(
+                tuple(item for item in itemlist if item.is_dir())
+            )
+            filelist = self.sorting_method(
+                tuple(item for item in itemlist if self.check_path_by_filter(item))
+            )
 
             for item in dirlist:
                 data.append(self.create_item(f"> {item.name}", item, True))

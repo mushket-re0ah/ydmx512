@@ -1,4 +1,6 @@
 #:import uix_cs libs.uix.colorscheme
+#:import backup misc.backup
+
 
 <SettingsRow>:  # BoxLayout
     widget_box: widget_box
@@ -48,6 +50,31 @@
         height: "30dp"
 
 
+<SettingsSectionHeader>:  # BoxLayout
+    size_hint: (1, None)
+    height: "40dp"
+    canvas.after:
+        Color:
+            rgba: uix_cs.general.border_color
+        Line:
+            width: dp(1)
+            points: (self.x, self.y, self.right, self.y)
+    RestrictedLabel:
+        size_hint: (1, 1)
+        text_size: self.size
+        halign: "left"
+        padding: ("10dp", "10dp")
+        text: root.title
+    RestrictedLabel:
+        size_hint: (None, 1)
+        width: self.texture_size[0]
+        halign: "right"
+        valign: "center"
+        padding: ("10dp", "10dp")
+        font_size: "11dp"
+        text: ("требует перезапуска" if root.settings_content.restart_required else "") if root.settings_content is not None else ""
+        text_size: (None, self.height)
+
 
 <SettingsSection>:  # BoxLayout
     scroll_layout: scroll_layout
@@ -63,30 +90,9 @@
             size: self.size
             pos: self.pos
 
-    BoxLayout:
-        size_hint: (1, None)
-        height: "40dp"
-        canvas.after:
-            Color:
-                rgba: uix_cs.general.border_color
-            Line:
-                width: dp(1)
-                points: (self.x, self.y, self.right, self.y)
-        RestrictedLabel:
-            size_hint: (1, 1)
-            text_size: self.size
-            halign: "left"
-            padding: ("10dp", "10dp")
-            text: root.title
-        RestrictedLabel:
-            size_hint: (None, 1)
-            width: self.texture_size[0]
-            halign: "right"
-            valign: "center"
-            padding: ("10dp", "10dp")
-            font_size: "11dp"
-            text: "требует перезапуска" if root.settings_content.restart_required else ""
-            text_size: (None, self.height)
+    SettingsSectionHeader:
+        title: root.title
+        settings_content: root.settings_content
 
     ScrollLayout:
         id: scroll_layout
@@ -101,6 +107,118 @@
                 orientation: "vertical"
                 padding: ("15dp", "15dp")
                 spacing: "15dp"
+
+
+<SettingsBackupRow>:  # BoxLayout
+    orientation: "horizontal"
+    padding: ("5dp", "5dp")
+
+    canvas.before:
+        Color:
+            rgba: uix_cs.general.darklight_bg
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: uix_cs.general.border_color
+        Line:
+            width: dp(1)
+            rectangle: (self.x, self.y, self.width, self.height)
+
+    BoxLayout:
+        size_hint: (1, 1)
+        orientation: "vertical"
+        RestrictedLabel:
+            size_hint: (1, None)
+            height: self.texture_size[1]
+            text_size: (self.width, None)
+            halign: "left"
+            padding: ("5dp", "2dp")
+            text: root.modified_text
+            font_size: "14sp"
+        RestrictedLabel:
+            size_hint: (1, None)
+            height: self.texture_size[1]
+            text_size: (self.width, None)
+            halign: "left"
+            padding: ("5dp", "3dp")
+            text: root.path.name if root.path else ""
+            font_size: "13sp"
+            color: uix_cs.general.gray_fg
+
+    RestrictedLabel:
+        size_hint: (None, 1)
+        width: self.texture_size[0]
+        text_size: (None, self.height)
+        halign: "right"
+        padding: ("10dp", "10dp")
+        text: root.size_text
+        font_size: "14sp"
+
+
+<RestoreBackupDialog>:  # WindowModalBoxLayout
+    orientation: "vertical"
+    size: ("400dp", "200dp")
+    padding: ("15dp", "15dp")
+
+    BoxLayout:
+        RestrictedLabel:
+            size_hint: (1, 1)
+            text_size: self.size
+            halign: "center"
+            valign: "center"
+            padding: ("10dp", "10dp")
+            text: "Будет создана резервная копия текущей базы данных, приложение будет перезапущено, а состояние базы данных вернется к моменту создания резервной копии. Вы согласны?" if not root.save_failed else "Не удалось сохранить базу данных. Повторите попытку"
+            font_size: "14sp"
+            color: uix_cs.Label.fg if not root.save_failed else uix_cs.general.failed_fg
+
+    BoxLayout:
+        HoverButton:
+            text: "Применить"
+            size_hint: (None, None)
+            size: ("125dp", "24dp")
+            on_release: root.do_confirm()
+        Widget:
+            size_hint: (1, 1)
+        HoverButton:
+            text: "Отмена"
+            size_hint: (None, None)
+            size: ("100dp", "24dp")
+            on_release: root.dismiss()
+
+
+<-SettingsBackups>:  # SettingsSection
+    filelist: filelist
+
+    orientation: "vertical"
+    spacing: "2dp"
+
+    canvas.before:
+        Color:
+            rgba: uix_cs.general.darkblue_bg
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    SettingsSectionHeader:
+        title: root.title
+        settings_content: root.settings_content
+
+    BackupFilelist:
+        id: filelist
+        size_hint: (1, 1)
+        cls_height: "55dp"
+        rootpath: constants.DATABASE_BACKUPS_PATH
+        filters: ["gz"]
+        box_padding: ("15dp", "15dp")
+        box_spacing: "15dp"
+
+    HoverButton:
+        size_hint: (1, None)
+        height: "40dp"
+        text: "Создать резервную копию"
+        font_size: "13sp"
+        on_release: backup.do_backup(None)
 
 
 <SettingsSectionToggle>:  # HoverToggleButton

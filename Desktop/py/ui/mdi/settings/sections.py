@@ -1,20 +1,28 @@
+import sys
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type, TypedDict
 
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
+from kivy.properties import BooleanProperty, ObjectProperty, StringProperty
+from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.widget import Widget
 
 from database import db
+from libs.sub_proc.exit_code import ExitCode
 from libs.uix.button import HoverToggleButton
+from libs.uix.filelist import Filelist, FileListItemBehavior
 from libs.uix.input.numeric_input import NumericInput
-from libs.uix.layouts import SectionPanel
+from libs.uix.layouts import WindowModalBoxLayout
 from libs.uix.recycle_restricted_scrollview import RecycleRestrictedScrollView
 from libs.uix.recycle_spinner import RecycleSpinner
 from libs.uix.restricted_scrollview import RestrictedScrollView
 from libs.uix.scroll_layout import ScrollLayout
+from libs.utils import format_file_size
+from misc import backup as backup_module
 
 if TYPE_CHECKING:
     from ui.mdi.settings.content import SettingsContent
@@ -77,6 +85,11 @@ class SettingsRow(BoxLayout):
             setattr(self._value_widget, attr, value)
 
 
+class SettingsSectionHeader(BoxLayout):
+    title: str = StringProperty()
+    settings_content: "SettingsContent" = ObjectProperty(rebind=True)
+
+
 class SettingsSection(BoxLayout):
     title: str
     SPECS: Tuple[SettingSpec, ...] = ()
@@ -84,7 +97,7 @@ class SettingsSection(BoxLayout):
     scroll_layout: ScrollLayout = ObjectProperty()
     scrollview: RestrictedScrollView = ObjectProperty()
     row_box: BoxLayout = ObjectProperty()
-    settings_content: "SettingsContent" = ObjectProperty()
+    settings_content: "SettingsContent" = ObjectProperty(rebind=True)
 
     def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
@@ -282,12 +295,108 @@ class SettingsMidi(SettingsSection):
     )
 
 
-class SettingsBackupBox(BoxLayout):
-    pass
+class SettingsBackupRow(
+    FileListItemBehavior,
+    ButtonBehavior,
+    BoxLayout,
+):
+    path: Path = ObjectProperty()
+    modified_text: str = StringProperty("")
+    size_text: str = StringProperty("")
+
+
+class RestoreBackupDialog(WindowModalBoxLayout):
+    path: Path = ObjectProperty()
+    save_failed: bool = BooleanProperty(False)
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.register_event_type("on_confirm")
+
+    def do_confirm(self):
+        backup_module.do_backup(self.on_backup, do_clean_backups=False)
+
+    def on_confirm(self, path: Path):
+        pass
+
+    def on_backup(self, success: Optional[bool]):
+        if not success:
+            self.save_failed = True
+            return
+        self.dismiss()
+        self.dispatch("on_confirm", self.path)
+
+
+class BackupFilelist(Filelist):
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(
+            *args,
+            viewclass=SettingsBackupRow,
+            sorting_method=BackupFilelist._sort_files,
+            **kwargs)
+
+    @staticmethod
+    def _sort_files(
+        paths: Tuple[Path, ...],
+    ) -> Tuple[Path, ...]:
+        def modified_at(path: Path) -> float:
+            try:
+                return path.stat().st_mtime
+            except OSError:
+                return float("-inf")
+
+        return tuple(sorted(
+            paths,
+            key=modified_at,
+            reverse=True,
+        ))
+
+    def create_item(
+        self,
+        text: str,
+        path: Path,
+        is_dir: bool,
+    ) -> Dict[str, Any]:
+        data = super().create_item(text, path, is_dir)
+
+        data["path"] = path
+        data["modified_text"] = ""
+        data["size_text"] = ""
+
+        if not is_dir:
+            try:
+                stat = path.stat()
+            except OSError:
+                pass
+            else:
+                data["modified_text"] = datetime.fromtimestamp(
+                    stat.st_mtime
+                ).strftime("%d.%m.%Y %H:%M:%S")
+                data["size_text"] = format_file_size(stat.st_size)
+
+        return data
+
+    def on_submit(self, path: Path):
+        if not path.is_file():
+            return
+
+        dialog = RestoreBackupDialog(path=path)
+        dialog.bind(on_confirm=self._confirm_restore)
+        dialog.open()
+
+    def _confirm_restore(self, _: RestoreBackupDialog, path: Path):
+        backup_module.schedule_restore(path)
+        sys.exit(ExitCode.RESTART)
 
 
 class SettingsBackups(SettingsSection):
+    filelist: BackupFilelist = ObjectProperty()
+
     title = "Резервные копии"
+
+    def on_kv_post(self, base_widget: Widget):
+        super().on_kv_post(base_widget)
+
 
 
 class _SettingsSectionToggleViewDataDict(TypedDict):

@@ -60,7 +60,7 @@ if __name__ == "__main__":
             exec_backup_menu = False
             if kivy_exit_code == ExitCode.SUCCESS:
                 logger.info("Процесс kivy успешно завершен")
-                os._exit(ExitCode.SUCCESS)
+                sys.exit(ExitCode.SUCCESS)
             elif kivy_exit_code == ExitCode.RESTART:
                 logger.info("Перезапуск kivy")
             else:
