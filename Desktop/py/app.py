@@ -16,7 +16,13 @@ from database.misc import SerialDeviceListInfo
 from libs import logger
 from libs.device_observer import ConnectionState, Device, DeviceObserver
 from libs.dmx512.serial.device import DMXSerialDevice
-from libs.kivy_patches import builder_sync, linux_clipboard_xclip, on_touch_double_tap, recycle
+from libs.kivy_patches import (
+    builder_sync,
+    linux_clipboard_xclip,
+    on_touch_double_tap,
+    recycle,
+    relative_layout,
+)
 from libs.midi.observer import observer as midi_observer
 from libs.mouse_manager import cursor_manager
 from libs.sdl2_keyboard import KeyboardBehavior
@@ -33,6 +39,7 @@ class DesktopApp(KeyboardBehavior, App):
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
+        relative_layout.apply_patch()
         builder_sync.apply_patch()
         on_touch_double_tap.apply_patch()
         recycle.apply_patch()

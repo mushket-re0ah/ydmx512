@@ -411,7 +411,7 @@ class RestrictedScrollView(StencilView):
 
         vp.pos = 0, 0
 
-        self.g_translate.xy = x, y
+        self.g_translate.xy = round(x), round(y)
 
     def add_widget(self, widget: Widget, *args:Any, **kwargs:Any):
         if self._viewport:

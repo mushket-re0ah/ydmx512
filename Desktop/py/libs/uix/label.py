@@ -27,10 +27,8 @@ Builder.load_string("""
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: (\
-                int(self.center_x - self.texture_size[0] / 2.0),\
-                int(self.center_y - self.texture_size[1] / 2.0)\
-            )
+            pos: (round(self.x + (self.width - self.texture_size[0]) / 2.0),\
+                round(self.y + (self.height - self.texture_size[1]) / 2.0))
 """
 )
 
@@ -72,7 +70,7 @@ class RestrictedLabel(Widget):
             elif name == "text_size":
                 self._label.usersize = value  # pyright: ignore[reportOptionalMemberAccess]
             elif name == "font_size":
-                self._label.options[name] = value  # pyright: ignore[reportOptionalMemberAccess]
+                self._label.options[name] = round(value)  # pyright: ignore[reportOptionalMemberAccess]
             else:
                 self._label.options[name] = value  # pyright: ignore[reportOptionalMemberAccess]
 
@@ -80,7 +78,6 @@ class RestrictedLabel(Widget):
 
     def texture_update(self, *_:Any):
         self.texture = None
-
         if (not self._label.text or  # pyright: ignore[reportOptionalMemberAccess]
                 (self.halign == "justify") and
                 not self._label.text.strip()):  # pyright: ignore[reportOptionalMemberAccess]

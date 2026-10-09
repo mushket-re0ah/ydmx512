@@ -27,7 +27,7 @@ Builder.load_string("""
 
         PushMatrix
         Translate:
-            xy: self.pos
+            xy: (round(self.x), round(self.y))
 
     canvas.after:
         PopMatrix
