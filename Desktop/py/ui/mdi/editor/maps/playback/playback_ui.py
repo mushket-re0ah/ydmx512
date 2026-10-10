@@ -4,6 +4,8 @@ from kivy.clock import Clock
 from kivy.graphics import Color, SmoothEllipse
 from kivy.properties import BooleanProperty, NumericProperty
 
+from database.playback.playback import RowPlayback
+from libs import logger
 from misc import colorscheme as cs
 from ui.components.playback_ui import BasePlaybackUi
 from ui.mdi.editor.maps.map_layout import EditorMapLayout
@@ -18,7 +20,11 @@ class EditorPlaybackUi(BasePlaybackUi):
     map_layout: Optional[EditorMapLayout]
     def __init__(self, **kwargs: Any):
         playback = kwargs["playback"]
-        playback.bind(grid_pos=self.setter("grid_pos"))
+        playback.bind(
+            grid_pos=self.setter("grid_pos"),
+            on_remove=self._on_playback_remove,
+            on_unload=self._on_playback_remove
+        )
         super().__init__(**kwargs)
 
     def on_map_layout(self, _, map_layout: Optional[EditorMapLayout]):
@@ -36,7 +42,8 @@ class EditorPlaybackUi(BasePlaybackUi):
     def on_select_edited_playback(self, _:Any):
         self.canvas.remove_group("selected_edit")
         if self.map_layout is None:
-            raise RuntimeError()
+            logger.warning("on_select_edited_playback, self.map_layout is None")
+            return
         if self.playback is self.map_layout.playback:
             with self.canvas:
                 Color(*cs.EditorPlaybackUi.selected_edit_color)
@@ -45,6 +52,15 @@ class EditorPlaybackUi(BasePlaybackUi):
                     pos=(self.edit_label_x, self.edit_label_y),
                     group="selected_edit"
                 )
+
+    def _on_playback_remove(self, playback: RowPlayback):
+        if self.map_layout is None:
+            raise RuntimeError()
+        self.map_layout.unbind(
+            playback=self.select_edited_playback_ev
+        )
+        if self.map_layout.playback is playback:
+            self.map_layout.playback = None
 
     def on_release_play_button(self):
         if self.map_layout is None:

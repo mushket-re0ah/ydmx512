@@ -140,7 +140,7 @@
             tooltip_text: "Циклическое воспроизведение"
             background_normal: imgs_path.automationToolbar_cycle_normal
             background_down: imgs_path.automationToolbar_cycle_down
-            on_is_down: root.playback.player.edit(is_cycle=self.is_down)
+            on_press: root.playback.player.edit(is_cycle=self.is_down)
             is_down: root.playback.player.is_cycle if root.playback else False
         ImageToggleButton:
             id: btn_play

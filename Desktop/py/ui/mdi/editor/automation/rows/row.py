@@ -103,7 +103,7 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
 
     selector: RowDotsSelector = ObjectProperty(None, allownone=True)
 
-    playback: RowPlayback = ObjectProperty(None, allownone=True, rebind=True)
+    playback: Optional[RowPlayback] = ObjectProperty(None, allownone=True, rebind=True)
     beat_line_points: Tuple[float, ...] = ListProperty()
     halfbeat_line_points: Tuple[float, ...] = ListProperty()
 
@@ -192,8 +192,8 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
         quant_width, quant_height = self.quant_size
         return (frame_x * quant_width, frame_y * quant_height)
 
-    def draw(self, _):
-        if not self.parent:
+    def draw(self, _:Any):
+        if not self.parent or self.playback is None:
             return
         self.canvas.before.remove_group("render_lines")
         self.canvas.before.remove_group("dots")
@@ -234,6 +234,8 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
         return self.RENDER_SLAVE_LINE_WIDTH
 
     def _get_patch_render(self, patch: RowPatch, index: int, frame: int) -> Optional[int]:
+        if self.playback is None:
+            return None
         if self.automation.toolbar.clear_render_mode:
             return self.playback.player.get_patch_render(patch, index, frame)
         render = self.playback.renderer.get_patch_render(patch, index)
@@ -286,6 +288,8 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
         (True, True, InterpolationType.SPLINE): cs.RowParam.dot_color_spline_selected_hovered,
     }
     def draw_dots(self):
+        if self.playback is None:
+            return
         row_param = self.row_param
         render_rows = row_param.render_rows
         if not render_rows:
@@ -335,7 +339,10 @@ class RowParamTactBox(AnimationBehavior, HoverBehavior, Widget):
 
     def get_quant_size(self) -> Tuple[float, float]:
         quant_width = self.automation.quant_width
-        quant_height = (self.height - self.padding_y * 2) / self.row_panel.xy_grid.size_y_getter()
+        xy_grid = self.row_panel.xy_grid
+        if xy_grid is None:
+            return (quant_width, 0.0)
+        quant_height = (self.height - self.padding_y * 2) / xy_grid.size_y_getter()
         return (quant_width, quant_height)
     quant_size: Tuple[float, float] = AliasProperty(
         get_quant_size,

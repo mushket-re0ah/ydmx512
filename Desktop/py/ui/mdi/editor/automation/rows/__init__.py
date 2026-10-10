@@ -90,6 +90,12 @@ class RowPanel(ScrollLayout):
         )
         super().__init__(**kwargs)
 
+    def on_playback(self, _: "RowPanel", playback: Optional[RowPlayback]):
+        if playback is None:
+            for row in self.rows_data_manager:
+                row.playback = None
+            self._update_rows(None)
+
     def on_kv_post(self, base_widget: Widget):
         super().on_kv_post(base_widget)
         self.automation.editor_content.bind(on_render_changed=self._on_render_changed)
@@ -185,6 +191,8 @@ class RowPanel(ScrollLayout):
     rows_data_manager = ObjectProperty(RowsDataManager([]))
     def _update_rows(self, _):
         if not self.playback:
+            self.rows_data_manager = RowsDataManager()
+            self.scrollview.data = self.rows_data_manager
             return
         self._register_active_patch()
         dmx_utils.update_dmx512_by_patch_list(self.renderer, self.active_patch)

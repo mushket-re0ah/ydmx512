@@ -2,7 +2,7 @@ from typing import Any, Optional, TypedDict
 
 from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.properties import AliasProperty, NumericProperty, ObjectProperty
+from kivy.properties import NumericProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.widget import Widget

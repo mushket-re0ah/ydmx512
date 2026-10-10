@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 class RowParamData(AutoUnbindBehavior, EventDispatcher):
     row_panel: "RowPanel" = ObjectProperty()
     automation: "Automation" = ObjectProperty()
-    playback: RowPlayback = ObjectProperty()
+    playback: Optional[RowPlayback] = ObjectProperty(allownone=True)
     patch_group: Tuple[RowPatch, ...] = ListProperty()
     fixture_index: Dict[RowPatch, Tuple[int, ...]] = ObjectProperty()
     fixture_param: RowFixtureParam = ObjectProperty()
@@ -39,7 +39,7 @@ class RowParamData(AutoUnbindBehavior, EventDispatcher):
     master_render_row: PlaybackRenderRow = AliasProperty(lambda self: self.render_rows[0])
     has_data: bool = BooleanProperty(False)
 
-    render_rows_by_address: Dict[FullAddress, Tuple[PlaybackRenderRow, ...]] = DictProperty({})
+    render_rows_by_address: Dict[FullAddress, Tuple[PlaybackRenderRow, ...]] = DictProperty()
 
     row_phase_spec: Optional[RowPhaseSpec] = ObjectProperty(None, allownone=True)
     interpatch_spec: Optional[InterpatchSpec] = ObjectProperty(None, allownone=True)

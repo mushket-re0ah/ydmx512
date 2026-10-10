@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Optional
 from kivy.lang import Builder
 from kivy.properties import BooleanProperty, ObjectProperty
 
+from database.patch import RowPatch
 from database.playback import RowPlayback
 from database.playback.renderer import PlaybackRenderer
 from database.playback.renderer.render_data import InterpatchSpec
@@ -56,7 +57,7 @@ class EditorPatchUi(ExpansiveToggleButtonBehavior, BasePatchUi):
             "render_data_exist": cs.EditorPatchUi.border_data_exist
         }
     )
-    playback: RowPlayback = ObjectProperty()
+    playback: Optional[RowPlayback] = ObjectProperty(allownone=True)
     patch_map_editor: "PatchEditorMap" = ObjectProperty()
 
     interpatch_phase_spec: Optional[InterpatchSpec] = ObjectProperty(None, allownone=True)
@@ -67,12 +68,24 @@ class EditorPatchUi(ExpansiveToggleButtonBehavior, BasePatchUi):
 
     def __init__(self, **kwargs: Any):
         patch = kwargs["patch"]
-        patch.bind(grid_pos=self.setter("grid_pos"))
+        patch.bind(
+            grid_pos=self.setter("grid_pos"),
+            on_remove=self._on_patch_remove,
+            on_unload=self._on_patch_remove,
+        )
         super().__init__(**kwargs)
         self.patch_map_editor.editor_content.bind(on_render_changed=self._sync_render)
 
-    def on_playback(self, _, playback: RowPlayback):
+    def on_playback(self, _, playback: Optional[RowPlayback]):
+        if playback is None:
+            self.render_data_exist = False
+            self.interpatch_phase_spec = None
+            return
         self._sync_render(_, playback.renderer)
+
+    def _on_patch_remove(self, patch: RowPatch):
+        self.patch_map_editor.editor_content.unbind(on_render_changed=self._sync_render)
+        self.patch_map_editor.deactivate_patch(patch)
 
     def _sync_render(self, _:Any, renderer: PlaybackRenderer):
         self.render_data_exist = renderer.patch_render_data_exist(self.patch)

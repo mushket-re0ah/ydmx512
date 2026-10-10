@@ -26,6 +26,7 @@ class EditorContent(BoxLayout):
     playback: Optional[RowPlayback] = ObjectProperty(None, allownone=True, rebind=True)
     renderer: Optional[PlaybackRenderer] = BindableObjectProperty(
         bind={"on_render_changed": "_redispatch_render_changed"},
+        allownone=True
     )
 
     playback_map: PlaybackEditorMapSection = ObjectProperty()
