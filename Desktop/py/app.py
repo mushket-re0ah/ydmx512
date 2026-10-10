@@ -223,13 +223,13 @@ class DesktopApp(KeyboardBehavior, App):
             db.misc.edit(maximize=False)
         self._if_window_minimize = False
 
-    def _set_density(self, _, value: float):
+    def _set_density(self, _: "DesktopApp", value: float):
         Metrics.density = value
 
-    def _set_scale_font(self, _, value: float):
+    def _set_scale_font(self, _: "DesktopApp", value: float):
         Metrics.fontscale = value
 
-    def open_settings(self, *_):
+    def open_settings(self, *_: Any):
         """
                 Отключение меню настроек на F1
         """

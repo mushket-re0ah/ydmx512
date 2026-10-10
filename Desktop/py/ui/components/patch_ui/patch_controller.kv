@@ -33,6 +33,14 @@
         valign: "center"
         text_size: self.size
         font_size: "13sp"
+    RestrictedLabel:
+        size_hint: (None, 1)
+        width: "100dp"
+        text: root.mapped_fixture_param.title if root.mapped_fixture_param else ""
+        halign: "left"
+        valign: "center"
+        text_size: self.size
+        font_size: "13sp"
     NumericInput:
         id: dmx_input
         size_hint: (None, 1)
@@ -54,7 +62,7 @@
 
 
 <PatchControllerMenu>: # ModalBoxLayout
-    size: ("400dp", "400dp")
+    size: ("500dp", "400dp")
     scroll_layout: scroll_layout
 
     padding: (0, 0)

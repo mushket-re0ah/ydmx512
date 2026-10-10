@@ -1,5 +1,6 @@
 from typing import Any, Optional, TypedDict
 
+from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import AliasProperty, NumericProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -37,46 +38,63 @@ class PatchControllerMenuChannel(RecycleDataViewBehavior, BoxLayout):
         None,
         allownone=True,
         bind={
-            "mapper": "on_patch_mapper"
+            "mapper": "on_patch_mapper",
+            "param_list_unpacked": "on_param_list_unpacked",
         }
     )
     fixture_param: Optional[RowFixtureParam] = ObjectProperty()
     index: Optional[int] = NumericProperty()
     value: int = NumericProperty()
 
-    universe = AliasProperty(lambda self: self.patch.universe)
-    address = AliasProperty(lambda self: self.patch.start_address + self.index)
+    universe: Optional[int] = NumericProperty(allownone=True)
+    address: Optional[int] = NumericProperty(allownone=True)
 
-    mapper_value: Optional[int] = AliasProperty(
-        lambda self: self.patch.get_mapper_value(self.index) if self.patch else None,
-        cache=True,
-        bind=("index", "patch")
-    )
+    mapper_value: Optional[int] = NumericProperty(allownone=True)
+    mapped_address: Optional[int] = NumericProperty(allownone=True)
+    mapped_fixture_param: Optional[RowFixtureParam] = ObjectProperty(allownone=True)
 
-    mapped_address: Optional[int] = AliasProperty(
-        lambda self: self.mapper_value + self.patch.start_address if\
-                                        self.mapper_value is not None and\
-                                        self.patch is not None else None,
-        bind=("mapper_value", "patch")
-    )
-
-    maximum_value: int = NumericProperty(255)
+    maximum_value: int = NumericProperty(255, rebind=True)
     _allow_write: bool = False
     _allow_read: bool = True
 
     def on_kv_post(self, base_widget: Widget):
+        self.trigger_recalc_mapped_values = Clock.create_trigger(self._recalc_mapped_values, 0)
         super().on_kv_post(base_widget)
         db.scene.bind(scene_now_dimmer=self.update)
+
+    def _recalc_mapped_values(self, *_:Any):
+        if self.patch is not None and self.index is not None:
+            self.universe = self.patch.universe
+            self.address = self.patch.start_address + self.index
+            self.mapper_value = self.patch.get_mapper_value(self.index)
+        else:
+            self.mapper_value = None
+
+        if self.mapper_value is not None and self.patch is not None:
+            self.mapped_address = self.mapper_value + self.patch.start_address
+            self.mapped_fixture_param = self.patch.param_list_unpacked[self.mapper_value]
+        else:
+            self.mapped_address = None
+            self.mapped_fixture_param = None
+
+        self.update()
+
+    def on_patch(self, *_:Any):
+        self.trigger_recalc_mapped_values()
+
+    def on_index(self, *_:Any):
+        self.trigger_recalc_mapped_values()
+
+    def on_mapper_value(self, *_:Any):
+        self.trigger_recalc_mapped_values()
+
+    def on_param_list_unpacked(self, *_:Any):
+        self.trigger_recalc_mapped_values()
 
     def on_patch_mapper(self, *_:Any):
         self._allow_read = False
         self._allow_write = False
-        self.property("patch").dispatch(self)
-        self.update()
-        self._allow_write = True
-        self._allow_read = True
-        if self.mapped_address is not None:
-            self.value = dmx512.get_value(self.universe, self.mapped_address)
+        self.trigger_recalc_mapped_values()
 
     def remap_to(self, value: Optional[int]):
         if not self._allow_write or self.patch is None or self.index is None:
@@ -87,23 +105,32 @@ class PatchControllerMenuChannel(RecycleDataViewBehavior, BoxLayout):
 
     def update(self, *_:Any):
         if self.fixture_param is not None:
-            if self.fixture_param.title_id == DIMMER_TITLE_ID:
-                self.maximum_value = int(255 * db.scene.scene_now_dimmer / 100)
-            if self.mapped_address is not None:
+            if self.mapped_address is not None and self.universe is not None:
                 if self._allow_read:
                     self.value = dmx512.get_value(self.universe, self.mapped_address)
+            if self.mapped_fixture_param is not None:
+                if self.mapped_fixture_param.title_id == DIMMER_TITLE_ID:
+                    self.maximum_value = int(255 * db.scene.scene_now_dimmer / 100)
+                else:
+                    self.maximum_value = 255
+                value_track_color = self.mapped_fixture_param.color
+            else:
+                self.maximum_value = 255
                 value_track_color = self.fixture_param.color
-                self.dmx_slider.property("value_track_color").set_normal(
-                    self.dmx_slider,
-                    value_track_color
-                )
-        disabled = (
-            dmx512.check_address_force(self.universe, self.address) or
-            self.maximum_value == 0 or
-            self.mapper_value is None
-        )
-        self.dmx_input.disabled = disabled
-        self.dmx_slider.disabled = disabled
+            self.dmx_slider.property("value_track_color").set_normal(
+                self.dmx_slider,
+                value_track_color
+            )
+        if self.universe is not None and self.mapped_address is not None:
+            disabled = (
+                dmx512.check_address_force(self.universe, self.mapped_address) or
+                self.maximum_value == 0 or
+                self.mapper_value is None
+            )
+            self.dmx_input.disabled = disabled
+            self.dmx_slider.disabled = disabled
+        self._allow_write = True
+        self._allow_read = True
 
     def refresh_view_attrs( # pyright: ignore[reportIncompatibleMethodOverride]
             self,
@@ -113,15 +140,13 @@ class PatchControllerMenuChannel(RecycleDataViewBehavior, BoxLayout):
         ):
         self._allow_write = False
         super().refresh_view_attrs(rv, index, data)  # pyright: ignore[reportArgumentType]
-        self.update()
+        self.trigger_recalc_mapped_values()
         self._allow_write = True
 
     def on_value(self, _, value: int):
         if not self._allow_write:
             return
-        if self.mapped_address is None:
-            return
-        if self.patch is None:
+        if self.mapped_address is None or self.patch is None:
             return
         dmx512.set_value(self.patch.universe, self.mapped_address, value)
 
